@@ -3,6 +3,8 @@ import {
   getDocs,
   query,
   where,
+  deleteDoc,
+  doc,
 } from "firebase/firestore";
 
 import { db } from "@/firebase/config";
@@ -13,27 +15,28 @@ import {
 } from "react";
 
 import {
+  useNavigate,
+} from "react-router-dom";
+
+import { useAuth } from "@/context/AuthContext";
+
+import {
   Card,
   CardContent,
 } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
 
+import { Input } from "@/components/ui/input";
+
 import {
   Package,
-  Plus,
   Search,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 
-import {
-  Input,
-} from "@/components/ui/input";
-
-import {
-  useNavigate,
-} from "react-router-dom";
-
-import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export default function ProductList() {
 
@@ -50,6 +53,7 @@ export default function ProductList() {
   const [loading, setLoading] =
     useState(true);
 
+  // Fetch Products
   const fetchProducts =
     async () => {
 
@@ -57,6 +61,7 @@ export default function ProductList() {
 
         const q = query(
           collection(db, "products"),
+
           where(
             "sellerId",
             "==",
@@ -93,9 +98,46 @@ export default function ProductList() {
 
   }, [user]);
 
+  // Delete Product
+  const handleDelete =
+    async (productId) => {
+
+      const confirmDelete =
+        window.confirm(
+          "Delete this product?"
+        );
+
+      if (!confirmDelete)
+        return;
+
+      try {
+
+        await deleteDoc(
+          doc(
+            db,
+            "products",
+            productId
+          )
+        );
+
+        toast.success(
+          "Product deleted"
+        );
+
+        fetchProducts();
+
+      } catch (error) {
+
+        toast.error(
+          error.message
+        );
+      }
+    };
+
+  // Search Filter
   const filteredProducts =
     products.filter((product) =>
-      product.name
+      product.productName
         ?.toLowerCase()
         .includes(
           search.toLowerCase()
@@ -110,12 +152,16 @@ export default function ProductList() {
 
         <div>
 
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-3xl font-bold text-white">
+
             Products
+
           </h1>
 
           <p className="text-zinc-400 mt-2">
-            Manage your catalog
+
+            Manage seller catalog inventory
+
           </p>
 
         </div>
@@ -126,20 +172,20 @@ export default function ProductList() {
               "/seller/products/add"
             )
           }
-          className="flex items-center gap-2"
         >
-          <Plus size={18} />
+
           Add Product
+
         </Button>
 
       </div>
 
       {/* Search */}
-      <div className="mb-6 relative">
+      <div className="relative mb-6">
 
         <Search
-          className="absolute left-3 top-3 text-zinc-500"
           size={18}
+          className="absolute left-3 top-3 text-zinc-500"
         />
 
         <Input
@@ -155,7 +201,7 @@ export default function ProductList() {
 
       </div>
 
-      {/* Product Table */}
+      {/* Table */}
       <Card className="bg-zinc-900 border-zinc-800">
 
         <CardContent className="p-0 overflow-auto">
@@ -171,27 +217,19 @@ export default function ProductList() {
                 </th>
 
                 <th className="p-4">
-                  SKU
+                  Parent SKU
                 </th>
 
                 <th className="p-4">
-                  Category
+                  Variants
                 </th>
 
                 <th className="p-4">
-                  Price
+                  Total Qty
                 </th>
 
                 <th className="p-4">
-                  Stock
-                </th>
-
-                <th className="p-4">
-                  Status
-                </th>
-
-                <th className="p-4">
-                  Action
+                  Actions
                 </th>
 
               </tr>
@@ -201,89 +239,182 @@ export default function ProductList() {
             <tbody>
 
               {filteredProducts.map(
-                (product) => (
+                (product) => {
 
-                  <tr
-                    key={product.id}
-                    className="border-t border-zinc-800 hover:bg-zinc-800/40"
-                  >
+                  const variants =
+                    Object.values(
+                      product.variants ||
+                        {}
+                    );
 
-                    <td className="p-4">
+                  const totalQty =
+                    variants.reduce(
+                      (
+                        total,
+                        variant
+                      ) =>
+                        total +
+                        Number(
+                          variant.qty ||
+                            0
+                        ),
+                      0
+                    );
 
-                      <div className="flex items-center gap-3">
+                  return (
+                    <tr
+                      key={product.id}
+                      className="border-t border-zinc-800 hover:bg-zinc-800/40"
+                    >
 
-                        <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center">
+                      {/* Product */}
+                      <td className="p-4">
 
-                          <Package size={18} />
+                        <div className="flex items-center gap-3">
+
+                          <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center">
+
+                            <Package
+                              size={18}
+                            />
+
+                          </div>
+
+                          <div>
+
+                            <p className="font-medium text-white">
+
+                              {
+                                product.productName
+                              }
+
+                            </p>
+
+                            <p className="text-zinc-400 text-sm">
+
+                              {
+                                product.subCategory
+                              }
+
+                            </p>
+
+                          </div>
 
                         </div>
 
-                        <div>
+                      </td>
 
-                          <p className="font-medium">
-                            {
-                              product.name
-                            }
-                          </p>
+                      {/* Parent SKU */}
+                      <td className="p-4 text-white">
 
-                          <p className="text-zinc-400 text-sm">
-                            {
-                              product.brand
-                            }
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </td>
-
-                    <td className="p-4">
-                      {product.sku}
-                    </td>
-
-                    <td className="p-4">
-                      {
-                        product.category
-                      }
-                    </td>
-
-                    <td className="p-4">
-                      ₹
-                      {product.price}
-                    </td>
-
-                    <td className="p-4">
-                      {
-                        product.stock
-                      }
-                    </td>
-
-                    <td className="p-4">
-
-                      <span className="px-3 py-1 rounded-full text-xs bg-green-500/20 text-green-400">
-
-                        Active
-
-                      </span>
-
-                    </td>
-
-                    <td className="p-4">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          navigate(
-                            `/seller/products/edit/${product.id}`
-                          )
+                        {
+                          product.parentSKU
                         }
-                      >
-                        Edit
-                      </Button>
-                    </td>
 
-                  </tr>
-                )
+                      </td>
+
+                      {/* Variants */}
+                      <td className="p-4">
+
+                        <div className="flex flex-wrap gap-2">
+
+                          {Object.entries(
+                            product.variants ||
+                              {}
+                          ).map(
+                            (
+                              [
+                                size,
+                                variant,
+                              ]
+                            ) => (
+
+                              <span
+                                key={
+                                  size
+                                }
+                                className="px-2 py-1 rounded-md bg-zinc-800 text-xs text-zinc-300"
+                              >
+
+                                {size}
+                                {" • "}
+                                {
+                                  variant.qty
+                                }
+
+                              </span>
+
+                            )
+                          )}
+
+                        </div>
+
+                      </td>
+
+                      {/* Total Qty */}
+                      <td className="p-4">
+
+                        <span
+                          className={`font-semibold ${
+                            totalQty <=
+                            5
+                              ? "text-red-400"
+                              : totalQty <=
+                                15
+                              ? "text-yellow-400"
+                              : "text-green-400"
+                          }`}
+                        >
+
+                          {totalQty}
+
+                        </span>
+
+                      </td>
+
+                      {/* Actions */}
+                      <td className="p-4">
+
+                        <div className="flex gap-2">
+
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              navigate(
+                                `/seller/products/edit/${product.id}`
+                              )
+                            }
+                          >
+
+                            <Pencil
+                              size={16}
+                            />
+
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() =>
+                              handleDelete(
+                                product.id
+                              )
+                            }
+                          >
+
+                            <Trash2
+                              size={16}
+                            />
+
+                          </Button>
+
+                        </div>
+
+                      </td>
+
+                    </tr>
+                  );
+                }
               )}
 
             </tbody>
@@ -292,7 +423,7 @@ export default function ProductList() {
 
           {!loading &&
             filteredProducts.length ===
-            0 && (
+              0 && (
 
               <div className="p-12 text-center">
 
@@ -301,7 +432,7 @@ export default function ProductList() {
                   className="mx-auto text-zinc-600"
                 />
 
-                <h3 className="text-xl font-semibold mt-4">
+                <h3 className="text-xl font-semibold mt-4 text-white">
 
                   No products found
 
@@ -309,7 +440,7 @@ export default function ProductList() {
 
                 <p className="text-zinc-400 mt-2">
 
-                  Start building your catalog
+                  Create your first catalog
 
                 </p>
 

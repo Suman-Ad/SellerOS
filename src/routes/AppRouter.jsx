@@ -19,6 +19,8 @@ import ProductList from "@/pages/Seller/Products/ProductList";
 import AddProduct from "@/pages/Seller/Products/AddProduct";
 import EditProduct from "@/pages/Seller/Products/EditProduct";
 
+import Inventory from "@/pages/Seller/Inventory/Inventory";
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -106,6 +108,11 @@ export default function AppRouter() {
             path="products/edit/:productId"
             element={<EditProduct />}
           />
+
+          <Route
+  path="inventory"
+  element={<Inventory />}
+/>
 
         </Route>
 
