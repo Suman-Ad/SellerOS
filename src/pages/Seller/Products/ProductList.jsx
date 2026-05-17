@@ -5,6 +5,7 @@ import {
   where,
   deleteDoc,
   doc,
+  onSnapshot
 } from "firebase/firestore";
 
 import { db } from "@/firebase/config";
@@ -54,23 +55,18 @@ export default function ProductList() {
     useState(true);
 
   // Fetch Products
-  const fetchProducts =
-    async () => {
+  useEffect(() => {
 
-      try {
+    if (!user?.uid) return;
 
-        const q = query(
-          collection(db, "products"),
+    const q = query(
+      collection(db, "products"),
+      where("sellerId", "==", user.uid)
+    );
 
-          where(
-            "sellerId",
-            "==",
-            user.uid
-          )
-        );
-
-        const snapshot =
-          await getDocs(q);
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
 
         const productList =
           snapshot.docs.map((doc) => ({
@@ -80,21 +76,15 @@ export default function ProductList() {
 
         setProducts(productList);
 
-      } catch (error) {
-
+        setLoading(false);
+      },
+      (error) => {
         console.error(error);
-
-      } finally {
-
         setLoading(false);
       }
-    };
+    );
 
-  useEffect(() => {
-
-    if (user?.uid) {
-      fetchProducts();
-    }
+    return () => unsubscribe();
 
   }, [user]);
 
@@ -124,7 +114,7 @@ export default function ProductList() {
           "Product deleted"
         );
 
-        fetchProducts();
+        // fetchProducts();
 
       } catch (error) {
 
@@ -244,7 +234,7 @@ export default function ProductList() {
                   const variants =
                     Object.values(
                       product.variants ||
-                        {}
+                      {}
                     );
 
                   const totalQty =
@@ -256,7 +246,7 @@ export default function ProductList() {
                         total +
                         Number(
                           variant.qty ||
-                            0
+                          0
                         ),
                       0
                     );
@@ -320,7 +310,7 @@ export default function ProductList() {
 
                           {Object.entries(
                             product.variants ||
-                              {}
+                            {}
                           ).map(
                             (
                               [
@@ -355,15 +345,14 @@ export default function ProductList() {
                       <td className="p-4">
 
                         <span
-                          className={`font-semibold ${
-                            totalQty <=
-                            5
+                          className={`font-semibold ${totalQty <=
+                              5
                               ? "text-red-400"
                               : totalQty <=
                                 15
-                              ? "text-yellow-400"
-                              : "text-green-400"
-                          }`}
+                                ? "text-yellow-400"
+                                : "text-green-400"
+                            }`}
                         >
 
                           {totalQty}
@@ -423,7 +412,7 @@ export default function ProductList() {
 
           {!loading &&
             filteredProducts.length ===
-              0 && (
+            0 && (
 
               <div className="p-12 text-center">
 

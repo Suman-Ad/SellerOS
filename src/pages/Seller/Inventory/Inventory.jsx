@@ -39,7 +39,6 @@ import {
 
 import QRCode from "react-qr-code";
 
-import Barcode from "react-barcode";
 
 import {
   flexRender,
@@ -47,6 +46,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
 
 
 export default function Inventory() {
@@ -97,70 +97,57 @@ export default function Inventory() {
   const inventoryItems =
     useMemo(() => {
 
-      return products.flatMap(
-        (product) =>
+      return products.flatMap((product) => {
 
-          (product.variants || []).map(
-            (variant) => {
+        const variants = Array.isArray(product.variants)
+          ? product.variants
+          : Object.values(product.variants || {});
 
-              const stock =
-                Number(
-                  variant.stock || 0
-                );
+        return variants.map((variant) => {
 
-              const reorderLevel =
-                Number(
-                  variant.reorderLevel || 5
-                );
+          const stock = Number(variant.qty || 0);
 
-              let status =
-                "Healthy";
+          const reorderLevel = Number(
+            variant.reorderLevel || 5
+          );
 
-              if (stock <= 0) {
-                status =
-                  "Out Of Stock";
-              } else if (
-                stock <= reorderLevel
-              ) {
-                status =
-                  "Critical";
-              } else if (
-                stock <= reorderLevel + 5
-              ) {
-                status =
-                  "Low";
-              }
+          let status = "Healthy";
 
-              return {
-                productId:
-                  product.id,
+          if (stock <= 0) {
+            status = "Out Of Stock";
+          } else if (stock <= reorderLevel) {
+            status = "Critical";
+          } else if (stock <= reorderLevel + 5) {
+            status = "Low";
+          }
 
-                productName:
-                  product.name,
+          return {
+            variantId:
+              variant.sku ||
+              `${product.id}-${variant.size}`,
 
-                brand:
-                  product.brand,
+            productId: product.id,
 
-                category:
-                  product.category,
+            productName:
+              product.productName,
 
-                image:
-                  product.images?.[0] || "",
+            brand: product.brand,
 
-                inventoryValue:
-                  stock *
-                  Number(
-                    variant.purchasePrice ||
-                    0
-                  ),
+            category: product.category,
 
-                status,
+            image:
+              product.images?.[0] || "",
 
-                ...variant,
-              };
-            }
-          )
-      );
+            inventoryValue:
+              Number(stock) *
+              Number(variant.buyingPrice || 0),
+
+            status,
+
+            ...variant,
+          };
+        });
+      });
 
     }, [products]);
 
@@ -183,8 +170,8 @@ export default function Inventory() {
               ?.toLowerCase()
               .includes(searchTerm) ||
 
-            item.barcode
-              ?.toLowerCase()
+            String(item.barcode || "")
+              .toLowerCase()
               .includes(searchTerm) ||
 
             item.brand
@@ -213,57 +200,36 @@ export default function Inventory() {
 
         if (!product) return;
 
-        const updatedVariants =
-          product.variants.map(
-            (variant) => {
+        const updatedVariants = {
+          ...product.variants,
+        };
 
-              if (
-                variant.sku === sku
-              ) {
+        Object.keys(updatedVariants).forEach((key) => {
 
-                addDoc(
-                  collection(
-                    db,
-                    "inventory_movements"
-                  ),
-                  {
-                    sku,
-                    type:
-                      "ADJUSTMENT",
-                    beforeStock:
-                      Number(
-                        variant.stock ||
-                        0
-                      ),
-                    afterStock:
-                      Number(newStock),
-                    quantity:
-                      Number(newStock) -
-                      Number(
-                        variant.stock ||
-                        0
-                      ),
-                    sellerId:
-                      user.uid,
-                    createdAt:
-                      serverTimestamp(),
-                  }
-                );
+          if (updatedVariants[key].sku === sku) {
 
-                return {
-                  ...variant,
-                  stock:
-                    Number(
-                      newStock
-                    ),
-                  lastUpdated:
-                    serverTimestamp(),
-                };
+            addDoc(
+              collection(db, "inventory_movements"),
+              {
+                sku,
+                type: "ADJUSTMENT",
+                beforeStock: Number(updatedVariants[key].qty || 0),
+                afterStock: Number(newStock),
+                quantity:
+                  Number(newStock) -
+                  Number(updatedVariants[key].qty || 0),
+                sellerId: user.uid,
+                createdAt: serverTimestamp(),
               }
+            );
 
-              return variant;
-            }
-          );
+            updatedVariants[key] = {
+              ...updatedVariants[key],
+              qty: Number(newStock),
+              lastUpdated: serverTimestamp(),
+            };
+          }
+        });
 
         await updateDoc(
           doc(
@@ -293,15 +259,18 @@ export default function Inventory() {
 
         <div className="flex items-center gap-3">
 
-          <img
-            src={
-              row.original.image || "/placeholder.png"
-            }
-            onError={(e) => {
-              e.target.src = "/placeholder.png"
-            }}
-            className="w-14 h-14 rounded-lg object-cover"
-          />
+          <div className="w-14 h-14 min-w-14 min-h-14 overflow-hidden rounded-lg bg-zinc-800 flex items-center justify-center">
+
+            <img
+              src={row.original.image || "/placeholder.png"}
+              onError={(e) => {
+                e.target.src = "/placeholder.png";
+              }}
+              loading="lazy"
+              className="w-full h-full object-cover"
+            />
+
+          </div>
 
           <div>
             <p className="font-semibold">
@@ -329,16 +298,23 @@ export default function Inventory() {
     },
 
     {
-      accessorKey: "stock",
+      accessorKey: "qty",
       header: "Stock",
 
       cell: ({ row }) => (
 
         <Input
           type="number"
-          defaultValue={
-            row.original.stock
+          value={
+            row.original.qty || 0
           }
+
+          onChange={(e) => {
+
+            const value = e.target.value;
+
+            row.original.qty = value;
+          }}
 
           onBlur={(e) =>
             updateStock(
@@ -395,40 +371,8 @@ export default function Inventory() {
       ),
     },
 
-    {
-      accessorKey: "barcode",
-      header: "Barcode",
 
-      cell: ({ row }) => (
 
-        <Barcode
-          value={
-            row.original.barcode ||
-            row.original.sku
-          }
-          height={30}
-          width={1}
-          fontSize={10}
-        />
-      ),
-    },
-
-    {
-      accessorKey: "qr",
-      header: "QR",
-
-      cell: ({ row }) => (
-
-        <div className="bg-white p-1 rounded">
-          <QRCode
-            value={
-              row.original.sku
-            }
-            size={45}
-          />
-        </div>
-      ),
-    },
 
   ];
 
@@ -506,7 +450,7 @@ export default function Inventory() {
                   (a, b) =>
                     a +
                     Number(
-                      b.stock || 0
+                      b.qty || 0
                     ),
                   0
                 )
@@ -596,7 +540,7 @@ export default function Inventory() {
 
                   <tr
                     key={row.id}
-                    className="border-t border-zinc-800 hover:bg-zinc-800/40"
+                    className="border-t border-zinc-800 hover:bg-zinc-800/40 h-[88px]"
                   >
 
                     {row

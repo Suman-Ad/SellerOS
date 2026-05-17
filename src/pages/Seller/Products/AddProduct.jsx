@@ -326,8 +326,8 @@ export default function AddProduct() {
                         parentSKU:
                             formData.parentSKU,
                         
-                        batchSeries:
-                            formData.batchSeries,
+                        // batchSeries:
+                        //     formData.batchSeries,
 
                         variants:
                             formData.variants,
