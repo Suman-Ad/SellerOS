@@ -283,6 +283,8 @@ export default function ProductList() {
                             <p className="text-zinc-400 text-sm">
 
                               {
+                                product.brand
+                              }-{
                                 product.subCategory
                               }
 

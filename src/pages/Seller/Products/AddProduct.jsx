@@ -208,19 +208,34 @@ export default function AddProduct() {
 
                     size,
 
+                    color: formData.color,
+
                     sku: variantSKU,
-                    batchSeries:
+                    skuHistory: [],
+
+                    batchNo:
                         generateBatchNo(size),
 
                     barcode: "",
 
                     qty: 0,
+                    reservedQty: 0,
+                    damagedQty: 0,
+                    soldQty: 0,
 
                     initialQty: 0,
+
+                    lowStockAlert: 0,
 
                     buyingPrice: 0,
 
                     sellingPrice: 0,
+
+                    inventoryHistory: [],
+
+                    qrEnabled: true,
+                    qrGenerated: false,
+                    qrPrinted: false,
 
                     marketplaces: {
 
@@ -240,7 +255,6 @@ export default function AddProduct() {
                         },
                     },
 
-                    qrEnabled: true,
                 },
             },
         });
@@ -325,7 +339,7 @@ export default function AddProduct() {
 
                         parentSKU:
                             formData.parentSKU,
-                        
+
                         // batchSeries:
                         //     formData.batchSeries,
 
@@ -629,7 +643,7 @@ export default function AddProduct() {
 
                                                 <Input
                                                     value={
-                                                        variant.batchSeries
+                                                        variant.batchNo
                                                     }
                                                     disabled
                                                 />

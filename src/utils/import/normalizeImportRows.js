@@ -1,0 +1,375 @@
+import importProfiles from "./config/importProfiles";
+import normalizeSize from "./normalizeSize";
+
+// ====================================
+// GET VALUE FROM PROFILE
+// ====================================
+
+const getMappedValue = (
+    row,
+    possibleFields = []
+) => {
+
+    for (const field of possibleFields) {
+
+        // exact match
+
+        if (
+            row[field] !== undefined &&
+            row[field] !== null &&
+            row[field] !== ""
+        ) {
+
+            return row[field];
+        }
+
+        // case insensitive fallback
+
+        const matchedKey =
+            Object.keys(row).find(
+                (key) =>
+                    key
+                        .trim()
+                        .toLowerCase()
+
+                    ===
+
+                    field
+                        .trim()
+                        .toLowerCase()
+            );
+
+        if (
+            matchedKey &&
+            row[matchedKey] !== undefined
+        ) {
+
+            return row[matchedKey];
+        }
+    }
+
+    return "";
+};
+
+// ====================================
+// NORMALIZE NUMBER
+// ====================================
+
+const normalizeNumber = (
+    value,
+    fallback = 0
+) => {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return fallback;
+    }
+
+    const cleaned =
+        String(value)
+            .replace(/,/g, "")
+            .replace(/[^0-9.-]/g, "");
+
+    const number =
+        Number(cleaned);
+
+    return Number.isNaN(number)
+        ? fallback
+        : number;
+};
+
+// ====================================
+// NORMALIZE DATE
+// ====================================
+
+const normalizeDate = (
+    value
+) => {
+
+    if (!value) return null;
+
+    try {
+
+        const date =
+            new Date(value);
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return null;
+        }
+
+        return date;
+
+    } catch (err) {
+
+        return null;
+    }
+};
+
+// ====================================
+// NORMALIZE STATUS
+// ====================================
+
+const normalizeStatus = (
+    status = ""
+) => {
+
+    const value =
+        String(status)
+            .trim()
+            .toLowerCase();
+
+    if (
+        value.includes("deliver")
+    ) {
+
+        return "Delivered";
+    }
+
+    if (
+        value.includes("ship")
+    ) {
+
+        return "Shipped";
+    }
+
+    if (
+        value.includes("rto")
+    ) {
+
+        return "RTO";
+    }
+
+    if (
+        value.includes("cancel")
+    ) {
+
+        return "Cancelled";
+    }
+
+    return "Pending";
+};
+
+// ====================================
+// MAIN
+// ====================================
+
+const normalizeImportRows = ({
+    rows = [],
+    platform = "meesho",
+    importType = "orders",
+}) => {
+
+    try {
+
+        // ====================================
+        // PROFILE
+        // ====================================
+
+        const platformProfile =
+            importProfiles?.[
+                platform
+            ];
+
+        if (!platformProfile) {
+
+            throw new Error(
+                `Unsupported platform: ${platform}`
+            );
+        }
+
+        const profile =
+            platformProfile?.[
+                importType
+            ];
+
+        if (!profile) {
+
+            throw new Error(
+                `Missing import profile for ${platform}/${importType}`
+            );
+        }
+
+        // ====================================
+        // NORMALIZE
+        // ====================================
+
+        const normalizedRows =
+            rows.map((row) => {
+
+                const platformOrderId =
+                    String(
+                        getMappedValue(
+                            row,
+                            profile.orderId
+                        )
+                    ).trim();
+
+                const orderDate =
+                    normalizeDate(
+                        getMappedValue(
+                            row,
+                            profile.orderDate
+                        )
+                    );
+
+                const parentSKU =
+                    String(
+                        getMappedValue(
+                            row,
+                            profile.parentSKU || profile.catalogId
+                        )
+                    ).trim();
+
+                const productId =
+                    String(
+                        getMappedValue(
+                            row,
+                            profile.productId
+                        )
+                    ).trim();
+
+                const productName =
+                    String(
+                        getMappedValue(
+                            row,
+                            profile.productName
+                        )
+                    ).trim();
+
+                const variantSize =
+                    normalizeSize(
+                        getMappedValue(
+                            row,
+                            profile.size
+                        )
+                    );
+
+                const qty =
+                    normalizeNumber(
+                        getMappedValue(
+                            row,
+                            profile.qty
+                        ),
+                        1
+                    );
+
+                const sellingPrice =
+                    normalizeNumber(
+                        getMappedValue(
+                            row,
+                            profile.sellingPrice
+                        ),
+                        0
+                    );
+
+                const customerName =
+                    String(
+                        getMappedValue(
+                            row,
+                            profile.customerName
+                        )
+                    ).trim();
+
+                const customerPhone =
+                    String(
+                        getMappedValue(
+                            row,
+                            profile.phone
+                        )
+                    ).trim();
+
+                const awb =
+                    String(
+                        getMappedValue(
+                            row,
+                            profile.awb
+                        )
+                    ).trim();
+
+                const orderStatus =
+                    normalizeStatus(
+                        getMappedValue(
+                            row,
+                            profile.orderStatus
+                        )
+                    );
+
+                return {
+
+                    // ====================================
+                    // CORE
+                    // ====================================
+
+                    platform,
+
+                    platformOrderId,
+
+                    orderDate,
+
+                    // ====================================
+                    // PRODUCT
+                    // ====================================
+
+                    parentSKU,
+
+                    productId,
+
+                    productName,
+
+                    variantSize,
+
+                    // ====================================
+                    // ORDER
+                    // ====================================
+
+                    qty,
+
+                    sellingPrice,
+
+                    // ====================================
+                    // CUSTOMER
+                    // ====================================
+
+                    customerName,
+
+                    customerPhone,
+
+                    // ====================================
+                    // SHIPPING
+                    // ====================================
+
+                    awb,
+
+                    // ====================================
+                    // STATUS
+                    // ====================================
+
+                    orderStatus,
+
+                    // ====================================
+                    // RAW
+                    // ====================================
+
+                    rawData: row,
+                };
+            });
+
+        return normalizedRows;
+
+    } catch (err) {
+
+        console.error(err);
+
+        throw err;
+    }
+};
+
+export default normalizeImportRows;

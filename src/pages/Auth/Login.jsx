@@ -110,7 +110,7 @@ export default function Login() {
       // Role-based redirects
       if (userData.role === "super_admin") {
 
-        navigate("/super-admin");
+        navigate("/admin");
 
       }
       else if (userData.role === "admin") {

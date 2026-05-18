@@ -1,0 +1,486 @@
+import {
+    collection,
+    doc,
+    serverTimestamp,
+    writeBatch,
+} from "firebase/firestore";
+
+import { db } from "@/firebase/config";
+
+// ====================================
+// EXECUTE ORDERS IMPORT
+// ====================================
+
+const executeOrdersImport = async ({
+    matchedOrders = [],
+
+    user,
+
+    platform = "meesho",
+
+    onProgress,
+}) => {
+
+    try {
+
+        // ====================================
+        // EMPTY
+        // ====================================
+
+        if (!matchedOrders.length) {
+
+            return {
+
+                imported: 0,
+
+                failed: 0,
+            };
+        }
+
+        // ====================================
+        // BATCH
+        // ====================================
+
+        const batchRef = {
+            current: writeBatch(db),
+        };
+
+        const operationRef = {
+            current: 0,
+        };
+
+        const commitBatch =
+            async () => {
+
+                if (
+                    operationRef.current === 0
+                ) {
+
+                    return;
+                }
+
+                await batchRef.current.commit();
+
+                batchRef.current =
+                    writeBatch(db);
+
+                operationRef.current = 0;
+            };
+
+        // ====================================
+        // COUNTERS
+        // ====================================
+
+        let imported = 0;
+
+        let failed = 0;
+
+        const total =
+            matchedOrders.length;
+
+        // ====================================
+        // LOOP
+        // ====================================
+
+        for (
+            let index = 0;
+            index < total;
+            index++
+        ) {
+
+            try {
+
+                const item =
+                    matchedOrders[index];
+
+                const row =
+                    item.row;
+
+                const product =
+                    item.product;
+
+                const variant =
+                    item.variant;
+
+                const variantSize =
+                    item.variantSize;
+
+                const qty =
+                    Number(
+                        item.qty || 1
+                    );
+
+                // ====================================
+                // PROGRESS
+                // ====================================
+
+                const percent =
+                    Math.round(
+                        ((index + 1) / total) *
+                            100
+                    );
+
+                onProgress?.({
+
+                    progress: percent,
+
+                    text:
+                        `Importing Orders ${index + 1}/${total}`,
+                });
+
+                // ====================================
+                // ORDER REF
+                // ====================================
+
+                const orderRef =
+                    doc(
+                        collection(
+                            db,
+                            "orders"
+                        )
+                    );
+
+                // ====================================
+                // PRICING
+                // ====================================
+
+                const sellingPrice =
+                    Number(
+                        row.sellingPrice || 0
+                    );
+
+                const buyingPrice =
+                    Number(
+                        variant.buyingPrice || 0
+                    );
+
+                const totalSelling =
+                    sellingPrice * qty;
+
+                const totalBuying =
+                    buyingPrice * qty;
+
+                const profit =
+                    totalSelling -
+                    totalBuying;
+
+                // ====================================
+                // CREATE ORDER
+                // ====================================
+
+                batchRef.current.set(
+                    orderRef,
+
+                    {
+
+                        // ====================================
+                        // SELLER
+                        // ====================================
+
+                        sellerId:
+                            user.uid,
+
+                        // ====================================
+                        // PLATFORM
+                        // ====================================
+
+                        platform,
+
+                        platformOrderId:
+                            row.platformOrderId,
+
+                        // ====================================
+                        // PRODUCT
+                        // ====================================
+
+                        productRefId:
+                            product.id,
+
+                        parentSKU:
+                            row.parentSKU ||
+
+                            product.parentSKU ||
+
+                            "",
+
+                        productId:
+                            row.productId ||
+
+                            "",
+
+                        productName:
+                            row.productName ||
+
+                            product.productName ||
+
+                            "",
+
+                        // ====================================
+                        // VARIANT
+                        // ====================================
+
+                        variantSize,
+
+                        variantSku:
+                            variant.sku ||
+
+                            "",
+
+                        // ====================================
+                        // ORDER
+                        // ====================================
+
+                        qty,
+
+                        orderDate:
+                            row.orderDate ||
+
+                            null,
+
+                        orderStatus:
+                            row.orderStatus ||
+
+                            "Pending",
+
+                        paymentStatus:
+                            "Pending",
+
+                        shipmentStatus:
+                            "Pending",
+
+                        // ====================================
+                        // PRICE
+                        // ====================================
+
+                        sellingPrice,
+
+                        buyingPrice,
+
+                        totalSelling,
+
+                        totalBuying,
+
+                        profit,
+
+                        // ====================================
+                        // CUSTOMER
+                        // ====================================
+
+                        customer: {
+
+                            name:
+                                row.customerName ||
+
+                                "",
+
+                            phone:
+                                row.customerPhone ||
+
+                                "",
+                        },
+
+                        // ====================================
+                        // SHIPMENT
+                        // ====================================
+
+                        shipment: {
+
+                            awb:
+                                row.awb ||
+
+                                "",
+                        },
+
+                        // ====================================
+                        // IMPORT
+                        // ====================================
+
+                        importedFrom:
+                            "csv",
+
+                        inventoryReduced:
+                            true,
+
+                        rawMarketplaceData:
+                            row.rawData ||
+
+                            {},
+
+                        // ====================================
+                        // SYSTEM
+                        // ====================================
+
+                        createdAt:
+                            serverTimestamp(),
+
+                        updatedAt:
+                            serverTimestamp(),
+                    }
+                );
+
+                operationRef.current++;
+
+                // ====================================
+                // INVENTORY UPDATE
+                // ====================================
+
+                const updatedVariants = {
+
+                    ...product.variants,
+                };
+
+                const currentVariant =
+                    updatedVariants[
+                        variantSize
+                    ];
+
+                const currentQty =
+                    Number(
+                        currentVariant.qty || 0
+                    );
+
+                const currentSoldQty =
+                    Number(
+                        currentVariant.soldQty || 0
+                    );
+
+                updatedVariants[
+                    variantSize
+                ] = {
+
+                    ...currentVariant,
+
+                    qty:
+                        currentQty - qty,
+
+                    soldQty:
+                        currentSoldQty + qty,
+                };
+
+                const productRef =
+                    doc(
+                        db,
+                        "products",
+                        product.id
+                    );
+
+                batchRef.current.update(
+                    productRef,
+
+                    {
+
+                        variants:
+                            updatedVariants,
+
+                        updatedAt:
+                            serverTimestamp(),
+                    }
+                );
+
+                operationRef.current++;
+
+                // ====================================
+                // INVENTORY TRANSACTION
+                // ====================================
+
+                const inventoryTransactionRef =
+                    doc(
+                        collection(
+                            db,
+                            "inventoryTransactions"
+                        )
+                    );
+
+                batchRef.current.set(
+
+                    inventoryTransactionRef,
+
+                    {
+
+                        sellerId:
+                            user.uid,
+
+                        type:
+                            "order_import",
+
+                        source:
+                            "marketplace",
+
+                        platform,
+
+                        orderId:
+                            row.platformOrderId,
+
+                        productRefId:
+                            product.id,
+
+                        variantSku:
+                            variant.sku ||
+
+                            "",
+
+                        variantSize,
+
+                        qty,
+
+                        beforeQty:
+                            currentQty,
+
+                        afterQty:
+                            currentQty - qty,
+
+                        createdAt:
+                            serverTimestamp(),
+                    }
+                );
+
+                operationRef.current++;
+
+                // ====================================
+                // COMMIT
+                // ====================================
+
+                if (
+                    operationRef.current >=
+                    450
+                ) {
+
+                    await commitBatch();
+                }
+
+                imported++;
+
+            } catch (err) {
+
+                console.error(err);
+
+                failed++;
+            }
+        }
+
+        // ====================================
+        // FINAL COMMIT
+        // ====================================
+
+        await commitBatch();
+
+        // ====================================
+        // RETURN
+        // ====================================
+
+        return {
+
+            imported,
+
+            failed,
+        };
+
+    } catch (err) {
+
+        console.error(err);
+
+        throw err;
+    }
+};
+
+export default executeOrdersImport;

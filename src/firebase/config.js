@@ -15,7 +15,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-console.log("PROJECT ID:", import.meta.env.VITE_FIREBASE_PROJECT_ID);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);

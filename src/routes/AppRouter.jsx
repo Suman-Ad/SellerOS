@@ -18,8 +18,9 @@ import SellerDashboard from "@/pages/Seller/SellerDashboard";
 import ProductList from "@/pages/Seller/Products/ProductList";
 import AddProduct from "@/pages/Seller/Products/AddProduct";
 import EditProduct from "@/pages/Seller/Products/EditProduct";
-
 import Inventory from "@/pages/Seller/Inventory/Inventory";
+import Orders from "@/pages/Seller/Orders/Orders";
+import OrderImport from "@/pages/Seller/Orders/Orderimport";
 
 export default function AppRouter() {
   return (
@@ -110,9 +111,19 @@ export default function AppRouter() {
           />
 
           <Route
-  path="inventory"
-  element={<Inventory />}
-/>
+            path="inventory"
+            element={<Inventory />}
+          />
+
+          <Route
+            path="orders"
+            element={<Orders />}
+          />
+
+          <Route
+            path="orders/import"
+            element={<OrderImport />}
+          />
 
         </Route>
 
