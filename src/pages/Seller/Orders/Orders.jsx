@@ -6,9 +6,11 @@ import {
     onSnapshot,
     orderBy,
     query,
+    where,
     updateDoc,
     doc,
 } from "firebase/firestore";
+import { useAuth } from "@/context/AuthContext";
 
 import { db } from "@/firebase/config";
 
@@ -24,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 const Orders = () => {
+    const { user } = useAuth();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -38,8 +41,19 @@ const Orders = () => {
 
     useEffect(() => {
         const q = query(
+
             collection(db, "orders"),
-            orderBy("createdAt", "desc")
+
+            where(
+                "sellerId",
+                "==",
+                user.uid
+            ),
+
+            orderBy(
+                "createdAt",
+                "desc"
+            )
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -151,13 +165,22 @@ const Orders = () => {
     // Profit
     // ============================
 
-    const calculateProfit = (order) => {
-        const settlement = Number(order.settlementAmount || 0);
-        const cost = Number(order.productCost || 0);
-        const shipping = Number(order.shippingCost || 0);
-        const extra = Number(order.extraCost || 0);
+    // const calculateProfit = (order) => {
+    //     const settlement = Number(order.settlementAmount || 0);
+    //     const cost = Number(order.productCost || 0);
+    //     const shipping = Number(order.shippingCost || 0);
+    //     const extra = Number(order.extraCost || 0);
 
-        return settlement - cost - shipping - extra;
+    //     return settlement - cost - shipping - extra;
+    // };
+
+    const calculateProfit = (
+        order
+    ) => {
+
+        return Number(
+            order.profit || 0
+        );
     };
 
     return (
@@ -176,14 +199,14 @@ const Orders = () => {
                         Manage marketplace orders and fulfillment
                     </p>
                     <Button
-                            onClick={() =>
-                                navigate(
-                                    "/seller/orders/import"
-                                )
-                            }
-                        >
-                            Import Orders
-                        </Button>
+                        onClick={() =>
+                            navigate(
+                                "/seller/orders/import"
+                            )
+                        }
+                    >
+                        Import Orders
+                    </Button>
                 </div>
             </div>
 
@@ -248,7 +271,7 @@ const Orders = () => {
                             placeholder="Search order, SKU, product..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-black"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white text-gray-900 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-black"
                         />
                     </div>
 
@@ -257,7 +280,7 @@ const Orders = () => {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2.5 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-black"
+                        className="px-4 py-2.5 bg-white text-gray-900 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-black"
                     >
                         <option value="All">All Status</option>
                         <option value="Pending">Pending</option>
@@ -319,7 +342,14 @@ const Orders = () => {
                                     return (
                                         <tr
                                             key={order.id}
-                                            className="border-b border-gray-100 hover:bg-gray-50 transition"
+
+                                            onClick={() =>
+                                                navigate(
+                                                    `/seller/orders/${order.id}`
+                                                )
+                                            }
+
+                                            className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
                                         >
                                             {/* Order ID */}
 
@@ -372,26 +402,26 @@ const Orders = () => {
 
                                             {/* SKU */}
 
-                                            <td className="px-4 py-4 text-sm font-medium">
+                                            <td className="px-4 py-4 text-gray-700 text-sm">
                                                 {order.variantSku || "-"}
                                             </td>
 
                                             {/* Qty */}
 
-                                            <td className="px-4 py-4 text-sm">
+                                            <td className="px-4 py-4 text-gray-700 text-sm">
                                                 {order.qty || 0}
                                             </td>
 
                                             {/* Selling */}
 
-                                            <td className="px-4 py-4 text-sm font-semibold">
+                                            <td className="px-4 py-4 text-gray-700 text-sm font-semibold">
                                                 ₹{order.sellingPrice || 0}
                                             </td>
 
                                             {/* Settlement */}
 
-                                            <td className="px-4 py-4 text-sm font-semibold">
-                                                ₹{order.settlementAmount || 0}
+                                            <td className="px-4 py-4 text-gray-700 text-sm font-semibold">
+                                                ₹{order.totalSelling || 0}
                                             </td>
 
                                             {/* Profit */}
@@ -421,7 +451,7 @@ const Orders = () => {
                                                                 e.target.value
                                                             )
                                                         }
-                                                        className="px-3 py-2 rounded-xl border border-gray-300 text-sm outline-none"
+                                                        className="px-3 py-2 bg-white text-gray-900 rounded-xl border border-gray-300 text-sm outline-none"
                                                     >
                                                         <option value="Pending">Pending</option>
                                                         <option value="Packed">Packed</option>
@@ -448,7 +478,7 @@ const Orders = () => {
                                                         onChange={(e) =>
                                                             togglePacked(order.id, e.target.checked)
                                                         }
-                                                        className="w-4 h-4 cursor-pointer"
+                                                        className="w-4 h-4  bg-white text-gray-900 cursor-pointer"
                                                     />
                                                 </label>
                                             </td>

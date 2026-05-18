@@ -48,6 +48,10 @@ const OrderImport = () => {
         setLoading] =
         useState(false);
 
+    const [uploadedFile,
+        setUploadedFile] =
+        useState(null);
+
     // ====================================
     // PROGRESS
     // ====================================
@@ -121,6 +125,22 @@ const OrderImport = () => {
         useState(false);
 
     // ====================================
+    // Manual Field Mapping
+    // ====================================
+
+    const [csvHeaders,
+        setCsvHeaders] =
+        useState([]);
+
+    const [fieldMapping,
+        setFieldMapping] =
+        useState({});
+
+    const [showMapping,
+        setShowMapping] =
+        useState(false);
+
+    // ====================================
     // SETTINGS
     // ====================================
 
@@ -142,6 +162,8 @@ const OrderImport = () => {
             try {
 
                 if (!file) return;
+
+                setUploadedFile(file);
 
                 setLoading(true);
 
@@ -185,6 +207,8 @@ const OrderImport = () => {
 
                     previewOnly: true,
 
+                    fieldMapping,
+
                     // ====================================
                     // PARSED
                     // ====================================
@@ -192,6 +216,71 @@ const OrderImport = () => {
                     onParsed: (
                         rows
                     ) => {
+
+                        if (rows?.length) {
+
+                            const headers =
+                                Object.keys(rows[0]);
+
+                            setCsvHeaders(headers);
+
+                            // AUTO DEFAULT MAP
+                            const autoMap = {};
+
+                            headers.forEach((header) => {
+
+                                const lower =
+                                    header.toLowerCase();
+
+                                if (
+                                    lower.includes("sku")
+                                ) {
+
+                                    autoMap[header] =
+                                        "parentSKU";
+                                }
+
+                                else if (
+                                    lower.includes("order")
+                                ) {
+
+                                    autoMap[header] =
+                                        "platformOrderId";
+                                }
+
+                                else if (
+                                    lower.includes("qty")
+                                ) {
+
+                                    autoMap[header] =
+                                        "qty";
+                                }
+
+                                else if (
+                                    lower.includes("price")
+                                ) {
+
+                                    autoMap[header] =
+                                        "sellingPrice";
+                                }
+                            });
+
+                            setFieldMapping((prev) => {
+
+                                // preserve manual mapping
+                                if (
+                                    Object.keys(prev)
+                                        .length > 0
+                                ) {
+
+                                    return prev;
+                                }
+
+                                return autoMap;
+                            });
+
+                            setShowMapping(true);
+                        }
 
                         setParsedRows(
                             rows
@@ -321,6 +410,109 @@ const OrderImport = () => {
             }
         };
 
+
+    // ====================================
+    // APPLY FIELD MAPPING
+    // ====================================
+
+    const applyFieldMapping =
+        async () => {
+
+            try {
+
+                if (
+                    !uploadedFile
+                ) {
+
+                    return;
+                }
+
+                setLoading(true);
+
+                await MarketplaceImportEngine({
+
+                    file:
+                        uploadedFile,
+
+                    user,
+
+                    platform,
+
+                    importType,
+
+                    previewOnly: true,
+
+                    fieldMapping,
+
+                    onValidated: (
+                        result
+                    ) => {
+
+                        setValidRows(
+                            result.validRows || []
+                        );
+
+                        setInvalidRows(
+                            result.invalidRows || []
+                        );
+
+                        setDuplicateRows(
+                            result.duplicateRows || []
+                        );
+                    },
+
+                    onMatched: (
+                        result
+                    ) => {
+
+                        setMatchedRows(
+                            result.matched || []
+                        );
+
+                        setUnmatchedRows(
+                            result.unmatched || []
+                        );
+                    },
+
+                    onDuplicates: (
+                        result
+                    ) => {
+
+                        setDuplicateRows(
+                            result.duplicateOrders || []
+                        );
+                    },
+
+                    onComplete: (
+                        result
+                    ) => {
+
+                        setReadyToImport(
+                            result.readyToImport || []
+                        );
+
+                        setPreviewReady(true);
+
+                        setLoading(false);
+                    },
+
+                    onError: (
+                        err
+                    ) => {
+
+                        console.error(err);
+
+                        setLoading(false);
+                    },
+                });
+
+            } catch (err) {
+
+                console.error(err);
+
+                setLoading(false);
+            }
+        };
 
     // ====================================
     // CONFIRM IMPORT
@@ -463,7 +655,7 @@ const OrderImport = () => {
 
             <div className="mb-6">
 
-                <h1 className="text-2xl font-bold">
+                <h1 className="text-2xl font-bold text-gray-900">
 
                     Order Import
 
@@ -584,7 +776,7 @@ const OrderImport = () => {
                                 e.target.value
                             )
                         }
-                        className="px-4 py-2 rounded-xl border border-gray-300"
+                        className="px-4 py-2 bg-white text-gray-900 rounded-xl border border-gray-300"
                     >
 
                         <option value="meesho">
@@ -622,6 +814,7 @@ const OrderImport = () => {
                             e.target.files[0]
                         )
                     }
+                    className="border border-gray-300 bg-white text-gray-900"
                 />
 
                 {/* ====================================
@@ -654,7 +847,7 @@ const OrderImport = () => {
                             className="animate-spin"
                         />
 
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-gray-900">
 
                             {progressText}
 
@@ -688,7 +881,7 @@ const OrderImport = () => {
 
                         <div>
 
-                            <h2 className="text-lg font-semibold">
+                            <h2 className="text-lg font-semibold text-gray-900">
 
                                 Import Preview Ready
 
@@ -735,7 +928,7 @@ const OrderImport = () => {
 
                 <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4">
 
-                    <h2 className="font-semibold mb-4">
+                    <h2 className="font-semibold text-gray-900 mb-4">
 
                         Import Result
 
@@ -763,6 +956,121 @@ const OrderImport = () => {
             )}
 
             {/* ====================================
+            Manual Field Mapping
+            ==================================== */}
+
+            {showMapping && (
+
+                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-5">
+
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+
+                        Field Mapping
+
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {csvHeaders.map((header) => (
+
+                            <div
+                                key={header}
+                                className="border border-gray-200 rounded-xl p-4"
+                            >
+
+                                <div className="text-sm font-medium text-gray-900 mb-2">
+
+                                    {header}
+
+                                </div>
+
+                                <select
+                                    value={
+                                        fieldMapping[header] || ""
+                                    }
+
+                                    onChange={(e) =>
+                                        setFieldMapping(
+                                            prev => ({
+
+                                                ...prev,
+
+                                                [header]:
+                                                    e.target.value,
+                                            })
+                                        )
+                                    }
+
+                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none"
+                                >
+
+                                    <option value="">
+
+                                        Ignore
+
+                                    </option>
+
+                                    <option value="platformOrderId">
+
+                                        Order ID
+
+                                    </option>
+
+                                    <option value="parentSKU">
+
+                                        Parent SKU
+
+                                    </option>
+
+                                    <option value="variantSku">
+
+                                        Variant SKU
+
+                                    </option>
+
+                                    <option value="qty">
+
+                                        Quantity
+
+                                    </option>
+
+                                    <option value="sellingPrice">
+
+                                        Selling Price
+
+                                    </option>
+
+                                    <option value="customerName">
+
+                                        Customer Name
+
+                                    </option>
+
+                                </select>
+
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-5 flex justify-end">
+
+                        <button
+                            onClick={
+                                applyFieldMapping
+                            }
+
+                            className="px-5 py-2.5 rounded-xl bg-black text-white font-medium"
+                        >
+
+                            Apply Mapping
+
+                        </button>
+
+                    </div>
+
+                </div>
+            )}
+
+            {/* ====================================
             PREVIEW
             ==================================== */}
 
@@ -772,7 +1080,7 @@ const OrderImport = () => {
 
                     <div className="p-4 border-b border-gray-200">
 
-                        <h2 className="font-semibold">
+                        <h2 className="font-semibold text-gray-900">
 
                             File Preview
 
@@ -883,7 +1191,7 @@ const SummaryCard = ({
 
             </div>
 
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-gray-900">
 
                 {value || 0}
 

@@ -29,6 +29,7 @@ const MarketplaceImportEngine = async ({
 
   previewOnly = false,
 
+  fieldMapping,
   onParsed,
   onValidated,
   onMatched,
@@ -73,6 +74,7 @@ const MarketplaceImportEngine = async ({
         platform,
 
         importType,
+        fieldMapping,
       });
 
     // ====================================

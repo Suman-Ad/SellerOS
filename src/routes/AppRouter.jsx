@@ -21,6 +21,7 @@ import EditProduct from "@/pages/Seller/Products/EditProduct";
 import Inventory from "@/pages/Seller/Inventory/Inventory";
 import Orders from "@/pages/Seller/Orders/Orders";
 import OrderImport from "@/pages/Seller/Orders/Orderimport";
+import OrderDetails from "@/pages/Seller/Orders/OrderDetails";
 
 export default function AppRouter() {
   return (
@@ -123,6 +124,11 @@ export default function AppRouter() {
           <Route
             path="orders/import"
             element={<OrderImport />}
+          />
+
+          <Route
+            path="orders/:orderId"
+            element={<OrderDetails />}
           />
 
         </Route>

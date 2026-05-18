@@ -165,6 +165,7 @@ const normalizeImportRows = ({
     rows = [],
     platform = "meesho",
     importType = "orders",
+    fieldMapping = {},
 }) => {
 
     try {
@@ -175,7 +176,7 @@ const normalizeImportRows = ({
 
         const platformProfile =
             importProfiles?.[
-                platform
+            platform
             ];
 
         if (!platformProfile) {
@@ -187,8 +188,39 @@ const normalizeImportRows = ({
 
         const profile =
             platformProfile?.[
-                importType
+            importType
             ];
+
+        // ====================================
+        // MANUAL FIELD OVERRIDES
+        // ====================================
+
+        const mappedProfile = {
+
+            ...profile,
+        };
+
+        // CSV Header → Internal Field
+        Object.entries(
+            fieldMapping
+        ).forEach(
+
+            ([csvHeader, internalField]) => {
+
+                if (!internalField) return;
+
+                mappedProfile[
+                    internalField
+                ] = [
+
+                        csvHeader,
+
+                        ...(profile?.[
+                            internalField
+                        ] || []),
+                    ];
+            }
+        );
 
         if (!profile) {
 
@@ -208,7 +240,7 @@ const normalizeImportRows = ({
                     String(
                         getMappedValue(
                             row,
-                            profile.orderId
+                            mappedProfile.orderId
                         )
                     ).trim();
 
@@ -216,7 +248,7 @@ const normalizeImportRows = ({
                     normalizeDate(
                         getMappedValue(
                             row,
-                            profile.orderDate
+                            mappedProfile.orderDate
                         )
                     );
 
@@ -224,7 +256,7 @@ const normalizeImportRows = ({
                     String(
                         getMappedValue(
                             row,
-                            profile.parentSKU || profile.catalogId
+                            mappedProfile.parentSKU
                         )
                     ).trim();
 
@@ -232,7 +264,7 @@ const normalizeImportRows = ({
                     String(
                         getMappedValue(
                             row,
-                            profile.productId
+                            mappedProfile.productId
                         )
                     ).trim();
 
@@ -240,7 +272,7 @@ const normalizeImportRows = ({
                     String(
                         getMappedValue(
                             row,
-                            profile.productName
+                            mappedProfile.productName
                         )
                     ).trim();
 
@@ -248,7 +280,7 @@ const normalizeImportRows = ({
                     normalizeSize(
                         getMappedValue(
                             row,
-                            profile.size
+                            mappedProfile.size
                         )
                     );
 
@@ -256,7 +288,7 @@ const normalizeImportRows = ({
                     normalizeNumber(
                         getMappedValue(
                             row,
-                            profile.qty
+                            mappedProfile.qty
                         ),
                         1
                     );
@@ -265,7 +297,7 @@ const normalizeImportRows = ({
                     normalizeNumber(
                         getMappedValue(
                             row,
-                            profile.sellingPrice
+                            mappedProfile.sellingPrice
                         ),
                         0
                     );
@@ -274,7 +306,7 @@ const normalizeImportRows = ({
                     String(
                         getMappedValue(
                             row,
-                            profile.customerName
+                            mappedProfile.customerName
                         )
                     ).trim();
 
@@ -282,7 +314,7 @@ const normalizeImportRows = ({
                     String(
                         getMappedValue(
                             row,
-                            profile.phone
+                            mappedProfile.phone
                         )
                     ).trim();
 
@@ -290,7 +322,7 @@ const normalizeImportRows = ({
                     String(
                         getMappedValue(
                             row,
-                            profile.awb
+                            mappedProfile.awb
                         )
                     ).trim();
 
@@ -298,7 +330,7 @@ const normalizeImportRows = ({
                     normalizeStatus(
                         getMappedValue(
                             row,
-                            profile.orderStatus
+                            mappedProfile.orderStatus
                         )
                     );
 
