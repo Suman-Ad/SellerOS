@@ -12,6 +12,7 @@ import { auth } from "@/firebase/config";
 
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useState } from "react";
 
 
 import {
@@ -23,13 +24,19 @@ import {
   Users,
   Store,
   Settings,
-  LogOut
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 export default function SellerLayout() {
   const { userData } = useAuth();
 
   const navigate = useNavigate();
+
+  const [collapsed,
+    setCollapsed] =
+    useState(true);
 
   const menuItems = [
     {
@@ -74,48 +81,75 @@ export default function SellerLayout() {
     },
   ];
 
-  const handleLogout = async () => {
-
-    try {
-
-      await signOut(auth);
-
-      toast.success("Logged out");
-
-      navigate("/login");
-
-    } catch (error) {
-
-      toast.error(error.message);
-    }
-  };
+  
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex">
+    <div className="min-h-screen bg-zinc-950 text-white flex overflow-hidden">
 
       {/* Sidebar */}
-      <aside className="w-72 bg-zinc-900 border-r border-zinc-800 p-6">
+      <aside
+        className={`
 
-        <div className="mb-10">
+        bg-zinc-900
+        border-r
+        border-zinc-800
+        p-4
+        transition-all
+        duration-300
+        flex
+        flex-col
 
-          <h1 className="text-2xl font-bold">
-            SellerOS
-            <span>
-              <Button
-                variant="destructive"
-                onClick={handleLogout}
-                className="flex items-center gap-2"
-              >
-                <LogOut size={16} />
-                Logout
-              </Button>
-            </span>
-          </h1>
+        ${collapsed
+            ? "w-20"
+            : "w-72"
+          }
+    `}
+      >
 
 
-          <p className="text-zinc-400 text-sm mt-1">
-            Seller Panel
-          </p>
+        <div className="mb-8">
+
+          <div className="flex items-center justify-between">
+
+            {!collapsed && (
+
+              <div>
+
+                <h1 className="text-2xl font-bold">
+
+                  SellerOS
+
+                </h1>
+
+                <p className="text-zinc-400 text-sm mt-1">
+
+                  Seller Panel
+
+                </p>
+
+              </div>
+            )}
+
+            <button
+              onClick={() =>
+                setCollapsed(
+                  !collapsed
+                )
+              }
+
+              className="w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center transition"
+            >
+
+              {collapsed
+
+                ? <PanelLeftOpen size={18} />
+
+                : <PanelLeftClose size={18} />
+              }
+
+            </button>
+
+          </div>
 
         </div>
 
@@ -139,9 +173,12 @@ export default function SellerLayout() {
               >
                 <Icon size={18} />
 
-                <span>
-                  {item.name}
-                </span>
+                {!collapsed && (
+
+                  <span>
+                    {item.name}
+                  </span>
+                )}
 
               </NavLink>
             );

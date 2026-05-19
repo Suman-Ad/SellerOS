@@ -5,16 +5,41 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
+import { auth } from "@/firebase/config";
+
+import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+
 import {
   Package,
   ShoppingCart,
   IndianRupee,
   Boxes,
+  LogOut,
 } from "lucide-react";
 
 export default function SellerDashboard() {
 
   const { userData } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+
+    try {
+
+      await signOut(auth);
+
+      toast.success("Logged out");
+
+      navigate("/login");
+
+    } catch (error) {
+
+      toast.error(error.message);
+    }
+  };
 
   const cards = [
     {
@@ -43,19 +68,32 @@ export default function SellerDashboard() {
     <div>
 
       {/* Header */}
-      <div className="mb-6">
+      <div className="border-b border-zinc-800 bg-zinc-900">
 
-        <h1 className="text-3xl font-bold">
-          Seller Dashboard
-        </h1>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              Seller Dashboard
 
-        <p className="text-zinc-400 mt-2">
+            </h1>
 
-          Welcome back,{" "}
-          {userData?.fullName}
+            <p className="text-zinc-400 mt-2">
 
-        </p>
+              Welcome back,{" "}
+              {userData?.fullName}
 
+            </p>
+          </div>
+
+          <Button
+            variant="destructive"
+            onClick={handleLogout}
+            className="flex items-center gap-2"
+          >
+            <LogOut size={16} />
+            Logout
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
