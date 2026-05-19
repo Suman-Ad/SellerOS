@@ -583,6 +583,8 @@ const OrderImport = () => {
                             finalOrders,
 
                         user,
+                        sellerId:
+                            user.uid,
 
                         platform,
 
