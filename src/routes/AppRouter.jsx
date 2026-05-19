@@ -22,6 +22,7 @@ import Inventory from "@/pages/Seller/Inventory/Inventory";
 import Orders from "@/pages/Seller/Orders/Orders";
 import OrderImport from "@/pages/Seller/Orders/Orderimport";
 import OrderDetails from "@/pages/Seller/Orders/OrderDetails";
+import ProductImport from "@/pages/Seller/Products/ProductImport";
 
 export default function AppRouter() {
   return (
@@ -105,10 +106,16 @@ export default function AppRouter() {
             path="products/add"
             element={<AddProduct />}
           />
+          
 
           <Route
             path="products/edit/:productId"
             element={<EditProduct />}
+          />
+
+          <Route
+            path="products/import"
+            element={<ProductImport />}
           />
 
           <Route

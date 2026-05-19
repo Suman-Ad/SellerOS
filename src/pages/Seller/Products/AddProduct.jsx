@@ -392,6 +392,10 @@ export default function AddProduct() {
 
                 </p>
 
+                <Button onClick={() => navigate("/seller/products/import")} >
+                    Bulk Product Inventory Upload
+                </Button>
+
             </div>
 
             <Card className="bg-zinc-900 border-zinc-800">

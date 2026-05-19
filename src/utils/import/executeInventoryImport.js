@@ -1,409 +1,214 @@
 import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  serverTimestamp,
-  where,
-  writeBatch,
+    collection,
+    doc,
+    serverTimestamp,
+    writeBatch,
 } from "firebase/firestore";
 
 import { db } from "@/firebase/config";
 
-import normalizeSize from "./normalizeImportRows";
+// ====================================
+// EXECUTE INVENTORY IMPORT
+// ====================================
 
-const executeInventoryImport = async ({
-  rows = [],
-  user,
-  platform = "meesho",
+const executeInventoryImport =
+    async ({
 
-  onProgress,
-}) => {
+        products = [],
 
-  try {
+        user,
 
-    if (!rows.length) {
+        onProgress,
+    }) => {
 
-      return {
-        updated: 0,
-      };
-    }
+        try {
 
-    // ====================================
-    // LOAD STOCKS
-    // ====================================
+            // ====================================
+            // EMPTY
+            // ====================================
 
-    const stockQuery = query(
-      collection(db, "stocks"),
+            if (
+                !products.length
+            ) {
 
-      where(
-        "userId",
-        "==",
-        user.uid
-      )
-    );
+                return {
 
-    const stockSnap =
-      await getDocs(stockQuery);
+                    imported: 0,
+                };
+            }
 
-    const stocks =
-      stockSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+            // ====================================
+            // BATCH
+            // ====================================
 
-    // ====================================
-    // GROUP INVENTORY
-    // ====================================
+            const batchRef = {
+                current:
+                    writeBatch(db),
+            };
 
-    const groupedInventory =
-      {};
+            const operationRef = {
+                current: 0,
+            };
 
-    rows.forEach((row) => {
+            // ====================================
+            // COMMIT BATCH
+            // ====================================
 
-      const catalogKey =
-        String(
-          row.catalogId || ""
-        )
-          .trim()
-          .toUpperCase();
+            const commitBatch =
+                async () => {
 
-      const sizeKey =
-        normalizeSize(
-          row.size
-        );
+                    if (
+                        operationRef.current === 0
+                    ) {
 
-      if (
-        !catalogKey ||
-        !sizeKey
-      ) {
-        return;
-      }
+                        return;
+                    }
 
-      // ====================================
-      // CREATE GROUP
-      // ====================================
+                    await batchRef.current.commit();
 
-      if (
-        !groupedInventory[
-          catalogKey
-        ]
-      ) {
+                    batchRef.current =
+                        writeBatch(db);
 
-        groupedInventory[
-          catalogKey
-        ] = {
+                    operationRef.current = 0;
+                };
 
-          catalogId:
-            row.catalogId || "",
+            // ====================================
+            // LOOP PRODUCTS
+            // ====================================
 
-          productId:
-            row.productId || "",
+            const total =
+                products.length;
 
-          productName:
-            row.productName ||
-            "Marketplace Product",
+            let imported = 0;
 
-          sizes: {},
-        };
-      }
+            for (
+                let index = 0;
+                index < total;
+                index++
+            ) {
 
-      // ====================================
-      // CREATE SIZE
-      // ====================================
+                const product =
+                    products[index];
 
-      if (
-        !groupedInventory[
-          catalogKey
-        ].sizes[sizeKey]
-      ) {
+                // ====================================
+                // PROGRESS
+                // ====================================
 
-        groupedInventory[
-          catalogKey
-        ].sizes[sizeKey] = {
+                const percent =
+                    Math.round(
 
-          qty: 0,
+                        (
+                            (index + 1) / total
+                        ) * 100
+                    );
 
-          initialQty: 0,
+                onProgress?.({
 
-          buyingPrice:
-            Number(
-              row.buyingPrice || 0
-            ),
+                    progress:
+                        percent,
 
-          sellingPrice:
-            Number(
-              row.sellingPrice || 0
-            ),
-        };
-      }
+                    text:
+                        `Importing Product ${index + 1}/${total}`,
+                });
 
-      // ====================================
-      // ADD QTY
-      // ====================================
+                // ====================================
+                // NEW DOC
+                // ====================================
 
-      groupedInventory[
-        catalogKey
-      ].sizes[sizeKey].qty +=
-        Number(row.qty || 0);
+                const productRef =
+                    doc(
 
-      groupedInventory[
-        catalogKey
-      ].sizes[
-        sizeKey
-      ].initialQty +=
-        Number(row.qty || 0);
-    });
+                        collection(
+                            db,
+                            "products"
+                        )
+                    );
 
-    // ====================================
-    // BATCH
-    // ====================================
+                // ====================================
+                // CREATE PRODUCT
+                // ====================================
 
-    const batchRef = {
-      current: writeBatch(db),
-    };
+                batchRef.current.set(
 
-    const operationRef = {
-      current: 0,
-    };
+                    productRef,
 
-    const commitBatch =
-      async () => {
+                    {
 
-        if (
-          operationRef.current === 0
-        ) {
-          return;
+                        sellerId:
+                            user.uid,
+
+                        category:
+                            product.category || "",
+
+                        subCategory:
+                            product.subCategory || "",
+
+                        productName:
+                            product.productName || "",
+
+                        brand:
+                            product.brand || "",
+
+                        color:
+                            product.color || "",
+
+                        parentSKU:
+                            product.parentSKU || "",
+
+                        variants:
+                            product.variants || {},
+
+                        status:
+                            "active",
+
+                        importSource:
+                            "csv",
+
+                        createdAt:
+                            serverTimestamp(),
+                            
+                        updatedAt: serverTimestamp(),
+                    }
+                );
+
+                operationRef.current++;
+
+                imported++;
+
+                // ====================================
+                // FIRESTORE LIMIT
+                // ====================================
+
+                if (
+
+                    operationRef.current >= 450
+                ) {
+
+                    await commitBatch();
+                }
+            }
+
+            // ====================================
+            // FINAL COMMIT
+            // ====================================
+
+            await commitBatch();
+
+            // ====================================
+            // RETURN
+            // ====================================
+
+            return {
+
+                imported,
+            };
+
+        } catch (err) {
+
+            console.error(err);
+
+            throw err;
         }
-
-        await batchRef.current.commit();
-
-        batchRef.current =
-          writeBatch(db);
-
-        operationRef.current = 0;
-      };
-
-    // ====================================
-    // LOOP GROUPS
-    // ====================================
-
-    const groupedRows =
-      Object.values(
-        groupedInventory
-      );
-
-    const total =
-      groupedRows.length;
-
-    let updated = 0;
-
-    for (
-      let index = 0;
-      index < total;
-      index++
-    ) {
-
-      const groupedRow =
-        groupedRows[index];
-
-      const percent =
-        Math.round(
-          ((index + 1) / total) *
-            100
-        );
-
-      onProgress?.({
-        progress: percent,
-
-        text:
-          `Updating Inventory ${index + 1}/${total}`,
-      });
-
-      // ====================================
-      // FIND STOCK
-      // ====================================
-
-      const stockMatch =
-        stocks.find(
-          (stock) =>
-            String(
-              stock.catalogId || ""
-            )
-              .trim()
-              .toUpperCase()
-
-            ===
-
-            String(
-              groupedRow.catalogId ||
-                ""
-            )
-              .trim()
-              .toUpperCase()
-        );
-
-      // ====================================
-      // CREATE NEW STOCK
-      // ====================================
-
-      if (!stockMatch) {
-
-        const newStockRef =
-          doc(
-            collection(
-              db,
-              "stocks"
-            )
-          );
-
-        batchRef.current.set(
-          newStockRef,
-          {
-            userId:
-              user.uid,
-
-            productName:
-              groupedRow.productName,
-
-            catalogId:
-              groupedRow.catalogId,
-
-            productId:
-              groupedRow.productId,
-
-            sizes:
-              groupedRow.sizes,
-
-            isItemOnline: true,
-
-            inventorySource:
-              "csv",
-
-            platform,
-
-            createdAt:
-              serverTimestamp(),
-          }
-        );
-
-        operationRef.current++;
-
-        updated++;
-
-        continue;
-      }
-
-      // ====================================
-      // UPDATE STOCK
-      // ====================================
-
-      const updatedSizes = {
-        ...stockMatch.sizes,
-      };
-
-      Object.keys(
-        groupedRow.sizes
-      ).forEach((sizeKey) => {
-
-        const incomingSize =
-          groupedRow.sizes[
-            sizeKey
-          ];
-
-        if (
-          !updatedSizes[
-            sizeKey
-          ]
-        ) {
-
-          updatedSizes[
-            sizeKey
-          ] = incomingSize;
-
-        } else {
-
-          updatedSizes[
-            sizeKey
-          ].qty =
-            Number(
-              incomingSize.qty || 0
-            );
-
-          updatedSizes[
-            sizeKey
-          ].initialQty =
-            Number(
-              incomingSize.initialQty ||
-                0
-            );
-
-          updatedSizes[
-            sizeKey
-          ].buyingPrice =
-            incomingSize.buyingPrice;
-
-          updatedSizes[
-            sizeKey
-          ].sellingPrice =
-            incomingSize.sellingPrice;
-        }
-      });
-
-      const stockRef = doc(
-        db,
-        "stocks",
-        stockMatch.id
-      );
-
-      batchRef.current.update(
-        stockRef,
-        {
-          sizes:
-            updatedSizes,
-
-          isItemOnline: true,
-
-          inventorySource:
-            "csv",
-
-          platform,
-        }
-      );
-
-      operationRef.current++;
-
-      // ====================================
-      // COMMIT
-      // ====================================
-
-      if (
-        operationRef.current >=
-        450
-      ) {
-
-        await commitBatch();
-      }
-
-      updated++;
-    }
-
-    // ====================================
-    // FINAL COMMIT
-    // ====================================
-
-    await commitBatch();
-
-    return {
-      updated,
     };
-
-  } catch (err) {
-
-    console.error(err);
-
-    throw err;
-  }
-};
 
 export default executeInventoryImport;

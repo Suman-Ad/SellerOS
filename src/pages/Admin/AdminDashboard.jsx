@@ -10,7 +10,6 @@ import {
   Package,
   ShoppingCart,
   IndianRupee,
-  LogOut,
 } from "lucide-react";
 
 import { signOut } from "firebase/auth";
@@ -64,15 +63,6 @@ export default function AdminDashboard() {
             </p>
 
           </div>
-
-          <Button
-            variant="destructive"
-            onClick={handleLogout}
-            className="flex items-center gap-2"
-          >
-            <LogOut size={16} />
-            Logout
-          </Button>
 
         </div>
 

@@ -66,7 +66,7 @@ const importProfiles = {
         },
         inventory: {
 
-            sku: [
+            parentSKU: [
                 "STYLE ID",
             ],
 

@@ -229,6 +229,110 @@ const normalizeImportRows = ({
             );
         }
 
+        if (
+            importType === "inventory"
+        ) {
+
+            return rows.map((row) => {
+
+                return {
+
+                    category:
+                        String(
+                            getMappedValue(
+                                row,
+                                mappedProfile.category
+                            )
+                        ).trim(),
+
+                    subCategory:
+                        String(
+                            getMappedValue(
+                                row,
+                                mappedProfile.subCategory
+                            )
+                        ).trim(),
+
+                    productName:
+                        String(
+                            getMappedValue(
+                                row,
+                                mappedProfile.productName
+                            )
+                        ).trim(),
+
+                    brand:
+                        String(
+                            getMappedValue(
+                                row,
+                                mappedProfile.brand
+                            )
+                        ).trim(),
+
+                    color:
+                        String(
+                            getMappedValue(
+                                row,
+                                mappedProfile.color
+                            )
+                        ).trim(),
+
+                    parentSKU:
+                        String(
+                            getMappedValue(
+                                row,
+                                mappedProfile.parentSKU
+                            )
+                        ).trim(),
+
+                    variantSku:
+                        String(
+                            getMappedValue(
+                                row,
+                                mappedProfile.variantSku
+                            )
+                        ).trim(),
+
+                    size:
+                        normalizeSize(
+                            getMappedValue(
+                                row,
+                                mappedProfile.size
+                            )
+                        ),
+
+                    qty:
+                        normalizeNumber(
+                            getMappedValue(
+                                row,
+                                mappedProfile.qty
+                            ),
+                            0
+                        ),
+
+                    buyingPrice:
+                        normalizeNumber(
+                            getMappedValue(
+                                row,
+                                mappedProfile.buyingPrice
+                            ),
+                            0
+                        ),
+
+                    sellingPrice:
+                        normalizeNumber(
+                            getMappedValue(
+                                row,
+                                mappedProfile.sellingPrice
+                            ),
+                            0
+                        ),
+
+                    rawData: row,
+                };
+            });
+        }
+
         // ====================================
         // NORMALIZE
         // ====================================

@@ -27,12 +27,27 @@ import {
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  HelpCircle,
+  Mail,
 } from "lucide-react";
+
 
 export default function SellerLayout() {
   const { userData } = useAuth();
 
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+
+      toast.success("Logged out successfully");
+
+      navigate("/login");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   const [collapsed,
     setCollapsed] =
@@ -81,7 +96,7 @@ export default function SellerLayout() {
     },
   ];
 
-  
+
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex overflow-hidden">
@@ -101,7 +116,7 @@ export default function SellerLayout() {
 
         ${collapsed
             ? "w-20"
-            : "w-72"
+            : "w-72 md:w-72"
           }
     `}
       >
@@ -115,16 +130,12 @@ export default function SellerLayout() {
 
               <div>
 
-                <h1 className="text-2xl font-bold">
-
+                <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
                   SellerOS
-
                 </h1>
 
                 <p className="text-zinc-400 text-sm mt-1">
-
-                  Seller Panel
-
+                  Smart Commerce ERP
                 </p>
 
               </div>
@@ -153,45 +164,131 @@ export default function SellerLayout() {
 
         </div>
 
-        <nav className="space-y-2">
 
-          {menuItems.map((item) => {
+        <div className="flex flex-col h-full">
 
-            const Icon = item.icon;
+          {/* Menu */}
+          <nav className="space-y-2 flex-1">
 
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/seller"}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                    ? "bg-violet-600 text-white"
-                    : "hover:bg-zinc-800 text-zinc-300"
-                  }`
-                }
-              >
-                <Icon size={18} />
+            {menuItems.map((item) => {
+              const Icon = item.icon;
 
-                {!collapsed && (
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === "/admin" || item.path === "/seller"}
+                  className={({ isActive }) =>
+                    `flex items-center
+            ${collapsed ? "justify-center" : "gap-3"}
+            px-4 py-3 rounded-xl transition-all duration-200
+            ${isActive
+                      ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20"
+                      : "hover:bg-zinc-800 text-zinc-300"
+                    }`
+                  }
+                >
+                  <Icon size={18} />
 
-                  <span>
-                    {item.name}
-                  </span>
-                )}
+                  {!collapsed && (
+                    <span className="font-medium">
+                      {item.name}
+                    </span>
+                  )}
+                </NavLink>
+              );
+            })}
+          </nav>
 
-              </NavLink>
-            );
-          })}
+          {/* Bottom Actions */}
+          <div className="border-t border-zinc-800 pt-4 space-y-2">
 
-        </nav>
+            {/* FAQ */}
+            <button
+              className={`w-full flex items-center
+      ${collapsed ? "justify-center" : "gap-3"}
+      px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300`}
+            >
+              <HelpCircle size={18} />
+
+              {!collapsed && <span>FAQ</span>}
+            </button>
+
+            {/* Contact */}
+            <button
+              className={`w-full flex items-center
+      ${collapsed ? "justify-center" : "gap-3"}
+      px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300`}
+            >
+              <Mail size={18} />
+
+              {!collapsed && <span>Contact Us</span>}
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className={`w-full flex items-center
+      ${collapsed ? "justify-center" : "gap-3"}
+      px-4 py-3 rounded-xl
+      bg-red-500/10
+      hover:bg-red-500/20
+      text-red-400
+      transition`}
+            >
+              <LogOut size={18} />
+
+              {!collapsed && <span>Logout</span>}
+            </button>
+
+            {/* Footer */}
+            {!collapsed && (
+              <div className="pt-4 text-center text-xs text-zinc-500">
+                © 2026 SellerOS
+                <br />
+                All Rights Reserved
+              </div>
+            )}
+
+          </div>
+
+        </div>
 
       </aside>
 
       {/* Main */}
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 overflow-auto bg-zinc-950">
 
-        <Outlet />
+        {/* Topbar */}
+        <div className="sticky top-0 z-20 bg-zinc-950/80 backdrop-blur border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+
+          <div>
+            <h2 className="text-xl font-bold">
+              Welcome Back 👋
+            </h2>
+
+            <p className="text-sm text-zinc-400">
+              Manage your business operations efficiently
+            </p>
+          </div>
+
+          {!collapsed && (
+            <div className="text-right">
+              <p className="font-medium">
+                {userData?.name || "User"}
+              </p>
+
+              <p className="text-xs text-zinc-400">
+                {userData?.role || "Seller"}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Page Content */}
+        <div className="p-4 md:p-6">
+          <Outlet />
+        </div>
 
       </main>
 
