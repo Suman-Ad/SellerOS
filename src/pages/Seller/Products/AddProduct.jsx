@@ -304,6 +304,50 @@ export default function AddProduct() {
         });
     };
 
+    const downloadTemplate = () => {
+
+        const csv =
+            `category,subCategory,productName,brand,color,size,qty,buyingPrice,sellingPrice,barcode,lowStockAlert
+Men,Tshirt,Oversized Tee,Zara,Black,M,10,250,599,123456789,5
+Men,Tshirt,Oversized Tee,Zara,Black,L,8,250,599,123456780,5
+Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
+
+        const blob = new Blob(
+            [csv],
+            {
+                type:
+                    "text/csv;charset=utf-8;",
+            }
+        );
+
+        const url =
+            window.URL.createObjectURL(
+                blob
+            );
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+        link.href = url;
+
+        link.setAttribute(
+            "download",
+            "selleros_internal_product_template.csv"
+        );
+
+        document.body.appendChild(
+            link
+        );
+
+        link.click();
+
+        document.body.removeChild(
+            link
+        );
+    };
+
     const handleSubmit =
         async (e) => {
 
@@ -392,9 +436,37 @@ export default function AddProduct() {
 
                 </p>
 
-                <Button onClick={() => navigate("/seller/products/import")} >
-                    Bulk Product Inventory Upload
-                </Button>
+                <div className="flex flex-wrap gap-3 mt-4">
+
+                    <Button
+                        onClick={() =>
+                            navigate(
+                                "/seller/products/import-marketplace"
+                            )
+                        }
+                    >
+                        Marketplace CSV Upload
+                    </Button>
+
+                    <Button
+                        variant="secondary"
+                        onClick={() =>
+                            navigate(
+                                "/seller/products/import-internal"
+                            )
+                        }
+                    >
+                        Internal Bulk Upload
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={downloadTemplate}
+                    >
+                        Download Internal Template
+                    </Button>
+
+                </div>
 
             </div>
 

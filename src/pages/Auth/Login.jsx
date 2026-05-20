@@ -17,8 +17,21 @@ import { auth, db } from "@/firebase/config";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import logo from  "@/assets/image.png";
 
 import { toast } from "sonner";
+
+const backgroundStyle = {
+    backgroundImage: `url(${logo})`,
+    backgroundSize: 'cover',        // Scales the image to fill the screen without stretching
+    backgroundPosition: 'center',    // Centers the focal point of the image
+    backgroundRepeat: 'no-repeat',  // Prevents the image from tiling
+    width: '100vw',                 // Full viewport width
+    height: '100vh',                // Full viewport height
+    display: 'flex',                // Layout tool to align your form
+    justifyContent: 'center',       // Centers form horizontally
+    alignItems: 'center'            // Centers form vertically
+  };
 
 export default function Login() {
 
@@ -143,9 +156,9 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6" style={backgroundStyle}>
 
-      <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-white">
+      <Card className="bg-white/15 backdrop-blur-md border border-white/20 p-8 rounded-xl shadow-2xl w-full max-w-md" style={backgroundStyle}>
 
         <CardContent className="p-8">
 
@@ -155,7 +168,7 @@ export default function Login() {
               Login
             </h1>
 
-            <p className="text-zinc-400 mt-2">
+            <p className="text-zinc-400 mt-2" >
               Welcome back to SellerOS
             </p>
 
@@ -195,13 +208,13 @@ export default function Login() {
 
           </form>
 
-          <p className="text-zinc-400 text-sm mt-6">
+          <p className="text-zinc-900 text-sm mt-10">
 
             Don’t have an account?{" "}
 
             <Link
               to="/register"
-              className="text-violet-500"
+              className="text-violet-900"
             >
               Register
             </Link>

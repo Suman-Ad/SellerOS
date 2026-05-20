@@ -474,7 +474,7 @@ const ProductImport = () => {
 
     return (
 
-        <div className="p-4 md:p-6">
+        <div className="p-4 md:p-6 bg-[#0f1117] min-h-screen text-gray-700">
 
             {/* ====================================
             HEADER
@@ -482,13 +482,13 @@ const ProductImport = () => {
 
             <div className="mb-6">
 
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-gray-700 tracking-tight">
 
                     Product Import
 
                 </h1>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-400 mt-1">
 
                     Import marketplace-ready product catalog
 
@@ -500,16 +500,26 @@ const ProductImport = () => {
             UPLOAD
             ==================================== */}
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-6">
+            <div className="bg-[#161a23] border border-white/10 rounded-3xl p-6 shadow-xl">
 
-                <label className="border-2 border-dashed border-gray-300 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition">
+                <label className="
+                    border-2 border-dashed border-white/10
+                    rounded-3xl
+                    p-12
+                    flex flex-col items-center justify-center
+                    cursor-pointer
+                    bg-[#0f1117]
+                    hover:border-indigo-500/40
+                    hover:bg-[#1b2130]
+                    transition-all duration-300
+                ">
 
                     <Upload
                         size={40}
-                        className="text-gray-400 mb-4"
+                        className="text-indigo-400 mb-4"
                     />
 
-                    <div className="text-lg font-semibold text-gray-900">
+                    <div className="text-lg font-semibold text-gray-700">
 
                         Upload Product CSV
 
@@ -523,7 +533,7 @@ const ProductImport = () => {
 
                     <input
                         type="file"
-                        accept=".csv"
+                        accept=".csv, .xlsx"
 
                         className="hidden"
 
@@ -544,11 +554,11 @@ const ProductImport = () => {
 
             {loading && (
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-5">
+                <div className="mt-6 bg-[#161a23] border border-white/10 rounded-3xl p-5">
 
                     <div className="flex items-center justify-between mb-3">
 
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-gray-700">
 
                             {progressText || "Processing..."}
 
@@ -565,7 +575,7 @@ const ProductImport = () => {
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
 
                         <div
-                            className="h-full bg-black transition-all"
+                            className="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 transition-all"
                             style={{
                                 width:
                                     `${progress}%`,
@@ -579,9 +589,9 @@ const ProductImport = () => {
 
             {showMapping && (
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-5">
+                <div className="mt-6 bg-[#161a23] border border-white/10 rounded-2xl p-5">
 
-                    <h2 className="text-lg font-semibold text-gray-900 mb-5">
+                    <h2 className="text-lg font-semibold text-gray-700 mb-5">
 
                         Field Mapping
 
@@ -594,10 +604,10 @@ const ProductImport = () => {
 
                                 <div
                                     key={header}
-                                    className="border border-gray-200 rounded-xl p-4"
+                                    className="border border-white/10 bg-[#0f1117] rounded-xl p-4"
                                 >
 
-                                    <div className="text-sm font-medium text-gray-900 mb-2">
+                                    <div className="text-sm font-medium text-gray-700 mb-2">
 
                                         {header}
 
@@ -626,7 +636,17 @@ const ProductImport = () => {
                                             );
                                         }}
 
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none"
+                                        className="
+                                        w-full
+                                        px-4
+                                        py-3
+                                        rounded-2xl
+                                        border border-white/10
+                                        bg-[#0f1117]
+                                        text-gray-700
+                                        outline-none
+                                        focus:border-indigo-500
+                                        "
                                     >
 
                                         <option value="">
@@ -692,7 +712,15 @@ const ProductImport = () => {
                                 applyFieldMapping
                             }
 
-                            className="px-5 py-2.5 rounded-xl bg-black text-white font-medium"
+                            className="
+px-6 py-3
+rounded-2xl
+bg-gradient-to-r from-indigo-500 to-cyan-500
+text-gray-700
+font-semibold
+hover:scale-[1.02]
+transition
+"
                         >
 
                             Apply Mapping
@@ -752,7 +780,7 @@ PRODUCT PREVIEW
 
             {products.length > 0 && (
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                <div className="mt-6 bg-white border border-white/10 bg-[#0f1117] rounded-2xl overflow-hidden">
 
                     {/* HEADER */}
 
@@ -760,7 +788,7 @@ PRODUCT PREVIEW
 
                         <div>
 
-                            <h2 className="text-lg font-semibold text-gray-900">
+                            <h2 className="text-lg font-semibold text-gray-700">
 
                                 Product Preview
 
@@ -789,47 +817,47 @@ PRODUCT PREVIEW
 
                         <table className="w-full min-w-[1000px]">
 
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-[#161a23] border border-white/10   ">
 
                                 <tr>
 
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
 
                                         Parent SKU
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
 
                                         Product
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
 
                                         Brand
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
 
                                         Category
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
 
                                         Variants
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
 
                                         Total Qty
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
 
                                         Status
 
@@ -900,14 +928,14 @@ PRODUCT PREVIEW
 
                                             <tr
                                                 key={index}
-                                                className="border-b border-gray-100 hover:bg-gray-50 transition"
+                                                className="border-b border-gray-100 hover:bg-white/5 transition"
                                             >
 
                                                 {/* SKU */}
 
                                                 <td className="px-4 py-4">
 
-                                                    <div className="font-semibold text-gray-900">
+                                                    <div className="font-semibold text-gray-700">
 
                                                         {product.parentSKU}
 
@@ -921,7 +949,7 @@ PRODUCT PREVIEW
 
                                                     <div>
 
-                                                        <div className="font-medium text-gray-900">
+                                                        <div className="font-medium text-gray-700">
 
                                                             {product.productName || "-"}
 
@@ -939,7 +967,7 @@ PRODUCT PREVIEW
 
                                                 {/* BRAND */}
 
-                                                <td className="px-4 py-4 text-sm text-gray-700">
+                                                <td className="px-4 py-4 text-sm text-indigo-400">
 
                                                     {product.brand || "-"}
 
@@ -949,7 +977,7 @@ PRODUCT PREVIEW
 
                                                 <td className="px-4 py-4">
 
-                                                    <div className="text-sm text-gray-900">
+                                                    <div className="text-sm text-gray-700">
 
                                                         {product.category || "-"}
 
@@ -967,7 +995,7 @@ PRODUCT PREVIEW
 
                                                 <td className="px-4 py-4 text-center">
 
-                                                    <div className="font-semibold text-gray-900">
+                                                    <div className="font-semibold text-gray-700">
 
                                                         {variants.length}
 
@@ -979,7 +1007,7 @@ PRODUCT PREVIEW
 
                                                 <td className="px-4 py-4 text-center">
 
-                                                    <div className="font-semibold text-gray-900">
+                                                    <div className="font-semibold text-gray-700">
 
                                                         {totalQty}
 
@@ -1051,19 +1079,19 @@ PRODUCT PREVIEW
 
                                 <tr>
 
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
 
                                         Parent SKU
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
 
                                         Product Name
 
                                     </th>
 
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
 
                                         Reason
 
@@ -1086,13 +1114,13 @@ PRODUCT PREVIEW
                                             className="border-t border-gray-100"
                                         >
 
-                                            <td className="px-4 py-3 text-sm text-gray-900">
+                                            <td className="px-4 py-3 text-sm text-gray-700">
 
                                                 {product.parentSKU}
 
                                             </td>
 
-                                            <td className="px-4 py-3 text-sm text-gray-700">
+                                            <td className="px-4 py-3 text-sm text-indigo-400">
 
                                                 {product.productName}
 
@@ -1134,7 +1162,7 @@ PRODUCT PREVIEW
                             loading
                         }
 
-                        className="px-6 py-3 rounded-2xl bg-black text-white font-semibold disabled:opacity-50"
+                        className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-gray-700 font-semibold disabled:opacity-50"
                     >
 
                         Import Products
@@ -1187,7 +1215,7 @@ const SummaryCard = ({
 
     return (
 
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-white border border-white/10 bg-[#0f1117] rounded-2xl p-5">
 
             <div className="flex items-center justify-between mb-3">
 
@@ -1197,7 +1225,7 @@ const SummaryCard = ({
 
                 </div>
 
-                <div className="text-gray-700">
+                <div className="text-indigo-400">
 
                     {icon}
 
@@ -1205,7 +1233,7 @@ const SummaryCard = ({
 
             </div>
 
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-gray-700">
 
                 {value}
 

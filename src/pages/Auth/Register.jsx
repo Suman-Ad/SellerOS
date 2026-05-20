@@ -14,8 +14,21 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import logo from  "@/assets/image.png";
 
 import { toast } from "sonner";
+
+const backgroundStyle = {
+    backgroundImage: `url(${logo})`,
+    backgroundSize: 'cover',        // Scales the image to fill the screen without stretching
+    backgroundPosition: 'center',    // Centers the focal point of the image
+    backgroundRepeat: 'no-repeat',  // Prevents the image from tiling
+    width: '100vw',                 // Full viewport width
+    height: '100vh',                // Full viewport height
+    display: 'flex',                // Layout tool to align your form
+    justifyContent: 'center',       // Centers form horizontally
+    alignItems: 'center'            // Centers form vertically
+  };
 
 export default function Register() {
   const navigate = useNavigate();
@@ -130,8 +143,8 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
-      <Card className="w-full max-w-2xl bg-zinc-900 border-zinc-800 text-white">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6" style={backgroundStyle}>
+      <Card className="w-full max-w-2xl bg-zinc-900 border-zinc-800 text-white" style={backgroundStyle}>
         <CardContent className="p-8">
           <div className="mb-6">
             <h1 className="text-3xl font-bold">

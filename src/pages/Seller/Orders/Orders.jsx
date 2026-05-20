@@ -199,6 +199,7 @@ const Orders = () => {
                         Manage marketplace orders and fulfillment
                     </p>
                     <Button
+                        variant="outline"
                         onClick={() =>
                             navigate(
                                 "/seller/orders/import"
@@ -206,6 +207,17 @@ const Orders = () => {
                         }
                     >
                         Import Orders
+                    </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={() =>
+                            navigate(
+                                "/seller/orders/manifest-import"
+                            )
+                        }
+                    >
+                        Import Manifest
                     </Button>
                 </div>
             </div>

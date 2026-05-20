@@ -23,6 +23,10 @@ import Orders from "@/pages/Seller/Orders/Orders";
 import OrderImport from "@/pages/Seller/Orders/Orderimport";
 import OrderDetails from "@/pages/Seller/Orders/OrderDetails";
 import ProductImport from "@/pages/Seller/Products/ProductImport";
+import InternalProductImport from "@/pages/Seller/Products/InternalProductImport";
+import ManifestImport from "@/pages/Seller/Orders/ManifestImport";
+import ContactUs from "@/pages/Auth/ContactUs";
+import SellerAnalytics from "@/pages/Seller/Analytics";
 
 export default function AppRouter() {
   return (
@@ -98,6 +102,11 @@ export default function AppRouter() {
           />
 
           <Route
+            path="analytics"
+            element={<SellerAnalytics />}
+          />
+
+          <Route
             path="products"
             element={<ProductList />}
           />
@@ -106,7 +115,7 @@ export default function AppRouter() {
             path="products/add"
             element={<AddProduct />}
           />
-          
+
 
           <Route
             path="products/edit/:productId"
@@ -114,8 +123,13 @@ export default function AppRouter() {
           />
 
           <Route
-            path="products/import"
+            path="products/import-marketplace"
             element={<ProductImport />}
+          />
+
+          <Route
+            path="products/import-internal"
+            element={<InternalProductImport />}
           />
 
           <Route
@@ -138,9 +152,15 @@ export default function AppRouter() {
             element={<OrderDetails />}
           />
 
+          <Route
+            path="/seller/orders/manifest-import"
+            element={<ManifestImport />}
+          />
+
         </Route>
 
         <Route path="/login" element={<Login />} />
+        <Route path="/contact-us" element={<ContactUs />} />
 
         <Route path="/register" element={<Register />} />
 
