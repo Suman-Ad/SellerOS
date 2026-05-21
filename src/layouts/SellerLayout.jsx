@@ -337,7 +337,7 @@ export default function SellerLayout() {
           </button>
 
           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300"
-            onUpgrade={() =>
+            onClick={() =>
               navigate("/upgrade-plan")
             }
           >
@@ -530,7 +530,9 @@ export default function SellerLayout() {
                 {/* Menu */}
                 <div className="p-2">
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                  onClick={() => navigate("/seller/profile-settings")}
+                  >
                     Profile Settings
                   </button>
 

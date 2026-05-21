@@ -37,6 +37,10 @@ import ContactUs from "@/pages/Auth/ContactUs";
 import SellerAnalytics from "@/pages/Seller/Analytics";
 import AdminSubscriptions from "@/pages/Admin/AdminSubscriptions";
 import UserSubscriptionManager from "@/pages/Admin/UserSubscriptionManager";
+import UserProfile
+  from "@/pages/Profile/UserProfile";
+  import AdminAuditCenter
+from "@/pages/Admin/AdminAuditCenter";
 
 export default function AppRouter() {
   return (
@@ -113,6 +117,12 @@ export default function AppRouter() {
             path="user-subscriptions"
             element={<UserSubscriptionManager />}
           />
+
+          <Route
+            path="audit-center"
+            element={<AdminAuditCenter />}
+          />
+
         </Route>
 
         <Route
@@ -146,7 +156,7 @@ export default function AppRouter() {
                   "enterprise",
                   "free",
                 ]}
-                feature="AI Insights"
+              // feature="AI Insights"
               >
                 <SellerAnalytics />
               </SubscriptionRoute>
@@ -200,8 +210,12 @@ export default function AppRouter() {
           />
 
           <Route
-            path="/seller/orders/manifest-import"
+            path="orders/manifest-import"
             element={<ManifestImport />}
+          />
+          <Route
+            path="profile-settings"
+            element={<UserProfile />}
           />
 
         </Route>

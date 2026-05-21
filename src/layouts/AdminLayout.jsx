@@ -87,6 +87,11 @@ export default function AdminLayout() {
           path: "/admin/analytics",
           icon: BarChart3,
         },
+        {
+          name: "Audit Center",
+          path: "/admin/audit-center",
+          icon: ShieldCheck,
+        },
       ],
     },
 
@@ -300,8 +305,8 @@ export default function AdminLayout() {
             <div className="hidden lg:flex flex-col">
 
               <p className="text-xs uppercase tracking-wider text-zinc-500"
-              onClick={() => navigate("/")}
-              style={{cursor:"pointer"}}
+                onClick={() => navigate("/")}
+                style={{ cursor: "pointer" }}
               >
                 SellerOS ERP
               </p>
