@@ -6,12 +6,14 @@ import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 
 import ProtectedRoute from "./ProtectedRoute";
+import GuestRoute from "./GuestRoute";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import AdminAnalytics from "@/pages/Admin/AdminAnalytics";
 
 import RoleRoute from "./RoleRoute";
 import SellerApprovals from "@/pages/Admin/SellerApprovals";
 import AdminLayout from "@/layouts/AdminLayout";
+import HomeRoute from "./HomeRoute";
 
 import SellerLayout from "@/layouts/SellerLayout";
 import SellerDashboard from "@/pages/Seller/SellerDashboard";
@@ -34,15 +36,42 @@ export default function AppRouter() {
 
       <Routes>
 
+        {/* =========================
+      PUBLIC ROUTES
+  ========================== */}
+
         <Route
           path="/"
-          element={
-            <ProtectedRoute>
+          element={<HomeRoute />}
+        >
+          <Route
+            index
+            element={<Dashboard />}
+          />
 
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="contact-us"
+            element={<ContactUs />}
+          />
+
+          <Route
+            path="login"
+            element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            }
+          />
+
+          <Route
+            path="register"
+            element={
+              <GuestRoute>
+                <Register />
+              </GuestRoute>
+            }
+          />
+        </Route>
 
         <Route
           path="/admin"
@@ -69,8 +98,6 @@ export default function AppRouter() {
             path="sellers"
             element={<SellerApprovals />}
           />
-
-
 
           <Route
             path="analytics"
@@ -159,10 +186,7 @@ export default function AppRouter() {
 
         </Route>
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/contact-us" element={<ContactUs />} />
 
-        <Route path="/register" element={<Register />} />
 
       </Routes>
 

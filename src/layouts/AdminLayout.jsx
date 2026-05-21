@@ -288,7 +288,10 @@ export default function AdminLayout() {
             {/* Breadcrumb */}
             <div className="hidden lg:flex flex-col">
 
-              <p className="text-xs uppercase tracking-wider text-zinc-500">
+              <p className="text-xs uppercase tracking-wider text-zinc-500"
+              onClick={() => navigate("/")}
+              style={{cursor:"pointer"}}
+              >
                 SellerOS ERP
               </p>
 

@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 
 
-export default function SellerLayout() {
+export default function DashboardLayout() {
   const { userData } = useAuth();
 
   const navigate = useNavigate();
@@ -122,58 +122,63 @@ export default function SellerLayout() {
       items: [
         {
           name: "Dashboard",
-          path: "/seller",
+          path: "/",
           icon: LayoutDashboard,
         },
         {
-          name: "Analytics",
-          path: "/seller/analytics",
+          name: "Seller ERP",
+          path: "/seller",
           icon: BarChart3,
         },
-      ],
-    },
-
-    {
-      title: "Commerce",
-      items: [
         {
-          name: "Products",
-          path: "/seller/products",
-          icon: Package,
-        },
-        {
-          name: "Inventory",
-          path: "/seller/inventory",
-          icon: Boxes,
-        },
-        {
-          name: "Orders",
-          path: "/seller/orders",
-          icon: ShoppingCart,
-        },
-      ],
-    },
-
-    {
-      title: "Business",
-      items: [
-        {
-          name: "Customers",
-          path: "/seller/customers",
-          icon: Users,
-        },
-        {
-          name: "Marketplaces",
-          path: "/seller/marketplaces",
-          icon: Store,
-        },
-        {
-          name: "Settings",
-          path: "/seller/settings",
+          name: "Admin Panel",
+          path: "/admin",
           icon: Settings,
         },
       ],
     },
+
+    // {
+    //   title: "Commerce",
+    //   items: [
+    //     {
+    //       name: "Products",
+    //       path: "/products",
+    //       icon: Package,
+    //     },
+    //     {
+    //       name: "Inventory",
+    //       path: "/inventory",
+    //       icon: Boxes,
+    //     },
+    //     {
+    //       name: "Orders",
+    //       path: "/orders",
+    //       icon: ShoppingCart,
+    //     },
+    //   ],
+    // },
+
+    // {
+    //   title: "Business",
+    //   items: [
+    //     {
+    //       name: "Customers",
+    //       path: "/customers",
+    //       icon: Users,
+    //     },
+    //     {
+    //       name: "Marketplaces",
+    //       path: "/marketplaces",
+    //       icon: Store,
+    //     },
+    //     {
+    //       name: "Settings",
+    //       path: "/settings",
+    //       icon: Settings,
+    //     },
+    //   ],
+    // },
   ];
 
 
@@ -206,7 +211,7 @@ export default function SellerLayout() {
               </h1>
 
               <p className="text-xs text-zinc-400 mt-1">
-                Seller ERP Panel
+                SellerOS Dashboard Panel
               </p>
 
             </div>
@@ -349,7 +354,7 @@ export default function SellerLayout() {
 
             <div className="hidden lg:flex flex-col">
 
-              <p className="text-xs uppercase tracking-wider text-zinc-500" 
+              <p className="text-xs uppercase tracking-wider text-zinc-500"
               onClick={() => navigate("/")}
               style={{cursor:"pointer"}}
               >
@@ -357,7 +362,7 @@ export default function SellerLayout() {
               </p>
 
               <h2 className="text-lg font-semibold">
-                Seller Control Center
+                Home
               </h2>
 
             </div>
@@ -393,7 +398,7 @@ export default function SellerLayout() {
             </div>
 
             {/* Quick Action */}
-            <button className="hidden md:flex items-center gap-2 h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 transition font-medium"
+            {/* <button className="hidden md:flex items-center gap-2 h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 transition font-medium"
               onClick={() =>
                 navigate(
                   "/seller/products/add"
@@ -403,7 +408,7 @@ export default function SellerLayout() {
 
               + Add Product
 
-            </button>
+            </button> */}
 
           </div>
           {/* Notifications */}
