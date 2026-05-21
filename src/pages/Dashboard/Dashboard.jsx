@@ -10,6 +10,9 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
+import SubscriptionDashboardCard
+  from "@/components/subscription/SubscriptionDashboardCard";
+
 export default function Dashboard() {
 
   const navigate = useNavigate();
@@ -235,6 +238,12 @@ export default function Dashboard() {
         </div>
 
       </section>
+
+      <SubscriptionDashboardCard
+        onUpgrade={() =>
+          navigate("/upgrade-plan")
+        }
+      />
 
     </div>
   );

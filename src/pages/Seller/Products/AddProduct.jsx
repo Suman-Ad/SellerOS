@@ -10,6 +10,8 @@ import { db } from "@/firebase/config";
 
 import { useAuth } from "@/context/AuthContext";
 
+import useSubscription from "@/hooks/useSubscription";
+
 import {
     Card,
     CardContent,
@@ -39,6 +41,12 @@ import {
 
 
 export default function AddProduct() {
+
+    const {
+        canCreateProduct,
+        remainingProducts,
+        hasFeature,
+    } = useSubscription();
 
     const navigate = useNavigate();
 
@@ -354,7 +362,14 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
             e.preventDefault();
 
             try {
+                if (!canCreateProduct) {
 
+                    toast.error(
+                        "Product limit reached"
+                    );
+
+                    return;
+                }
                 setLoading(true);
 
                 await addDoc(

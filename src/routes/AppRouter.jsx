@@ -6,7 +6,6 @@ import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 
 import ProtectedRoute from "./ProtectedRoute";
-import GuestRoute from "./GuestRoute";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import AdminAnalytics from "@/pages/Admin/AdminAnalytics";
 
@@ -14,6 +13,13 @@ import RoleRoute from "./RoleRoute";
 import SellerApprovals from "@/pages/Admin/SellerApprovals";
 import AdminLayout from "@/layouts/AdminLayout";
 import HomeRoute from "./HomeRoute";
+import SubscriptionRoute from "./SubscriptionRoute";
+import UpgradePlan
+  from "@/pages/Subscription/UpgradePlan";
+import Checkout
+  from "@/pages/Subscription/Checkout";
+import BillingHistory
+  from "@/pages/Subscription/BillingHistory";
 
 import SellerLayout from "@/layouts/SellerLayout";
 import SellerDashboard from "@/pages/Seller/SellerDashboard";
@@ -29,6 +35,8 @@ import InternalProductImport from "@/pages/Seller/Products/InternalProductImport
 import ManifestImport from "@/pages/Seller/Orders/ManifestImport";
 import ContactUs from "@/pages/Auth/ContactUs";
 import SellerAnalytics from "@/pages/Seller/Analytics";
+import AdminSubscriptions from "@/pages/Admin/AdminSubscriptions";
+import UserSubscriptionManager from "@/pages/Admin/UserSubscriptionManager";
 
 export default function AppRouter() {
   return (
@@ -56,20 +64,12 @@ export default function AppRouter() {
 
           <Route
             path="login"
-            element={
-              <GuestRoute>
-                <Login />
-              </GuestRoute>
-            }
+            element={<Login />}
           />
 
           <Route
             path="register"
-            element={
-              <GuestRoute>
-                <Register />
-              </GuestRoute>
-            }
+            element={<Register />}
           />
         </Route>
 
@@ -104,6 +104,15 @@ export default function AppRouter() {
             element={<AdminAnalytics />}
           />
 
+          <Route
+            path="subscriptions"
+            element={<AdminSubscriptions />}
+          />
+
+          <Route
+            path="user-subscriptions"
+            element={<UserSubscriptionManager />}
+          />
         </Route>
 
         <Route
@@ -130,7 +139,18 @@ export default function AppRouter() {
 
           <Route
             path="analytics"
-            element={<SellerAnalytics />}
+            element={
+              <SubscriptionRoute
+                requiredPlans={[
+                  "growth",
+                  "enterprise",
+                  "free",
+                ]}
+                feature="AI Insights"
+              >
+                <SellerAnalytics />
+              </SubscriptionRoute>
+            }
           />
 
           <Route
@@ -186,7 +206,32 @@ export default function AppRouter() {
 
         </Route>
 
+        <Route
+          path="/upgrade-plan"
+          element={
+            <ProtectedRoute>
+              <UpgradePlan />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/billing-history"
+          element={
+            <ProtectedRoute>
+              <BillingHistory />
+            </ProtectedRoute>
+          }
+        />
 
       </Routes>
 

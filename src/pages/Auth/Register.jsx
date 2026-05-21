@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import {
@@ -9,32 +9,44 @@ import {
 
 import { auth, db } from "@/firebase/config";
 
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  serverTimestamp,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logo from  "@/assets/image.png";
+import logo from "@/assets/image.png";
 
 import { toast } from "sonner";
 
 const backgroundStyle = {
-    backgroundImage: `url(${logo})`,
-    backgroundSize: 'cover',        // Scales the image to fill the screen without stretching
-    backgroundPosition: 'center',    // Centers the focal point of the image
-    backgroundRepeat: 'no-repeat',  // Prevents the image from tiling
-    width: '100vw',                 // Full viewport width
-    height: '100vh',                // Full viewport height
-    display: 'flex',                // Layout tool to align your form
-    justifyContent: 'center',       // Centers form horizontally
-    alignItems: 'center'            // Centers form vertically
-  };
+  backgroundImage: `url(${logo})`,
+  backgroundSize: 'cover',        // Scales the image to fill the screen without stretching
+  backgroundPosition: 'center',    // Centers the focal point of the image
+  backgroundRepeat: 'no-repeat',  // Prevents the image from tiling
+  width: '100vw',                 // Full viewport width
+  height: '100vh',                // Full viewport height
+  display: 'flex',                // Layout tool to align your form
+  justifyContent: 'center',       // Centers form horizontally
+  alignItems: 'center'            // Centers form vertically
+};
 
 export default function Register() {
   const navigate = useNavigate();
-  
+
 
   const [loading, setLoading] = useState(false);
+  const [plans, setPlans] = useState([]);
+
+  const [plansLoading, setPlansLoading] =
+    useState(true);
 
   const [formData, setFormData] = useState({
     businessName: "",
@@ -49,7 +61,57 @@ export default function Register() {
     govId: "",
     gstNo: "",
     role: "seller",
+    selectedPlanId: "",
+    selectedPlanName: "",
   });
+
+  useEffect(() => {
+
+    const fetchPlans = async () => {
+
+      try {
+
+        const q = query(
+          collection(db, "subscriptionPlans"),
+          where("isActive", "==", true)
+        );
+
+        const snapshot = await getDocs(q);
+
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setPlans(data);
+
+        // Auto select first plan
+        if (data.length > 0) {
+
+          setFormData((prev) => ({
+            ...prev,
+            selectedPlanId: data[0].id,
+            selectedPlanName: data[0].name,
+          }));
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast.error(
+          "Failed to load subscription plans"
+        );
+
+      } finally {
+
+        setPlansLoading(false);
+      }
+    };
+
+    fetchPlans();
+
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -107,11 +169,22 @@ export default function Register() {
         govId: formData.govId,
         gstNo: formData.gstNo,
 
-        role: "seller",
+        role: formData.role,
 
         approvalStatus: "pending",
         isApproved: false,
         emailVerified: false,
+
+        subscription: {
+          planId: formData.selectedPlanId,
+          planName: formData.selectedPlanName,
+
+          status: "trial",
+
+          isActive: true,
+
+          subscribedAt: serverTimestamp(),
+        },
 
         createdAt: serverTimestamp(),
       });
@@ -141,6 +214,8 @@ export default function Register() {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6" style={backgroundStyle}>
@@ -252,6 +327,113 @@ export default function Register() {
               <option value="seller">Seller</option>
               <option value="staff">Staff</option>
             </select>
+
+
+            <div className="space-y-4">
+
+              <h2 className="text-lg font-semibold text-white">
+                Select Subscription Plan
+              </h2>
+
+              {plansLoading ? (
+
+                <div className="text-zinc-400">
+                  Loading plans...
+                </div>
+
+              ) : (
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {plans.map((plan) => {
+
+                    const selected =
+                      formData.selectedPlanId === plan.id;
+
+                    return (
+
+                      <button
+                        type="button"
+                        key={plan.id}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            selectedPlanId: plan.id,
+                            selectedPlanName: plan.name,
+                          }))
+                        }
+                        className={`
+              text-left
+              rounded-2xl
+              border
+              p-5
+              transition-all
+              ${selected
+                            ? "border-violet-500 bg-violet-500/10"
+                            : "border-zinc-700 bg-zinc-900"
+                          }
+            `}
+                      >
+
+                        <div className="flex items-center justify-between">
+
+                          <h3 className="text-xl font-bold text-white">
+                            {plan.name}
+                          </h3>
+
+                          {plan.badge && (
+
+                            <div className="bg-violet-600 text-white text-xs px-3 py-1 rounded-full">
+                              {plan.badge}
+                            </div>
+
+                          )}
+
+                        </div>
+
+                        <p className="text-zinc-400 text-sm mt-2">
+                          {plan.description}
+                        </p>
+
+                        <div className="mt-4">
+
+                          <span className="text-3xl font-black text-white">
+                            ₹{plan.priceMonthly}
+                          </span>
+
+                          <span className="text-zinc-400">
+                            /month
+                          </span>
+
+                        </div>
+
+                        <div className="mt-4 space-y-2">
+
+                          {plan.features?.slice(0, 4).map(
+                            (feature, index) => (
+
+                              <div
+                                key={index}
+                                className="text-sm text-zinc-300 flex items-center gap-2"
+                              >
+
+                                • {feature}
+
+                              </div>
+                            )
+                          )}
+
+                        </div>
+
+                      </button>
+                    );
+                  })}
+
+                </div>
+
+              )}
+
+            </div>
 
             {/* Passwords */}
             <div className="grid grid-cols-2 gap-4">

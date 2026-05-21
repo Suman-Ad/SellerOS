@@ -31,6 +31,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import SubscriptionDashboardCard from "@/components/subscription/SubscriptionDashboardCard";
 
 export default function SellerLayout() {
   const { userData } = useAuth();
@@ -289,6 +290,7 @@ export default function SellerLayout() {
 
         {/* Bottom Area */}
         <div className="border-t border-zinc-800 p-3 space-y-2">
+
           {installable && (
             <button
               onClick={installApp}
@@ -334,6 +336,15 @@ export default function SellerLayout() {
 
           </button>
 
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300"
+            onUpgrade={() =>
+              navigate("/upgrade-plan")
+            }
+          >
+            <CreditCard size={18} />
+             {!collapsed && <span>Upgrade Plan</span>}
+          </button>
+
         </div>
 
       </aside>
@@ -349,9 +360,9 @@ export default function SellerLayout() {
 
             <div className="hidden lg:flex flex-col">
 
-              <p className="text-xs uppercase tracking-wider text-zinc-500" 
-              onClick={() => navigate("/")}
-              style={{cursor:"pointer"}}
+              <p className="text-xs uppercase tracking-wider text-zinc-500"
+                onClick={() => navigate("/")}
+                style={{ cursor: "pointer" }}
               >
                 SellerOS ERP
               </p>

@@ -29,11 +29,12 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdminLayout() {
 
   const { userData } = useAuth();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -102,6 +103,16 @@ export default function AdminLayout() {
           path: "/admin/subscriptions",
           icon: CreditCard,
         },
+        {
+          name: "User Plans",
+          path: "/admin/user-subscriptions",
+          icon: Users,
+        },
+        {
+          name: "Billing History",
+          path: "/billing-history",
+          icon: CreditCard,
+        }
       ],
     },
 
