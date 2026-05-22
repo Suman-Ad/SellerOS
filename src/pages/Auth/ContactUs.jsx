@@ -10,6 +10,8 @@ import {
     Globe,
 } from "lucide-react";
 
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/firebase/config";
 import { toast } from "sonner";
 
 export default function ContactUs() {
@@ -35,15 +37,14 @@ export default function ContactUs() {
         setLoading(true);
 
         try {
-            // API Call Here
 
-            await new Promise((resolve) =>
-                setTimeout(resolve, 1500)
-            );
+            await addDoc(collection(db, "contactMessages"), {
+                ...formData,
+                isRead: false,
+                createdAt: serverTimestamp(),
+            });
 
-            toast.success(
-                "Message sent successfully!"
-            );
+            toast.success("Message sent successfully!");
 
             setFormData({
                 name: "",
@@ -51,12 +52,15 @@ export default function ContactUs() {
                 subject: "",
                 message: "",
             });
+
         } catch (error) {
-            toast.error(
-                "Failed to send message"
-            );
+
+            toast.error("Failed to send message");
+
         } finally {
+
             setLoading(false);
+
         }
     };
 

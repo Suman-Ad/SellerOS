@@ -39,6 +39,9 @@ import {
     useNavigate,
 } from "react-router-dom";
 
+import logActivity
+    from "@/utils/activity/logActivity";
+
 
 export default function AddProduct() {
 
@@ -371,6 +374,36 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                     return;
                 }
                 setLoading(true);
+
+                // ========================================
+                // Activity Log
+                // ========================================
+
+                await logActivity({
+
+                    uid: user.uid,
+
+                    type: "product_upload",
+
+                    title:
+                        "Product Upload",
+
+                    description:
+                        "User uploaded a new product",
+
+                    meta: {
+                        role:
+                            userData.role,
+                        fullName:
+                            userData.fullName,
+                        businessName:
+                            userData.businessName ||
+                            null,
+                        subscriptionPlan:
+                            userData.subscription.planName ||
+                            null,
+                    },
+                });
 
                 await addDoc(
                     collection(

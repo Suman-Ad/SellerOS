@@ -80,14 +80,16 @@ export default function PublicLayout() {
                             Integrations
                         </button>
 
-                        <button className="hover:text-white transition">
-                            Pricing
+                        <button className="hover:text-white transition"
+                        onClick={() => navigate("/upgrade-plan")}
+                        >
+                            Explore Plans
                         </button>
 
                         <button className="hover:text-white transition"
                         onClick={() => navigate("/contact-us")}
                         >
-                            Contact
+                            Contact Us
                         </button>
 
                     </div>

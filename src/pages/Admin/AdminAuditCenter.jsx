@@ -233,9 +233,9 @@ export default function AdminAuditCenter() {
 
           const matchesType =
             typeFilter ===
-              "all" ||
+            "all" ||
             log.type ===
-              typeFilter;
+            typeFilter;
 
           return (
             matchesSearch &&
@@ -855,7 +855,7 @@ export default function AdminAuditCenter() {
                             {log.uid}
 
                           </div>
-
+                          
                         </div>
 
                       </div>

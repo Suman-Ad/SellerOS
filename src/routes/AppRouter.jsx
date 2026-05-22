@@ -39,8 +39,15 @@ import AdminSubscriptions from "@/pages/Admin/AdminSubscriptions";
 import UserSubscriptionManager from "@/pages/Admin/UserSubscriptionManager";
 import UserProfile
   from "@/pages/Profile/UserProfile";
-  import AdminAuditCenter
-from "@/pages/Admin/AdminAuditCenter";
+import AdminAuditCenter
+  from "@/pages/Admin/AdminAuditCenter";
+
+import ThreatDetectionCenter
+  from "@/pages/Security/ThreatDetectionCenter";
+
+import SecurityCenter from "@/pages/Security/SecurityCenter";
+
+import AdminContactMessages from "@/pages/Admin/AdminContactMessages";
 
 export default function AppRouter() {
   return (
@@ -74,6 +81,42 @@ export default function AppRouter() {
           <Route
             path="register"
             element={<Register />}
+          />
+
+          <Route
+            path="/upgrade-plan"
+            element={
+              // <ProtectedRoute>
+              <UpgradePlan />
+              // </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/billing-history"
+            element={
+              <ProtectedRoute>
+                <BillingHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/security-center"
+            element={
+              <ProtectedRoute>
+                <SecurityCenter />
+              </ProtectedRoute>
+            }
           />
         </Route>
 
@@ -121,6 +164,24 @@ export default function AppRouter() {
           <Route
             path="audit-center"
             element={<AdminAuditCenter />}
+          />
+
+          <Route
+            path="threat-center"
+            element={
+
+              <ThreatDetectionCenter />
+            }
+          />
+
+          <Route
+            path="profile-settings"
+            element={<UserProfile />}
+          />
+
+          <Route
+            path="contact-messages"
+            element={<AdminContactMessages />}
           />
 
         </Route>
@@ -219,33 +280,6 @@ export default function AppRouter() {
           />
 
         </Route>
-
-        <Route
-          path="/upgrade-plan"
-          element={
-            <ProtectedRoute>
-              <UpgradePlan />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/billing-history"
-          element={
-            <ProtectedRoute>
-              <BillingHistory />
-            </ProtectedRoute>
-          }
-        />
 
       </Routes>
 

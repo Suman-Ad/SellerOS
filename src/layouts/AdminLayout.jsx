@@ -38,6 +38,7 @@ export default function AdminLayout() {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
 
   const notifications = [
     {
@@ -92,6 +93,16 @@ export default function AdminLayout() {
           path: "/admin/audit-center",
           icon: ShieldCheck,
         },
+        {
+          name: "Threat Center",
+          path: "/admin/threat-center",
+          icon: ShieldCheck,
+        },
+        {
+          name: "Contact Messages",
+          icon: Mail,
+          path: "/admin/contact-messages",
+        }
       ],
     },
 
@@ -272,7 +283,9 @@ export default function AdminLayout() {
         {/* Bottom Area */}
         <div className="border-t border-zinc-800 p-3 space-y-2">
 
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300">
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300"
+            onClick={() => setShowFAQ(true)}
+          >
 
             <HelpCircle size={18} />
 
@@ -280,7 +293,13 @@ export default function AdminLayout() {
 
           </button>
 
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300">
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-zinc-300"
+            onClick={() =>
+              navigate(
+                "/contact-us"
+              )
+            }
+          >
 
             <Mail size={18} />
 
@@ -449,7 +468,7 @@ export default function AdminLayout() {
               {/* Dropdown */}
               {showProfileMenu && (
 
-                <div className="absolute right-0 top-16 w-64 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute right-0 top-16 w-64 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-1000">
 
                   {/* User Info */}
                   <div className="p-4 border-b border-zinc-800">
@@ -467,12 +486,20 @@ export default function AdminLayout() {
                   {/* Menu */}
                   <div className="p-2">
 
-                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                      onClick={() => navigate("/admin/profile-settings")}
+                    >
                       Profile Settings
                     </button>
 
                     <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
                       Billing & Subscription
+                    </button>
+
+                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                      onClick={() => navigate("/security-center")}
+                    >
+                      Security Center
                     </button>
 
                     <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
@@ -532,6 +559,114 @@ export default function AdminLayout() {
           </p>
 
         </footer>
+
+        {/* FAQ Modal */}
+        {showFAQ && (
+
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+
+            <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl">
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-800">
+
+                <div>
+
+                  <h2 className="text-3xl font-black tracking-tight">
+
+                    Frequently Asked
+                    <span className="bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+                      {" "}Questions
+                    </span>
+
+                  </h2>
+
+                  <p className="text-zinc-400 mt-2">
+                    SellerOS ERP Support Center
+                  </p>
+
+                </div>
+
+                <button
+                  onClick={() => setShowFAQ(false)}
+                  className="w-11 h-11 rounded-xl bg-zinc-800 hover:bg-zinc-700 transition flex items-center justify-center text-xl"
+                >
+                  ✕
+                </button>
+
+              </div>
+
+              {/* Content */}
+              <div className="max-h-[75vh] overflow-y-auto p-8 space-y-5">
+
+                {[
+                  {
+                    question: "What is SellerOS ERP?",
+                    answer:
+                      "SellerOS is a modern commerce ERP platform for managing products, inventory, marketplaces, orders, analytics, and staff operations.",
+                  },
+
+                  {
+                    question: "Can I manage multiple marketplaces?",
+                    answer:
+                      "Yes. SellerOS supports multi-marketplace integrations including Amazon, Flipkart, Shopify, WooCommerce, and more.",
+                  },
+
+                  {
+                    question: "Does SellerOS support bulk uploads?",
+                    answer:
+                      "Yes. You can upload products and inventory in bulk using CSV or Excel templates.",
+                  },
+
+                  {
+                    question: "Can I manage staff permissions?",
+                    answer:
+                      "Yes. SellerOS includes role-based access control for Admins, Sellers, and Staff users.",
+                  },
+
+                  {
+                    question: "How secure is SellerOS?",
+                    answer:
+                      "SellerOS uses Firebase Authentication, secure APIs, encrypted storage, and protected role-based access.",
+                  },
+
+                  {
+                    question: "Can I upgrade my plan later?",
+                    answer:
+                      "Absolutely. You can upgrade or change subscription plans anytime from your account settings.",
+                  },
+
+                  {
+                    question: "How do I contact support?",
+                    answer:
+                      "Use the Contact Us section or reach out through email and support channels available in the dashboard.",
+                  },
+                ].map((faq, index) => (
+
+                  <div
+                    key={index}
+                    className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 hover:border-violet-500/30 transition"
+                  >
+
+                    <h3 className="text-lg font-semibold mb-3">
+                      {faq.question}
+                    </h3>
+
+                    <p className="text-zinc-400 leading-relaxed">
+                      {faq.answer}
+                    </p>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+            </div>
+
+          </div>
+
+        )}
 
       </div>
 

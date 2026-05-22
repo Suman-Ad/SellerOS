@@ -246,6 +246,14 @@ export default function Login() {
           meta: {
             role:
               userData.role,
+            fullName:
+              userData.fullName,
+            businessName:
+              userData.businessName ||
+              null,
+            subscriptionPlan:
+              userData.subscription.planName ||
+              null,
           },
         });
 
