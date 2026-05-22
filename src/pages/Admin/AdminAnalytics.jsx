@@ -1,230 +1,172 @@
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import { useEffect, useState } from "react";
 
-import { db } from "@/firebase/config";
+import { useAuth } from "@/context/AuthContext";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import KPIGrid from "@/components/admin/KPIGrid";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { getAdminAnalytics } from "@/components/admin/analyticsService";
 
-import {
-  Users,
-  Store,
-  Package,
-  ShoppingCart,
-  IndianRupee,
-  BadgeCheck,
-} from "lucide-react";
+import RevenueOverview from "@/components/admin/RevenueOverview";
+
+import RevenueChart from "@/components/admin/RevenueChart";
+
+import OrderAnalytics from "@/components/admin/OrderAnalytics";
+
+import SellerApprovalQueue from "@/components/admin/SellerApprovalQueue";
+
+import TopSellerLeaderboard from "@/components/admin/TopSellerLeaderboard";
+
+import RiskAlerts from "@/components/admin/RiskAlerts";
+
+import ActivityFeed from "@/components/admin/ActivityFeed";
+
+import QuickActions from "@/components/admin/QuickActions";
+
+import SystemStatus from "@/components/admin/SystemStatus";
+
+import RevenueTrendChart from "@/components/admin/RevenueTrendChart";
+
+import OrderStatusChart from "@/components/admin/OrderStatusChart";
+
+import CategoryAnalytics from "@/components/admin/CategoryAnalytics";
+
+import BusinessInsights from "@/components/admin/BusinessInsights";
 
 export default function AdminAnalytics() {
 
-  const [stats, setStats] =
-    useState({
-      totalUsers: 0,
-      totalSellers: 0,
-      approvedSellers: 0,
-      totalProducts: 0,
-      totalOrders: 0,
-      revenue: 0,
-    });
+  const { userData } = useAuth();
 
-  const fetchAnalytics =
-    async () => {
-
-      try {
-
-        // Users
-        const usersSnap =
-          await getDocs(
-            collection(db, "users")
-          );
-
-        // Sellers
-        const sellersQuery = query(
-          collection(db, "users"),
-          where("role", "==", "seller")
-        );
-
-        const sellersSnap =
-          await getDocs(
-            sellersQuery
-          );
-
-        // Approved sellers
-        const approvedQuery = query(
-          collection(db, "users"),
-          where(
-            "isApproved",
-            "==",
-            true
-          )
-        );
-
-        const approvedSnap =
-          await getDocs(
-            approvedQuery
-          );
-
-        // Products
-        const productsSnap =
-          await getDocs(
-            collection(
-              db,
-              "products"
-            )
-          );
-
-        // Orders
-        const ordersSnap =
-          await getDocs(
-            collection(db, "orders")
-          );
-
-        // Revenue
-        let revenue = 0;
-
-        ordersSnap.forEach((doc) => {
-
-          const order =
-            doc.data();
-
-          revenue +=
-            order.totalAmount || 0;
-        });
-
-        setStats({
-          totalUsers:
-            usersSnap.size,
-
-          totalSellers:
-            sellersSnap.size,
-
-          approvedSellers:
-            approvedSnap.size,
-
-          totalProducts:
-            productsSnap.size,
-
-          totalOrders:
-            ordersSnap.size,
-
-          revenue,
-        });
-
-      } catch (error) {
-
-        console.error(error);
-      }
-    };
+  const [analytics, setAnalytics] =
+    useState(null);
 
   useEffect(() => {
-    fetchAnalytics();
+    async function loadAnalytics() {
+      const data =
+        await getAdminAnalytics();
+
+      setAnalytics(data);
+    }
+
+    loadAnalytics();
   }, []);
 
-  const cards = [
-    {
-      title: "Users",
-      value: stats.totalUsers,
-      icon: Users,
-    },
-    {
-      title: "Sellers",
-      value: stats.totalSellers,
-      icon: Store,
-    },
-    {
-      title: "Approved Sellers",
-      value:
-        stats.approvedSellers,
-      icon: BadgeCheck,
-    },
-    {
-      title: "Products",
-      value:
-        stats.totalProducts,
-      icon: Package,
-    },
-    {
-      title: "Orders",
-      value: stats.totalOrders,
-      icon: ShoppingCart,
-    },
-    {
-      title: "Revenue",
-      value: `₹${stats.revenue}`,
-      icon: IndianRupee,
-    },
-  ];
+  if (!analytics) {
+    return (
+      <div className="p-10 text-white">
+        Loading Analytics...
+      </div>
+    );
+  }
 
   return (
-    <div>
+    <div className="min-h-screen bg-zinc-950 text-white">
 
-      <div className="mb-6">
+      {/* Header */}
+      <div className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50">
 
-        <h1 className="text-3xl font-bold">
-          Analytics
-        </h1>
+        <div className="max-w-7xl mx-auto px-6 py-5">
 
-        <p className="text-zinc-400 mt-2">
-          SellerOS business overview
-        </p>
+          <h1 className="text-3xl font-bold">
+            SellerOS Admin Analytics Center
+          </h1>
+
+          {/* <p className="text-zinc-400 mt-2">
+            Welcome back, {userData?.fullName}
+          </p> */}
+
+        </div>
+
+      </div>
+
+      {/* Dashboard */}
+      <div className="max-w-7xl mx-auto p-6">
+
+        {analytics && (
+          <>
+
+            <div className="mt-8">
+              <RevenueOverview analytics={analytics} />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
+
+              <div className="xl:col-span-2">
+                <RevenueChart />
+              </div>
+
+              <div>
+                <OrderAnalytics analytics={analytics} />
+              </div>
+
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
+
+              <div>
+                <SellerApprovalQueue
+                  analytics={analytics}
+                />
+              </div>
+
+              <div>
+                <TopSellerLeaderboard />
+              </div>
+
+              <div>
+                <RiskAlerts />
+              </div>
+
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
+
+              <div className="xl:col-span-2">
+                <ActivityFeed />
+              </div>
+
+              <div>
+                <QuickActions />
+              </div>
+
+            </div>
+
+            <div className="mt-8">
+
+              <SystemStatus />
+
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
+
+              <div className="xl:col-span-2">
+                <RevenueTrendChart
+                  analytics={analytics}
+                />
+              </div>
+
+              <div>
+                <OrderStatusChart
+                  analytics={analytics}
+                />
+              </div>
+
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
+
+              <CategoryAnalytics
+                analytics={analytics}
+              />
+
+              <BusinessInsights />
+
+            </div>
+          </>
+        )}
+
 
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-        {cards.map((card) => {
-
-          const Icon =
-            card.icon;
-
-          return (
-            <Card
-              key={card.title}
-              className="bg-zinc-900 border-zinc-800"
-            >
-
-              <CardContent className="p-6">
-
-                <div className="flex items-center justify-between">
-
-                  <div>
-
-                    <p className="text-zinc-400 text-sm">
-                      {card.title}
-                    </p>
-
-                    <h2 className="text-3xl font-bold mt-2">
-                      {card.value}
-                    </h2>
-
-                  </div>
-
-                  <div className="bg-violet-500/10 p-3 rounded-xl">
-
-                    <Icon className="text-violet-500" />
-
-                  </div>
-
-                </div>
-
-              </CardContent>
-
-            </Card>
-          );
-        })}
-
-      </div>
 
     </div>
   );
