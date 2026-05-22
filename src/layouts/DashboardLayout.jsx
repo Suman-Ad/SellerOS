@@ -206,7 +206,10 @@ export default function DashboardLayout() {
           {!collapsed && (
             <div>
 
-              <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent"
+                onClick={() => navigate("/")}
+                style={{ cursor: "pointer" }}
+              >
                 SellerOS
               </h1>
 
@@ -355,8 +358,8 @@ export default function DashboardLayout() {
             <div className="hidden lg:flex flex-col">
 
               <p className="text-xs uppercase tracking-wider text-zinc-500"
-              onClick={() => navigate("/")}
-              style={{cursor:"pointer"}}
+                onClick={() => navigate("/")}
+                style={{ cursor: "pointer" }}
               >
                 SellerOS ERP
               </p>
@@ -389,7 +392,14 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-3">
 
             {/* Plan Badge */}
-            <div className="hidden md:flex items-center gap-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-4 h-11 rounded-xl text-sm font-medium">
+            <div className="hidden md:flex items-center gap-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-4 h-11 rounded-xl text-sm font-medium"
+              onClick={() =>
+                navigate(
+                  "/upgrade-plan"
+                )
+              }
+              style={{ cursor: "pointer" }}
+            >
 
               <TrendingUp size={16} />
 

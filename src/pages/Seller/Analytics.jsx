@@ -41,7 +41,10 @@ import {
     TrendingDown,
     Wallet,
     Percent,
+    ArrowLeft,
 } from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 
 // ======================================
 // FORMAT CURRENCY
@@ -72,6 +75,9 @@ export default function SellerAnalytics() {
 
     const { user } =
         useAuth();
+
+    const navigate =
+        useNavigate();
 
     const [loading,
         setLoading] =
@@ -304,6 +310,16 @@ export default function SellerAnalytics() {
     return (
 
         <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6 space-y-8">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
 
             {/* ======================================
             HEADER

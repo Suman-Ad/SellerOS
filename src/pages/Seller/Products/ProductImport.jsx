@@ -7,6 +7,7 @@ import {
     CheckCircle2,
     AlertTriangle,
     Boxes,
+    ArrowLeft,
 } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +22,8 @@ import checkDuplicateProducts from "@/utils/import/checkDuplicateProducts";
 
 import executeInventoryImport from "@/utils/import/executeInventoryImport";
 
+import { useNavigate } from "react-router-dom";
+
 // ====================================
 // PAGE
 // ====================================
@@ -29,6 +32,9 @@ const ProductImport = () => {
 
     const { user } =
         useAuth();
+
+    const navigate =
+        useNavigate();
 
     // ====================================
     // STATE
@@ -475,6 +481,16 @@ const ProductImport = () => {
     return (
 
         <div className="p-4 md:p-6 bg-[#0f1117] min-h-screen text-gray-700">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
 
             {/* ====================================
             HEADER

@@ -19,15 +19,15 @@ export default function useSubscription() {
     const features =
         subscription.features || [];
 
-    const limits =
-        subscription.limits || {};
+    // const limits =
+    //     subscription.limits || {};
 
     // =========================
     // Product Limits
     // =========================
 
     const maxProducts =
-        limits.maxProducts || 0;
+        subscription.maxProducts || 0;
 
     const usedProducts =
         userData?.usage?.products || 0;
@@ -46,7 +46,7 @@ export default function useSubscription() {
     // =========================
 
     const maxOrders =
-        limits.maxOrdersPerMonth || 0;
+        subscription.maxOrdersPerMonth || 0;
 
     const usedOrders =
         userData?.usage?.orders || 0;
@@ -65,7 +65,7 @@ export default function useSubscription() {
     // =========================
 
     const maxStaff =
-        limits.maxStaffAccounts || 0;
+        subscription.maxStaffAccounts || 0;
 
     const usedStaff =
         userData?.usage?.staff || 0;

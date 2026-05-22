@@ -32,9 +32,15 @@ import {
     importInternalProducts,
 } from "@/utils/import/internal/importInternalProducts";
 
+import { useNavigate } from "react-router-dom";
+
+import { ArrowLeft } from "lucide-react";
+
 export default function InternalProductImport() {
     const { user } =
         useAuth();
+    const navigate =
+        useNavigate();
 
     const [
         loading,
@@ -157,6 +163,16 @@ export default function InternalProductImport() {
     return (
 
         <div className="max-w-7xl mx-auto">
+            <button
+                            onClick={() =>
+                                navigate(-1)
+                            }
+                            className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+                        >
+            
+                            <ArrowLeft size={18} />
+            
+                        </button>
 
             <div className="mb-6">
 

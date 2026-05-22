@@ -21,6 +21,7 @@ import {
     RotateCcw,
     Clock3,
     Search,
+    ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -185,6 +186,16 @@ const Orders = () => {
 
     return (
         <div className="p-4 md:p-6">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
             {/* ====================================
           Header
       ==================================== */}

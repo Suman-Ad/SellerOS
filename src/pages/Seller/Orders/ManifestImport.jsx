@@ -7,12 +7,14 @@ import {
     Upload,
     FileText,
     CheckCircle2,
+    ArrowLeft,
 } from "lucide-react";
 
 import {
     collection,
     getDocs,
 } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 import { db } from "@/firebase/config";
 
@@ -36,6 +38,7 @@ const ManifestImport = () => {
     const [matching, setMatching] =
         useState(false);
 
+    const navigate = useNavigate();
     // ====================================
     // EXTRACT PDF TEXT
     // ====================================
@@ -595,6 +598,16 @@ p-4
 md:p-6
 transition-colors
 ">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
 
             {/* HEADER */}
 

@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import {
     Plus,
     Trash2,
+    ArrowLeft,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -493,6 +494,16 @@ export default function EditProduct() {
 
     return (
         <div className="max-w-7xl mx-auto">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -514,6 +525,7 @@ export default function EditProduct() {
                 </div>
 
                 <Button
+                    variant="outline"
                     onClick={
                         handleSave
                     }

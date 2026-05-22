@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import {
     Plus,
     Trash2,
+    ArrowLeft,
 } from "lucide-react";
 
 import {
@@ -53,7 +54,7 @@ export default function AddProduct() {
 
     const navigate = useNavigate();
 
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
 
     const [loading, setLoading] =
         useState(false);
@@ -365,14 +366,14 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
             e.preventDefault();
 
             try {
-                if (!canCreateProduct) {
+                // if (!canCreateProduct) {
 
-                    toast.error(
-                        "Product limit reached"
-                    );
+                //     toast.error(
+                //         "Product limit reached"
+                //     );
 
-                    return;
-                }
+                //     return;
+                // }
                 setLoading(true);
 
                 // ========================================
@@ -469,6 +470,16 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
 
     return (
         <div className="max-w-7xl mx-auto">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
 
             <div className="mb-6">
 
@@ -487,6 +498,7 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                 <div className="flex flex-wrap gap-3 mt-4">
 
                     <Button
+                        variant="outline"
                         onClick={() =>
                             navigate(
                                 "/seller/products/import-marketplace"
@@ -497,7 +509,7 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                     </Button>
 
                     <Button
-                        variant="secondary"
+                        variant="outline"
                         onClick={() =>
                             navigate(
                                 "/seller/products/import-internal"
@@ -664,6 +676,7 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                             />
 
                             <Button
+                                variant="outline"
                                 type="button"
                                 onClick={
                                     generateParentSKU
@@ -832,6 +845,7 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                         </div>
 
                         <Button
+                        variant="outline"
                             type="submit"
                             disabled={loading}
                             className="w-full"

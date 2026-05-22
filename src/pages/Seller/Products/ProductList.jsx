@@ -35,6 +35,7 @@ import {
   Search,
   Pencil,
   Trash2,
+  ArrowLeft,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -136,6 +137,16 @@ export default function ProductList() {
 
   return (
     <div>
+      <button
+                      onClick={() =>
+                          navigate(-1)
+                      }
+                      className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+                  >
+      
+                      <ArrowLeft size={18} />
+      
+                  </button>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -157,6 +168,7 @@ export default function ProductList() {
         </div>
 
         <Button
+        variant="outline"
           onClick={() =>
             navigate(
               "/seller/products/add"

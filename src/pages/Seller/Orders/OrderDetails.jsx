@@ -337,7 +337,7 @@ const OrderDetails = () => {
                         onClick={() =>
                             navigate(-1)
                         }
-                        className="w-10 h-10 rounded-xl border border-gray-300 bg-white flex items-center justify-center"
+                        className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
                     >
 
                         <ArrowLeft size={18} />

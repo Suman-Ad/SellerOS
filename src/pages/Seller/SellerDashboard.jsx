@@ -529,7 +529,7 @@ export default function SellerDashboard() {
 
 
       </Card>
-      <RevenueAnalyticsChart
+      {/* <RevenueAnalyticsChart
         data={
           dashboard.revenueAnalytics
         }
@@ -545,7 +545,7 @@ export default function SellerDashboard() {
         insights={
           dashboard.insights
         }
-      />
+      /> */}
     </div>
   );
 }

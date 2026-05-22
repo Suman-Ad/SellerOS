@@ -11,6 +11,7 @@ import {
     Loader2,
     ShieldAlert,
     CopyCheck,
+    ArrowLeft,
 } from "lucide-react";
 
 import MarketplaceImportEngine from "@/components/imports/MarketplaceImportEngine";
@@ -19,7 +20,7 @@ import matchProductVariants from "@/utils/import/matchProductVariants";
 import checkDuplicateOrders from "@/utils/import/checkDuplicateOrders";
 
 import { useAuth } from "@/context/AuthContext";
-
+import { useNavigate } from "react-router-dom";
 // ====================================
 // PAGE
 // ====================================
@@ -32,6 +33,8 @@ const OrderImport = () => {
     const fileInputRef =
         useRef();
 
+    const navigate =
+        useNavigate();
     // ====================================
     // FILE
     // ====================================
@@ -650,12 +653,22 @@ const OrderImport = () => {
     return (
 
         <div className="p-4 md:p-6">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
 
+                <ArrowLeft size={18} />
+
+            </button>
             {/* ====================================
             HEADER
             ==================================== */}
 
             <div className="mb-6">
+
 
                 <h1 className="text-2xl font-bold text-gray-900">
 

@@ -39,7 +39,7 @@ export default function Dashboard() {
     {
       title: "Marketplace Sync",
       icon: Store,
-      desc: "Connect Amazon, Flipkart, Shopify, WooCommerce and more.",
+      desc: "Connect Meesho, Amazon, Flipkart, Shopify, WooCommerce and more.",
     },
 
     {

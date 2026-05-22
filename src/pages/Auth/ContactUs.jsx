@@ -169,15 +169,14 @@ export default function ContactUs() {
                             </p>
 
                             <p className="text-fuchsia-400">
-                                +91 9239146595
+                                Hasibul Rahaman:- +91 9239146595
                             </p>
                             <p className="text-fuchsia-400">
-                                +91 9647255367
+                                Sourav Adhikari:- +91 8910672774
                             </p>
                             <p className="text-fuchsia-400">
-                                +91 8910672774
+                                Suman Adhikari:- +91 9647255367
                             </p>
-
 
                         </div>
 
@@ -199,7 +198,7 @@ export default function ContactUs() {
                                 <br />
                                 Rajhati, West Bengal
                                 <br />
-                                India
+                                India-712417
                             </p>
 
                         </div>
@@ -412,7 +411,7 @@ export default function ContactUs() {
                             <div>
 
                                 <h3 className="text-2xl font-bold">
-                                    Suman Adhikari
+                                    Sourav Adhikari & Hashibul Rahaman
                                 </h3>
 
                                 <p className="text-violet-400 font-medium mt-1">
@@ -443,7 +442,7 @@ export default function ContactUs() {
                             <div>
 
                                 <h3 className="text-2xl font-bold">
-                                    Sourav Adhikari & Hashibul
+                                    Suman Adhikari
                                 </h3>
 
                                 <p className="text-fuchsia-400 font-medium mt-1">
@@ -455,8 +454,7 @@ export default function ContactUs() {
                         </div>
 
                         <p className="mt-6 text-zinc-400 leading-relaxed">
-                            Leading platform engineering, product innovation, and scalable
-                            infrastructure development for SellerOS ERP ecosystem.
+                            Leading platform engineering, product innovation, innovative technologist and software architect with a passion for building scalable solutions. Specializing in cloud-native applications, microservices, and modern infrastructure development practices for SellerOS ERP ecosystem.
                         </p>
 
                     </div>

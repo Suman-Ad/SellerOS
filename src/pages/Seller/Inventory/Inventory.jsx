@@ -35,9 +35,12 @@ import {
   PackageCheck,
   PackageX,
   Flame,
+  ArrowLeft,
 } from "lucide-react";
 
 import QRCode from "react-qr-code";
+
+import { useNavigate } from "react-router-dom";
 
 
 import {
@@ -52,6 +55,7 @@ import {
 export default function Inventory() {
 
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [products, setProducts] =
     useState([]);
@@ -391,6 +395,16 @@ export default function Inventory() {
 
   return (
     <div>
+      <button
+        onClick={() =>
+          navigate(-1)
+        }
+        className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+      >
+
+        <ArrowLeft size={18} />
+
+      </button>
 
       {/* Header */}
       <div className="mb-6">

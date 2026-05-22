@@ -202,7 +202,10 @@ export default function SellerLayout() {
           {!collapsed && (
             <div>
 
-              <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent"
+                onClick={() => navigate("/")}
+                style={{ cursor: "pointer" }}
+              >
                 SellerOS
               </h1>
 
@@ -392,15 +395,6 @@ export default function SellerLayout() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
-
-            {/* Plan Badge */}
-            <div className="hidden md:flex items-center gap-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-4 h-11 rounded-xl text-sm font-medium">
-
-              <TrendingUp size={16} />
-
-              Growth Plan
-
-            </div>
 
             {/* Quick Action */}
             <button className="hidden md:flex items-center gap-2 h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 transition font-medium"

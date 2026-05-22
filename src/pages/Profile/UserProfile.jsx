@@ -36,6 +36,7 @@ import {
     CalendarClock,
     CheckCircle2,
     Sparkles,
+    ArrowLeft,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -48,10 +49,14 @@ import ProfileBannerUpload
 import ProfileActivityTimeline
     from "@/components/profile/ProfileActivityTimeline";
 
+import { useNavigate } from "react-router-dom";
+
 export default function UserProfile() {
 
     const { user, userData } =
         useAuth();
+
+    const navigate = useNavigate();
 
     const [loading, setLoading] =
         useState(false);
@@ -331,6 +336,16 @@ export default function UserProfile() {
     return (
 
         <div className="min-h-screen bg-zinc-950 text-white p-6">
+            <button
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
 
             <div className="max-w-7xl mx-auto space-y-8">
 
