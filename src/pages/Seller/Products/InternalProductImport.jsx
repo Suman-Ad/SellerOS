@@ -37,7 +37,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
 export default function InternalProductImport() {
-    const { user } =
+    const { user, userData } =
         useAuth();
     const navigate =
         useNavigate();
@@ -131,7 +131,8 @@ export default function InternalProductImport() {
 
                 await importInternalProducts(
                     groupedProducts,
-                    user.uid
+                    user.uid,
+                    userData
                 );
 
                 toast.success(

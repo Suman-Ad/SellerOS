@@ -153,12 +153,28 @@ export default function AppRouter() {
 
           <Route
             path="subscriptions"
-            element={<AdminSubscriptions />}
+            element={
+              <RoleRoute
+                allowedRoles={[
+                  "super_admin",
+                ]}
+              >
+                <AdminSubscriptions />
+              </RoleRoute>
+            }
           />
 
           <Route
             path="user-subscriptions"
-            element={<UserSubscriptionManager />}
+            element={
+              <RoleRoute
+                allowedRoles={[
+                  "super_admin",
+                ]}
+              >
+                <UserSubscriptionManager />
+              </RoleRoute>
+            }
           />
 
           <Route

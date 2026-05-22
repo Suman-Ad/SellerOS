@@ -350,7 +350,7 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-auto bg-zinc-950">
 
         {/* Topbar */}
-        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between">
+        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-1000">
 
           {/* Left */}
           <div className="flex items-center gap-4">
@@ -406,19 +406,6 @@ export default function DashboardLayout() {
               Growth Plan
 
             </div>
-
-            {/* Quick Action */}
-            {/* <button className="hidden md:flex items-center gap-2 h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 transition font-medium"
-              onClick={() =>
-                navigate(
-                  "/seller/products/add"
-                )
-              }
-            >
-
-              + Add Product
-
-            </button> */}
 
           </div>
           {/* Notifications */}
@@ -577,7 +564,7 @@ export default function DashboardLayout() {
         <div className="p-4 md:p-6">
           <Outlet />
         </div>
-        <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between">
+        <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between sticky bottom-0">
 
           <p>
             © 2026 SellerOS ERP

@@ -6,6 +6,8 @@ import {
 } from "firebase/firestore";
 
 import { db } from "@/firebase/config";
+import logActivity
+    from "@/utils/activity/logActivity";
 
 // ====================================
 // EXECUTE ORDERS IMPORT
@@ -15,6 +17,8 @@ const executeOrdersImport = async ({
     matchedOrders = [],
 
     user,
+
+    userData,
 
     platform = "meesho",
 
@@ -117,7 +121,7 @@ const executeOrdersImport = async ({
                 const percent =
                     Math.round(
                         ((index + 1) / total) *
-                            100
+                        100
                     );
 
                 onProgress?.({
@@ -320,6 +324,35 @@ const executeOrdersImport = async ({
 
                 operationRef.current++;
 
+                // ========================================
+                // Activity Log
+                // ========================================
+
+                await logActivity({
+
+                    uid: user.uid,
+
+                    type: "order_import",
+
+                    title:
+                        "Order Imported",
+
+                    description:
+                        `Shop Name:- ${userData.businessName} imported ${total} orders into SellerOS successfully. DB Ref:- ${orderRef.id}`,
+
+                    meta: {
+                        role:
+                            userData.role,
+                        fullName:
+                            userData.fullName,
+                        businessName:
+                            userData.businessName ||
+                            null,
+                        subscriptionPlan:
+                            userData.subscription.planName ||
+                            null,
+                    },
+                });
                 // ====================================
                 // INVENTORY UPDATE
                 // ====================================
@@ -331,7 +364,7 @@ const executeOrdersImport = async ({
 
                 const currentVariant =
                     updatedVariants[
-                        variantSize
+                    variantSize
                     ];
 
                 const currentQty =

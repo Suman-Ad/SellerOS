@@ -26,6 +26,9 @@ import logo from "@/assets/image.png";
 
 import { toast } from "sonner";
 
+import logActivity
+  from "@/utils/activity/logActivity";
+
 const backgroundStyle = {
   backgroundImage: `url(${logo})`,
   backgroundSize: 'cover',        // Scales the image to fill the screen without stretching
@@ -187,6 +190,36 @@ export default function Register() {
         },
 
         createdAt: serverTimestamp(),
+      });
+
+      // ========================================
+      // Activity Log
+      // ========================================
+
+      await logActivity({
+
+        uid: user.uid,
+
+        type: "register",
+
+        title:
+          "Account Registration",
+
+        description:
+          `New User:- ${formData.fullName} as a ${formData.role}\nShop Name:- ${formData.businessName}\n Plan:- ${formData.subscription.planName} registered for SellerOS successfully`,
+
+        meta: {
+          role:
+            formData.role,
+          fullName:
+            formData.fullName,
+          businessName:
+            formData.businessName ||
+            null,
+          subscriptionPlan:
+            formData.subscription.planName ||
+            null,
+        },
       });
 
       toast.success(

@@ -30,7 +30,7 @@ import { useNavigate } from "react-router-dom";
 
 const ProductImport = () => {
 
-    const { user } =
+    const { user, userData } =
         useAuth();
 
     const navigate =
@@ -443,6 +443,8 @@ const ProductImport = () => {
                             readyProducts,
 
                         user,
+
+                        userData,
 
                         onProgress:
                             ({

@@ -7,6 +7,9 @@ import {
 
 import { db } from "@/firebase/config";
 
+import logActivity
+    from "@/utils/activity/logActivity";
+
 // ====================================
 // EXECUTE INVENTORY IMPORT
 // ====================================
@@ -17,7 +20,7 @@ const executeInventoryImport =
         products = [],
 
         user,
-
+        userData,
         onProgress,
     }) => {
 
@@ -166,7 +169,7 @@ const executeInventoryImport =
 
                         createdAt:
                             serverTimestamp(),
-                            
+
                         updatedAt: serverTimestamp(),
                     }
                 );
@@ -193,6 +196,37 @@ const executeInventoryImport =
             // ====================================
 
             await commitBatch();
+
+            // ========================================
+            // Activity Log
+            // ========================================
+
+            await logActivity({
+
+                uid: user.uid,
+
+                type: "bulk_product_import",
+
+                title:
+                    "Marketplace Bulk Product Imported",
+
+                description:
+                    `Shop Name:- ${userData.businessName} imported ${products.length} products into SellerOS successfully. DB Ref:- ${productRef.id}`,
+
+                meta: {
+                    role:
+                        userData.role,
+                    fullName:
+                        userData.fullName,
+                    businessName:
+                        userData.businessName ||
+                        null,
+                    subscriptionPlan:
+                        userData.subscription.planName ||
+                        null,
+                },
+            });
+
 
             // ====================================
             // RETURN

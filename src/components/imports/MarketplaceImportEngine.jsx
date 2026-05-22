@@ -27,6 +27,8 @@ const MarketplaceImportEngine = async ({
 
   user,
 
+  userData,
+
   previewOnly = false,
 
   fieldMapping,
@@ -224,6 +226,8 @@ const MarketplaceImportEngine = async ({
               matchedData.matched,
 
             user,
+
+            userData,
 
             platform,
 

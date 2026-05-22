@@ -21,13 +21,14 @@ import checkDuplicateOrders from "@/utils/import/checkDuplicateOrders";
 
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+
 // ====================================
 // PAGE
 // ====================================
 
 const OrderImport = () => {
 
-    const { user } =
+    const { user, userData } =
         useAuth();
 
     const fileInputRef =
@@ -203,6 +204,8 @@ const OrderImport = () => {
                     file,
 
                     user,
+
+                    userData,
 
                     platform,
 

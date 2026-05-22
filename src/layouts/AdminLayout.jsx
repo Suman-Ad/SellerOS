@@ -195,8 +195,8 @@ export default function AdminLayout() {
             <div>
 
               <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent"
-              onClick={() => navigate("/")}
-              style={{ cursor: "pointer" }}
+                onClick={() => navigate("/")}
+                style={{ cursor: "pointer" }}
               >
                 SellerOS
               </h1>
@@ -361,19 +361,21 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3">
 
             {/* Pro Badge */}
-            <div className="hidden md:flex items-center gap-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-4 h-11 rounded-xl text-sm font-medium"
-              onClick={()=> navigate("/admin/subscriptions")}
-              style={{ cursor: "pointer" }}
-            >
-              <CreditCard size={16} />
+            {userData?.role === "super_admin" && (
+              <div className="hidden md:flex items-center gap-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-4 h-11 rounded-xl text-sm font-medium"
+                onClick={() => navigate("/admin/subscriptions")}
+                style={{ cursor: "pointer" }}
+              >
+                <CreditCard size={16} />
 
-              Enterprise Plan
+                Enterprise Plan
 
-            </div>
+              </div>
+            )}
 
             {/* Quick Action */}
             <button className="hidden md:flex items-center gap-2 h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 transition font-medium"
-            onClick={()=> navigate("/admin/sellers")}
+              onClick={() => navigate("/admin/sellers")}
               style={{ cursor: "pointer" }}
             >
 
