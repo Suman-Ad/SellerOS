@@ -9,45 +9,42 @@ import {
 
 import {
 
-  hasPlatformRole,
+  hasPermission,
 
-  hasOrganizationRole,
+  hasAnyPermission,
 
-  hasMinimumPlatformRole,
+  hasAllPermissions,
 
-  hasMinimumOrganizationRole,
-
-} from "@/services/rbac/roleServices";
+} from "@/services/rbac/permissionService";
 
 /* =========================================================
    COMPONENT
 ========================================================= */
 
-export default function RoleRoute({
+export default function PermissionRoute({
 
   children,
 
   /* =====================================================
-     PLATFORM ACCESS
+     SINGLE PERMISSION
   ===================================================== */
 
-  allowedPlatformRoles = [],
-
-  minimumPlatformRole = null,
+  permission = null,
 
   /* =====================================================
-     ORGANIZATION ACCESS
+     MULTIPLE PERMISSIONS
   ===================================================== */
 
-  allowedOrganizationRoles = [],
+  anyPermissions = [],
 
-  minimumOrganizationRole = null,
+  allPermissions = [],
 
   /* =====================================================
-     OVERRIDES
+     CONFIG
   ===================================================== */
 
-  allowSuperAdminOverride = true,
+  redirectTo =
+    "/unauthorized",
 }) {
 
   const location =
@@ -59,7 +56,7 @@ export default function RoleRoute({
 
     user,
 
-    userData,
+    permissions,
 
     isSuperAdmin,
   } = useAuth();
@@ -107,38 +104,59 @@ export default function RoleRoute({
      SUPER ADMIN OVERRIDE
   ===================================================== */
 
-  if (
-    allowSuperAdminOverride &&
-    isSuperAdmin
-  ) {
+  if (isSuperAdmin) {
 
     return children;
   }
 
   /* =====================================================
-     PLATFORM ROLE CHECK
+     SINGLE PERMISSION
+  ===================================================== */
+
+  if (permission) {
+
+    const allowed =
+      hasPermission({
+
+        permissions,
+
+        permission,
+      });
+
+    if (!allowed) {
+
+      return (
+        <Navigate
+          to={redirectTo}
+          replace
+        />
+      );
+    }
+  }
+
+  /* =====================================================
+     ANY PERMISSIONS
   ===================================================== */
 
   if (
-    allowedPlatformRoles.length >
+    anyPermissions.length >
     0
   ) {
 
-    const hasAccess =
-      hasPlatformRole({
+    const allowed =
+      hasAnyPermission({
 
-        currentRole:
-          userData?.role,
+        permissions,
 
-        allowedRoles:
-          allowedPlatformRoles,
+        requiredPermissions:
+          anyPermissions,
       });
 
-    if (!hasAccess) {
+    if (!allowed) {
 
       return (
         <Navigate
-          to="/unauthorized"
+          to={redirectTo}
           replace
         />
       );
@@ -146,87 +164,28 @@ export default function RoleRoute({
   }
 
   /* =====================================================
-     PLATFORM MINIMUM ROLE
+     ALL PERMISSIONS
   ===================================================== */
 
   if (
-    minimumPlatformRole
-  ) {
-
-    const hasMinimum =
-      hasMinimumPlatformRole({
-
-        currentRole:
-          userData?.role,
-
-        requiredRole:
-          minimumPlatformRole,
-      });
-
-    if (!hasMinimum) {
-
-      return (
-        <Navigate
-          to="/unauthorized"
-          replace
-        />
-      );
-    }
-  }
-
-  /* =====================================================
-     ORGANIZATION ROLE CHECK
-  ===================================================== */
-
-  if (
-    allowedOrganizationRoles.length >
+    allPermissions.length >
     0
   ) {
 
-    const hasAccess =
-      hasOrganizationRole({
+    const allowed =
+      hasAllPermissions({
 
-        currentRole:
-          userData?.organizationRole,
+        permissions,
 
-        allowedRoles:
-          allowedOrganizationRoles,
+        requiredPermissions:
+          allPermissions,
       });
 
-    if (!hasAccess) {
+    if (!allowed) {
 
       return (
         <Navigate
-          to="/unauthorized"
-          replace
-        />
-      );
-    }
-  }
-
-  /* =====================================================
-     ORGANIZATION MINIMUM ROLE
-  ===================================================== */
-
-  if (
-    minimumOrganizationRole
-  ) {
-
-    const hasMinimum =
-      hasMinimumOrganizationRole({
-
-        currentRole:
-          userData?.organizationRole,
-
-        requiredRole:
-          minimumOrganizationRole,
-      });
-
-    if (!hasMinimum) {
-
-      return (
-        <Navigate
-          to="/unauthorized"
+          to={redirectTo}
           replace
         />
       );

@@ -1,4 +1,6 @@
-import { useState } from "react";
+import {
+  useState,
+} from "react";
 
 import {
   Link,
@@ -6,49 +8,56 @@ import {
 } from "react-router-dom";
 
 import {
-  signInWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
+  motion,
+} from "framer-motion";
 
 import {
-  doc,
-  getDoc,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+  Eye,
+  EyeOff,
+  LogIn,
+  Mail,
+  Lock,
+  ShieldCheck,
+} from "lucide-react";
 
 import {
-  auth,
-  db,
-} from "@/firebase/config";
+  loginWithEmail,
+  loginWithGoogle,
+  resetPassword,
+} from "@/services/auth/authService";
 
 import {
   Card,
   CardContent,
 } from "@/components/ui/card";
 
-import { Button } from "@/components/ui/button";
-
-import { Input } from "@/components/ui/input";
+import {
+  Button,
+} from "@/components/ui/button";
 
 import {
-  Eye,
-  EyeOff,
-  LogIn,
-  ShieldCheck,
-} from "lucide-react";
+  Input,
+} from "@/components/ui/input";
 
-import logo from "@/assets/image.png";
+import logo
+  from "@/assets/image.png";
 
-import logActivity
-  from "@/utils/activity/logActivity";
+import {
+  toast,
+} from "sonner";
 
-import { toast } from "sonner";
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function Login() {
 
   const navigate =
     useNavigate();
+
+  /* =====================================================
+     STATE
+  ===================================================== */
 
   const [loading,
     setLoading] =
@@ -61,58 +70,63 @@ export default function Login() {
   const [formData,
     setFormData] =
     useState({
-
       email: "",
-
       password: "",
     });
 
-  // ========================================
-  // Handle Change
-  // ========================================
+  /* =====================================================
+     HELPERS
+  ===================================================== */
 
-  const handleChange =
-    (e) => {
+  const updateField =
+    (field, value) => {
 
       setFormData((prev) => ({
         ...prev,
-        [e.target.name]:
-          e.target.value,
+        [field]: value,
       }));
     };
 
-  // ========================================
-  // Firebase Error Handler
-  // ========================================
+  /* =====================================================
+     ROLE REDIRECT
+  ===================================================== */
 
-  const getErrorMessage =
-    (code) => {
+  const redirectByRole =
+    (role) => {
 
-      switch (code) {
+      switch (role) {
 
-        case "auth/invalid-email":
-          return "Invalid email address";
+        case "super_admin":
 
-        case "auth/user-not-found":
-          return "User not found";
+        case "admin":
 
-        case "auth/wrong-password":
-          return "Incorrect password";
+          navigate("/admin");
 
-        case "auth/invalid-credential":
-          return "Invalid email or password";
+          break;
 
-        case "auth/too-many-requests":
-          return "Too many login attempts. Try again later.";
+        case "seller":
+
+        case "seller_admin":
+
+          navigate("/seller");
+
+          break;
+
+        case "staff":
+
+          navigate("/staff");
+
+          break;
 
         default:
-          return "Login failed";
+
+          navigate("/");
       }
     };
 
-  // ========================================
-  // Login
-  // ========================================
+  /* =====================================================
+     EMAIL LOGIN
+  ===================================================== */
 
   const handleLogin =
     async (e) => {
@@ -123,192 +137,39 @@ export default function Login() {
 
         setLoading(true);
 
-        // ========================================
-        // Firebase Login
-        // ========================================
+        const response =
+          await loginWithEmail({
 
-        const userCredential =
-          await signInWithEmailAndPassword(
-            auth,
-            formData.email.trim(),
-            formData.password
-          );
+            email:
+              formData.email,
 
-        const user =
-          userCredential.user;
+            password:
+              formData.password,
+          });
 
-        // ========================================
-        // Refresh Auth State
-        // ========================================
-
-        await user.reload();
-
-        // ========================================
-        // Email Verification
-        // ========================================
-
-        if (
-          !user.emailVerified
-        ) {
-
-          await signOut(auth);
+        if (!response.success) {
 
           toast.error(
-            "Please verify your email before login"
+            response.error
           );
 
           return;
         }
-
-        // ========================================
-        // User Document
-        // ========================================
-
-        const userRef =
-          doc(
-            db,
-            "users",
-            user.uid
-          );
-
-        const userSnap =
-          await getDoc(
-            userRef
-          );
-
-        if (
-          !userSnap.exists()
-        ) {
-
-          await signOut(auth);
-
-          toast.error(
-            "User profile not found"
-          );
-
-          return;
-        }
-
-        const userData =
-          userSnap.data();
-
-        // ========================================
-        // Seller Approval
-        // ========================================
-
-        if (
-          userData.role ===
-            "seller" &&
-          !userData.isApproved
-        ) {
-
-          await signOut(auth);
-
-          toast.error(
-            "Your seller account is pending admin approval"
-          );
-
-          return;
-        }
-
-        // ========================================
-        // Update Last Login
-        // ========================================
-
-        await updateDoc(
-          userRef,
-          {
-
-            emailVerified:
-              true,
-
-            lastLoginAt:
-              serverTimestamp(),
-          }
-        );
-
-        // ========================================
-        // Activity Log
-        // ========================================
-
-        await logActivity({
-
-          uid: user.uid,
-
-          type: "login",
-
-          title:
-            "Account Login",
-
-          description:
-            "User logged into SellerOS successfully",
-
-          meta: {
-            role:
-              userData.role,
-            fullName:
-              userData.fullName,
-            businessName:
-              userData.businessName ||
-              null,
-            subscriptionPlan:
-              userData.subscription.planName ||
-              null,
-          },
-        });
-
-        // ========================================
-        // Success
-        // ========================================
 
         toast.success(
           "Login successful"
         );
 
-        // ========================================
-        // Role Redirect
-        // ========================================
-
-        switch (
-          userData.role
-        ) {
-
-          case "super_admin":
-
-          case "admin":
-
-            navigate(
-              "/admin"
-            );
-
-            break;
-
-          case "seller":
-
-            navigate(
-              "/seller"
-            );
-
-            break;
-
-          default:
-
-            navigate(
-              "/staff"
-            );
-        }
+        redirectByRole(
+          response.userData.role
+        );
 
       } catch (error) {
 
-        console.error(
-          "LOGIN ERROR:",
-          error
-        );
+        console.error(error);
 
         toast.error(
-          getErrorMessage(
-            error.code
-          )
+          "Login failed"
         );
 
       } finally {
@@ -316,6 +177,107 @@ export default function Login() {
         setLoading(false);
       }
     };
+
+  /* =====================================================
+     GOOGLE LOGIN
+  ===================================================== */
+
+  const handleGoogleLogin =
+    async () => {
+
+      try {
+
+        setLoading(true);
+
+        const response =
+          await loginWithGoogle();
+
+        if (!response.success) {
+
+          toast.error(
+            response.error
+          );
+
+          return;
+        }
+
+        toast.success(
+          "Google login successful"
+        );
+
+        redirectByRole(
+          response.userData.role
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast.error(
+          "Google login failed"
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+  /* =====================================================
+     RESET PASSWORD
+  ===================================================== */
+
+  const handleResetPassword =
+    async () => {
+
+      try {
+
+        if (!formData.email) {
+
+          toast.error(
+            "Enter your email first"
+          );
+
+          return;
+        }
+
+        setLoading(true);
+
+        const response =
+          await resetPassword(
+            formData.email
+          );
+
+        if (!response.success) {
+
+          toast.error(
+            response.error
+          );
+
+          return;
+        }
+
+        toast.success(
+          response.message
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast.error(
+          "Password reset failed"
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+  /* =====================================================
+     UI
+  ===================================================== */
 
   return (
 
@@ -347,255 +309,356 @@ export default function Login() {
       {/* Overlay */}
       <div className="
         absolute inset-0
-        bg-black/60
+        bg-black/70
         backdrop-blur-sm
       " />
 
       {/* Login Card */}
-      <Card className="
-        relative z-10
-        w-full max-w-md
-        border border-white/10
-        bg-white/10
-        backdrop-blur-2xl
-        shadow-2xl
-        rounded-3xl
-        overflow-hidden
-      ">
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 40,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+        }}
+        className="
+          relative z-10
+          w-full max-w-md
+        "
+      >
 
-        <CardContent className="
-          p-10
+        <Card className="
+          border border-white/10
+          bg-white/10
+          backdrop-blur-2xl
+          shadow-2xl
+          rounded-3xl
+          overflow-hidden
         ">
 
-          {/* Header */}
-          <div className="
-            text-center mb-8
+          <CardContent className="
+            p-10
           ">
 
+            {/* Header */}
             <div className="
-              w-20 h-20
-              mx-auto
-              rounded-3xl
-              bg-violet-600/20
-              border border-violet-500/20
-              flex items-center
-              justify-center
-              text-violet-300
-              mb-6
+              text-center
+              mb-8
             ">
 
-              <ShieldCheck
-                size={38}
-              />
+              <div className="
+                w-20 h-20
+                mx-auto
+                rounded-3xl
+                bg-violet-600/20
+                border border-violet-500/20
+                flex items-center
+                justify-center
+                text-violet-300
+                mb-6
+              ">
+
+                <ShieldCheck
+                  size={38}
+                />
+
+              </div>
+
+              <h1 className="
+                text-4xl
+                font-black
+                text-white
+              ">
+
+                SellerOS
+
+              </h1>
+
+              <p className="
+                text-zinc-300
+                mt-3
+              ">
+
+                Enterprise authentication portal
+
+              </p>
 
             </div>
 
-            <h1 className="
-              text-4xl
-              font-black
-              text-white
-            ">
-
-              SellerOS
-
-            </h1>
-
-            <p className="
-              text-zinc-300
-              mt-3
-            ">
-
-              Secure enterprise login portal
-
-            </p>
-
-          </div>
-
-          {/* Form */}
-          <form
-            onSubmit={
-              handleLogin
-            }
-            className="
-              space-y-5
-            "
-          >
-
-            {/* Email */}
-            <Input
-              name="email"
-              type="email"
-              placeholder="Email Address"
-              value={
-                formData.email
+            {/* Form */}
+            <form
+              onSubmit={
+                handleLogin
               }
-              onChange={
-                handleChange
-              }
-              required
               className="
-                h-14
-                rounded-2xl
-                bg-black/20
-                border-white/10
-                text-white
-                placeholder:text-zinc-400
+                space-y-5
               "
-            />
+            >
 
-            {/* Password */}
-            <div className="
-              relative
-            ">
-
-              <Input
-                name="password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
-                placeholder="Password"
+              {/* Email */}
+              <StyledInput
+                icon={Mail}
+                type="email"
+                placeholder="Email Address"
                 value={
-                  formData.password
+                  formData.email
                 }
-                onChange={
-                  handleChange
-                }
-                required
-                className="
-                  h-14
-                  rounded-2xl
-                  bg-black/20
-                  border-white/10
-                  text-white
-                  placeholder:text-zinc-400
-                  pr-14
-                "
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowPassword(
-                    !showPassword
+                onChange={(e) =>
+                  updateField(
+                    "email",
+                    e.target.value
                   )
                 }
+              />
+
+              {/* Password */}
+              <div className="
+                relative
+              ">
+
+                <StyledInput
+                  icon={Lock}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  placeholder="Password"
+                  value={
+                    formData.password
+                  }
+                  onChange={(e) =>
+                    updateField(
+                      "password",
+                      e.target.value
+                    )
+                  }
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowPassword(
+                      !showPassword
+                    )
+                  }
+                  className="
+                    absolute
+                    right-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-zinc-400
+                    hover:text-white
+                  "
+                >
+
+                  {showPassword ? (
+
+                    <EyeOff
+                      size={18}
+                    />
+
+                  ) : (
+
+                    <Eye
+                      size={18}
+                    />
+
+                  )}
+
+                </button>
+
+              </div>
+
+              {/* Forgot Password */}
+              <div className="
+                flex justify-end
+              ">
+
+                <button
+                  type="button"
+                  onClick={
+                    handleResetPassword
+                  }
+                  className="
+                    text-sm
+                    text-violet-300
+                    hover:text-violet-200
+                  "
+                >
+
+                  Forgot Password?
+
+                </button>
+
+              </div>
+
+              {/* Submit */}
+              <Button
+                disabled={loading}
                 className="
-                  absolute
-                  right-4
-                  top-1/2
-                  -translate-y-1/2
-                  text-zinc-400
-                  hover:text-white
+                  w-full
+                  h-14
+                  rounded-2xl
+                  bg-violet-600
+                  hover:bg-violet-700
+                  text-lg
+                  font-semibold
                 "
               >
 
-                {showPassword ? (
+                {loading ? (
 
-                  <EyeOff
-                    size={20}
-                  />
+                  "Authenticating..."
 
                 ) : (
 
-                  <Eye
-                    size={20}
-                  />
+                  <div className="
+                    flex items-center
+                    gap-3
+                  ">
+
+                    <LogIn
+                      size={18}
+                    />
+
+                    Login
+
+                  </div>
 
                 )}
 
-              </button>
+              </Button>
 
-            </div>
+            </form>
 
-            {/* Forgot */}
+            {/* Divider */}
             <div className="
-              flex justify-end
+              flex items-center
+              gap-4
+              my-6
             ">
 
-              <Link
-                to="/forgot-password"
-                className="
-                  text-sm
-                  text-violet-300
-                  hover:text-violet-200
-                "
-              >
+              <div className="
+                flex-1
+                h-px
+                bg-white/10
+              " />
 
-                Forgot Password?
+              <span className="
+                text-zinc-400
+                text-sm
+              ">
 
-              </Link>
+                OR
+
+              </span>
+
+              <div className="
+                flex-1
+                h-px
+                bg-white/10
+              " />
 
             </div>
 
-            {/* Submit */}
+            {/* Google Login */}
             <Button
+              type="button"
+              variant="outline"
+              onClick={
+                handleGoogleLogin
+              }
               disabled={loading}
               className="
                 w-full
                 h-14
                 rounded-2xl
-                bg-violet-600
-                hover:bg-violet-700
-                text-lg
-                font-semibold
+                border-white/10
+                bg-black/20
+                hover:bg-black/40
+                text-white
               "
             >
 
-              {loading ? (
-
-                "Logging in..."
-
-              ) : (
-
-                <div className="
-                  flex items-center
-                  gap-3
-                ">
-
-                  <LogIn
-                    size={18}
-                  />
-
-                  Login
-
-                </div>
-
-              )}
+              Continue with Google
 
             </Button>
 
-          </form>
+            {/* Footer */}
+            <div className="
+              mt-8
+              text-center
+              text-zinc-300
+            ">
 
-          {/* Footer */}
-          <div className="
-            mt-8
-            text-center
-            text-zinc-300
-          ">
+              Don’t have an account?
 
-            Don’t have an account?
+              <Link
+                to="/register"
+                className="
+                  ml-2
+                  text-violet-300
+                  hover:text-violet-200
+                  font-semibold
+                "
+              >
 
-            <Link
-              to="/register"
-              className="
-                ml-2
-                text-violet-300
-                hover:text-violet-200
-                font-semibold
-              "
-            >
+                Register
 
-              Register
+              </Link>
 
-            </Link>
+            </div>
 
-          </div>
+          </CardContent>
 
-        </CardContent>
+        </Card>
 
-      </Card>
+      </motion.div>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+function StyledInput({
+  icon: Icon,
+  ...props
+}) {
+
+  return (
+
+    <div className="
+      flex items-center
+      gap-3
+      rounded-2xl
+      border border-white/10
+      bg-black/20
+      px-4 py-3
+    ">
+
+      <Icon
+        size={18}
+        className="
+          text-zinc-400
+        "
+      />
+
+      <Input
+        {...props}
+        className="
+          border-0
+          bg-transparent
+          text-white
+          placeholder:text-zinc-500
+          focus-visible:ring-0
+        "
+      />
 
     </div>
   );

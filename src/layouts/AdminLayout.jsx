@@ -102,7 +102,8 @@ export default function AdminLayout() {
           name: "Contact Messages",
           icon: Mail,
           path: "/admin/contact-messages",
-        }
+        },
+        
       ],
     },
 
@@ -110,10 +111,15 @@ export default function AdminLayout() {
       title: "Seller Management",
       items: [
         {
-          name: "Seller Approvals",
-          path: "/admin/sellers",
+          name: "Seller Governance Center",
+          path: "/admin/seller-governance-center",
           icon: ShieldCheck,
         },
+        // {
+        //   name: "Seller Approvals",
+        //   path: "/admin/sellers-encyclopedia",
+        //   icon: Users,
+        // },
         {
           name: "Subscriptions",
           path: "/admin/subscriptions",

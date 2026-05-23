@@ -1,513 +1,1206 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
-  updateProfile,
-} from "firebase/auth";
-
-import { auth, db } from "@/firebase/config";
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
 import {
-  doc,
-  setDoc,
-  serverTimestamp,
+  motion,
+  AnimatePresence,
+} from "framer-motion";
+
+import {
+  Building2,
+  CreditCard,
+  Lock,
+  Mail,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  User,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
+
+import {
   collection,
   getDocs,
   query,
   where,
 } from "firebase/firestore";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import logo from "@/assets/image.png";
+import {
+  db,
+} from "@/firebase/config";
 
-import { toast } from "sonner";
+import {
+  registerWithEmail,
+  loginWithGoogle,
+} from "@/services/auth/authService";
 
-import logActivity
-  from "@/utils/activity/logActivity";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
 
-const backgroundStyle = {
-  backgroundImage: `url(${logo})`,
-  backgroundSize: 'cover',        // Scales the image to fill the screen without stretching
-  backgroundPosition: 'center',    // Centers the focal point of the image
-  backgroundRepeat: 'no-repeat',  // Prevents the image from tiling
-  width: '100vw',                 // Full viewport width
-  height: '100vh',                // Full viewport height
-  display: 'flex',                // Layout tool to align your form
-  justifyContent: 'center',       // Centers form horizontally
-  alignItems: 'center'            // Centers form vertically
+import {
+  Button,
+} from "@/components/ui/button";
+
+import {
+  Input,
+} from "@/components/ui/input";
+
+import logo
+  from "@/assets/image.png";
+
+import {
+  toast,
+} from "sonner";
+
+/* =========================================================
+   USER TYPES
+========================================================= */
+
+const USER_TYPES = [
+  {
+    value: "seller",
+    label: "Seller",
+  },
+
+  {
+    value: "staff",
+    label: "Staff",
+  },
+
+  {
+    value: "supplier",
+    label: "Supplier",
+  },
+
+  {
+    value: "partner",
+    label: "Partner",
+  },
+
+  {
+    value: "logistics",
+    label: "Logistics",
+  },
+];
+
+/* =========================================================
+   INITIAL FORM
+========================================================= */
+
+const INITIAL_FORM = {
+
+  userType: "seller",
+
+  fullName: "",
+
+  username: "",
+
+  email: "",
+
+  mobile: "",
+
+  password: "",
+
+  confirmPassword: "",
+
+  businessName: "",
+
+  gstNo: "",
+
+  govId: "",
+
+  address: "",
+
+  pin: "",
+
+  state: "",
+
+  city: "",
+
+  selectedPlanId: "",
+
+  selectedPlanName: "",
 };
 
+/* =========================================================
+   COMPONENT
+========================================================= */
+
 export default function Register() {
-  const navigate = useNavigate();
 
+  const navigate =
+    useNavigate();
 
-  const [loading, setLoading] = useState(false);
-  const [plans, setPlans] = useState([]);
+  /* =====================================================
+     STATE
+  ===================================================== */
 
-  const [plansLoading, setPlansLoading] =
+  const [step, setStep] =
+    useState(1);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [plans, setPlans] =
+    useState([]);
+
+  const [plansLoading,
+    setPlansLoading] =
     useState(true);
 
-  const [formData, setFormData] = useState({
-    businessName: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    mobile: "",
-    password: "",
-    confirmPassword: "",
-    address: "",
-    pin: "",
-    govId: "",
-    gstNo: "",
-    role: "seller",
-    selectedPlanId: "",
-    selectedPlanName: "",
-  });
+  const [formData,
+    setFormData] =
+    useState(INITIAL_FORM);
+
+  /* =====================================================
+     LOAD PLANS
+  ===================================================== */
 
   useEffect(() => {
 
-    const fetchPlans = async () => {
+    const fetchPlans =
+      async () => {
+
+        try {
+
+          const q = query(
+            collection(
+              db,
+              "subscriptionPlans"
+            ),
+            where(
+              "isActive",
+              "==",
+              true
+            )
+          );
+
+          const snapshot =
+            await getDocs(q);
+
+          const data =
+            snapshot.docs.map(
+              (doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              })
+            );
+
+          setPlans(data);
+
+          if (data.length > 0) {
+
+            setFormData(
+              (prev) => ({
+                ...prev,
+
+                selectedPlanId:
+                  data[0].id,
+
+                selectedPlanName:
+                  data[0].name,
+              })
+            );
+          }
+
+        } catch (error) {
+
+          console.error(error);
+
+          toast.error(
+            "Failed to load plans"
+          );
+
+        } finally {
+
+          setPlansLoading(false);
+        }
+      };
+
+    fetchPlans();
+
+  }, []);
+
+  /* =====================================================
+     HELPERS
+  ===================================================== */
+
+  const updateField =
+    (field, value) => {
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    };
+
+  const nextStep = () => {
+
+    setStep((prev) =>
+      Math.min(prev + 1, 4)
+    );
+  };
+
+  const prevStep = () => {
+
+    setStep((prev) =>
+      Math.max(prev - 1, 1)
+    );
+  };
+
+  /* =====================================================
+     VALIDATION
+  ===================================================== */
+
+  const isStepValid =
+    useMemo(() => {
+
+      switch (step) {
+
+        case 1:
+
+          return !!formData.userType;
+
+        case 2:
+
+          return (
+            formData.fullName &&
+            formData.username &&
+            formData.mobile
+          );
+
+        case 3:
+
+          return (
+            formData.email &&
+            formData.password &&
+            formData.confirmPassword &&
+            formData.password ===
+            formData.confirmPassword
+          );
+
+        case 4:
+
+          return (
+            formData.businessName &&
+            formData.selectedPlanId
+          );
+
+        default:
+
+          return false;
+      }
+
+    }, [step, formData]);
+
+  /* =====================================================
+     REGISTER
+  ===================================================== */
+
+  const handleRegister =
+    async () => {
 
       try {
 
-        const q = query(
-          collection(db, "subscriptionPlans"),
-          where("isActive", "==", true)
+        if (
+          formData.password !==
+          formData.confirmPassword
+        ) {
+
+          toast.error(
+            "Passwords do not match"
+          );
+
+          return;
+        }
+
+        setLoading(true);
+
+        const response =
+          await registerWithEmail({
+
+            email:
+              formData.email,
+
+            password:
+              formData.password,
+
+            fullName:
+              formData.fullName,
+
+            username:
+              formData.username,
+
+            phoneNumber:
+              formData.mobile,
+
+            userType:
+              formData.userType,
+
+            organizationName:
+              formData.businessName,
+
+            businessData: {
+
+              businessName:
+                formData.businessName,
+
+              gstNo:
+                formData.gstNo,
+
+              govId:
+                formData.govId,
+
+              address:
+                formData.address,
+
+              pin:
+                formData.pin,
+
+              state:
+                formData.state,
+
+              city:
+                formData.city,
+            },
+
+            subscriptionData: {
+
+              planId:
+                formData.selectedPlanId,
+
+              planName:
+                formData.selectedPlanName,
+            },
+          });
+
+        if (!response.success) {
+
+          toast.error(
+            response.error
+          );
+
+          return;
+        }
+
+        toast.success(
+          "Registration successful. Verify your email."
         );
 
-        const snapshot = await getDocs(q);
-
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setPlans(data);
-
-        // Auto select first plan
-        if (data.length > 0) {
-
-          setFormData((prev) => ({
-            ...prev,
-            selectedPlanId: data[0].id,
-            selectedPlanName: data[0].name,
-          }));
-        }
+        navigate("/login");
 
       } catch (error) {
 
         console.error(error);
 
         toast.error(
-          "Failed to load subscription plans"
+          "Registration failed"
         );
 
       } finally {
 
-        setPlansLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchPlans();
+  /* =====================================================
+     GOOGLE REGISTER
+  ===================================================== */
 
-  }, []);
+  const handleGoogleRegister =
+    async () => {
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+      try {
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+        setLoading(true);
 
-    if (formData.password !== formData.confirmPassword) {
-      return toast.error("Passwords do not match");
-    }
+        const response =
+          await loginWithGoogle({
+            userType:
+              formData.userType,
+          });
 
-    let user = null;
+        if (!response.success) {
 
-    try {
-      setLoading(true);
+          toast.error(
+            response.error
+          );
 
-      const fullName =
-        `${formData.firstName} ${formData.lastName}`;
+          return;
+        }
 
-      const userCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
+        toast.success(
+          "Google onboarding successful"
         );
 
-      user = userCredential.user;
+        navigate("/seller");
 
-      await updateProfile(user, {
-        displayName: fullName,
-      });
+      } catch (error) {
 
-      await sendEmailVerification(user);
+        console.error(error);
 
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
+        toast.error(
+          "Google registration failed"
+        );
 
-        businessName: formData.businessName,
+      } finally {
 
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-
-        fullName,
-
-        email: formData.email,
-        mobile: formData.mobile,
-
-        address: formData.address,
-        pin: formData.pin,
-
-        govId: formData.govId,
-        gstNo: formData.gstNo,
-
-        role: formData.role,
-
-        approvalStatus: "pending",
-        isApproved: false,
-        emailVerified: false,
-
-        subscription: {
-          planId: formData.selectedPlanId,
-          planName: formData.selectedPlanName,
-
-          status: "trial",
-
-          isActive: true,
-
-          subscribedAt: serverTimestamp(),
-        },
-
-        createdAt: serverTimestamp(),
-      });
-
-      // ========================================
-      // Activity Log
-      // ========================================
-
-      await logActivity({
-
-        uid: user.uid,
-
-        type: "register",
-
-        title:
-          "Account Registration",
-
-        description:
-          `New User:- ${formData.fullName} as a ${formData.role}\nShop Name:- ${formData.businessName}\n Plan:- ${formData.subscription.planName} registered for SellerOS successfully`,
-
-        meta: {
-          role:
-            formData.role,
-          fullName:
-            formData.fullName,
-          businessName:
-            formData.businessName ||
-            null,
-          subscriptionPlan:
-            formData.subscription.planName ||
-            null,
-        },
-      });
-
-      toast.success(
-        "Registration successful. Please verify your email."
-      );
-
-      navigate("/login");
-
-    } catch (error) {
-
-      console.error("REGISTER ERROR:", error);
-
-      // Rollback auth user if Firestore fails
-      try {
-        if (user) {
-          await user.delete();
-        }
-      } catch (deleteError) {
-        console.error("DELETE ERROR:", deleteError);
+        setLoading(false);
       }
+    };
 
-      toast.error(error.message);
-
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
+  /* =====================================================
+     UI
+  ===================================================== */
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6" style={backgroundStyle}>
-      <Card className="w-full max-w-2xl bg-zinc-900 border-zinc-800 text-white" style={backgroundStyle}>
-        <CardContent className="p-8">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold">
-              Create Account
+
+    <div
+      className="
+        min-h-screen
+        relative
+        overflow-hidden
+        flex
+        items-center
+        justify-center
+        p-6
+      "
+      style={{
+        backgroundImage:
+          `url(${logo})`,
+        backgroundSize:
+          "cover",
+        backgroundPosition:
+          "center",
+      }}
+    >
+
+      {/* Overlay */}
+      <div className="
+        absolute inset-0
+        bg-black/70
+        backdrop-blur-sm
+      " />
+
+      <Card
+        className="
+          relative z-10
+          w-full max-w-4xl
+          border border-white/10
+          bg-white/10
+          backdrop-blur-2xl
+          rounded-3xl
+          overflow-hidden
+          shadow-2xl
+        "
+      >
+
+        <CardContent
+          className="
+            p-8 md:p-10
+          "
+        >
+
+          {/* Header */}
+          <div className="
+            mb-8
+          ">
+
+            <h1 className="
+              text-4xl
+              font-black
+              text-white
+            ">
+
+              SellerOS Enterprise
+
             </h1>
 
-            <p className="text-zinc-400 mt-2">
-              Start using SellerOS
+            <p className="
+              text-zinc-300
+              mt-3
+            ">
+
+              Enterprise onboarding &
+              organization provisioning
+
             </p>
+
           </div>
 
-          <form
-            onSubmit={handleRegister}
-            className="space-y-4"
-          >
-            {/* Business */}
-            <Input
-              name="businessName"
-              placeholder="Business Name"
-              value={formData.businessName}
-              onChange={handleChange}
-              required
-            />
+          {/* Steps */}
+          <div className="
+            flex items-center
+            gap-3
+            mb-10
+          ">
 
-            {/* Names */}
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                name="firstName"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
+            {[1, 2, 3, 4].map(
+              (item) => (
 
-              <Input
-                name="lastName"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                <div
+                  key={item}
+                  className="
+                    flex-1
+                  "
+                >
 
-            {/* Email + Mobile */}
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+                  <div
+                    className={`
+                      h-2
+                      rounded-full
+                      transition-all
+                      ${
+                        step >= item
+                          ? "bg-violet-500"
+                          : "bg-zinc-700"
+                      }
+                    `}
+                  />
 
-              <Input
-                name="mobile"
-                placeholder="Mobile Number"
-                value={formData.mobile}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {/* Address */}
-            <Input
-              name="address"
-              placeholder="Address"
-              value={formData.address}
-              onChange={handleChange}
-              required
-            />
-
-            {/* PIN + GST */}
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                name="pin"
-                placeholder="PIN Code"
-                value={formData.pin}
-                onChange={handleChange}
-              />
-
-              <Input
-                name="gstNo"
-                placeholder="GST Number"
-                value={formData.gstNo}
-                onChange={handleChange}
-              />
-            </div>
-
-            {/* Govt ID */}
-            <Input
-              name="govId"
-              placeholder="Government ID Number"
-              value={formData.govId}
-              onChange={handleChange}
-            />
-
-            {/* Role */}
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full h-10 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-sm text-white"
-            >
-              <option value="seller">Seller</option>
-              <option value="staff">Staff</option>
-            </select>
-
-
-            <div className="space-y-4">
-
-              <h2 className="text-lg font-semibold text-white">
-                Select Subscription Plan
-              </h2>
-
-              {plansLoading ? (
-
-                <div className="text-zinc-400">
-                  Loading plans...
                 </div>
+              )
+            )}
 
-              ) : (
+          </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Form Area */}
+          <AnimatePresence
+            mode="wait"
+          >
 
-                  {plans.map((plan) => {
+            {/* STEP 1 */}
+            {step === 1 && (
 
-                    const selected =
-                      formData.selectedPlanId === plan.id;
+              <StepWrapper
+                keyName="step1"
+              >
 
-                    return (
+                <h2 className="
+                  text-2xl
+                  font-bold
+                  text-white
+                  mb-6
+                ">
+
+                  Select Account Type
+
+                </h2>
+
+                <div className="
+                  grid md:grid-cols-2
+                  gap-4
+                ">
+
+                  {USER_TYPES.map(
+                    (type) => (
 
                       <button
-                        type="button"
-                        key={plan.id}
+                        key={type.value}
                         onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            selectedPlanId: plan.id,
-                            selectedPlanName: plan.name,
-                          }))
+                          updateField(
+                            "userType",
+                            type.value
+                          )
                         }
                         className={`
-              text-left
-              rounded-2xl
-              border
-              p-5
-              transition-all
-              ${selected
-                            ? "border-violet-500 bg-violet-500/10"
-                            : "border-zinc-700 bg-zinc-900"
+                          p-5
+                          rounded-2xl
+                          border
+                          text-left
+                          transition-all
+                          ${
+                            formData.userType ===
+                            type.value
+                              ? `
+                                border-violet-500
+                                bg-violet-500/10
+                              `
+                              : `
+                                border-zinc-700
+                                bg-zinc-900/40
+                              `
                           }
-            `}
+                        `}
                       >
 
-                        <div className="flex items-center justify-between">
+                        <div className="
+                          text-white
+                          font-semibold
+                          text-lg
+                        ">
 
-                          <h3 className="text-xl font-bold text-white">
-                            {plan.name}
-                          </h3>
-
-                          {plan.badge && (
-
-                            <div className="bg-violet-600 text-white text-xs px-3 py-1 rounded-full">
-                              {plan.badge}
-                            </div>
-
-                          )}
-
-                        </div>
-
-                        <p className="text-zinc-400 text-sm mt-2">
-                          {plan.description}
-                        </p>
-
-                        <div className="mt-4">
-
-                          <span className="text-3xl font-black text-white">
-                            ₹{plan.priceMonthly}
-                          </span>
-
-                          <span className="text-zinc-400">
-                            /month
-                          </span>
-
-                        </div>
-
-                        <div className="mt-4 space-y-2">
-
-                          {plan.features?.slice(0, 4).map(
-                            (feature, index) => (
-
-                              <div
-                                key={index}
-                                className="text-sm text-zinc-300 flex items-center gap-2"
-                              >
-
-                                • {feature}
-
-                              </div>
-                            )
-                          )}
+                          {type.label}
 
                         </div>
 
                       </button>
-                    );
-                  })}
+                    )
+                  )}
 
                 </div>
 
-              )}
+              </StepWrapper>
+            )}
 
-            </div>
+            {/* STEP 2 */}
+            {step === 2 && (
 
-            {/* Passwords */}
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                name="password"
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <StepWrapper
+                keyName="step2"
+              >
 
-              <Input
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
+                <h2 className="
+                  text-2xl
+                  font-bold
+                  text-white
+                  mb-6
+                ">
+
+                  Identity Profile
+
+                </h2>
+
+                <div className="
+                  grid md:grid-cols-2
+                  gap-4
+                ">
+
+                  <StyledInput
+                    icon={User}
+                    placeholder="Full Name"
+                    value={
+                      formData.fullName
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "fullName",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <StyledInput
+                    icon={User}
+                    placeholder="Username"
+                    value={
+                      formData.username
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "username",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <StyledInput
+                    icon={Phone}
+                    placeholder="Mobile Number"
+                    value={
+                      formData.mobile
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "mobile",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                </div>
+
+              </StepWrapper>
+            )}
+
+            {/* STEP 3 */}
+            {step === 3 && (
+
+              <StepWrapper
+                keyName="step3"
+              >
+
+                <h2 className="
+                  text-2xl
+                  font-bold
+                  text-white
+                  mb-6
+                ">
+
+                  Authentication
+
+                </h2>
+
+                <div className="
+                  grid md:grid-cols-2
+                  gap-4
+                ">
+
+                  <StyledInput
+                    icon={Mail}
+                    placeholder="Email"
+                    type="email"
+                    value={
+                      formData.email
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "email",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <StyledInput
+                    icon={Lock}
+                    placeholder="Password"
+                    type="password"
+                    value={
+                      formData.password
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "password",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <StyledInput
+                    icon={Lock}
+                    placeholder="Confirm Password"
+                    type="password"
+                    value={
+                      formData.confirmPassword
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "confirmPassword",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                </div>
+
+                <button
+                  onClick={
+                    handleGoogleRegister
+                  }
+                  className="
+                    mt-6
+                    w-full
+                    py-4
+                    rounded-2xl
+                    bg-white
+                    text-black
+                    font-semibold
+                  "
+                >
+
+                  Continue with Google
+
+                </button>
+
+              </StepWrapper>
+            )}
+
+            {/* STEP 4 */}
+            {step === 4 && (
+
+              <StepWrapper
+                keyName="step4"
+              >
+
+                <h2 className="
+                  text-2xl
+                  font-bold
+                  text-white
+                  mb-6
+                ">
+
+                  Business & Subscription
+
+                </h2>
+
+                <div className="
+                  grid md:grid-cols-2
+                  gap-4
+                ">
+
+                  <StyledInput
+                    icon={Building2}
+                    placeholder="Business Name"
+                    value={
+                      formData.businessName
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "businessName",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <StyledInput
+                    icon={ShieldCheck}
+                    placeholder="GST Number"
+                    value={
+                      formData.gstNo
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "gstNo",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <StyledInput
+                    icon={ShieldCheck}
+                    placeholder="Government ID"
+                    value={
+                      formData.govId
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "govId",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                  <StyledInput
+                    icon={MapPin}
+                    placeholder="Address"
+                    value={
+                      formData.address
+                    }
+                    onChange={(e) =>
+                      updateField(
+                        "address",
+                        e.target.value
+                      )
+                    }
+                  />
+
+                </div>
+
+                {/* Subscription Plans */}
+                <div className="
+                  mt-8
+                ">
+
+                  <h3 className="
+                    text-xl
+                    font-bold
+                    text-white
+                    mb-5
+                  ">
+
+                    Select Subscription
+
+                  </h3>
+
+                  {plansLoading ? (
+
+                    <div className="
+                      text-zinc-300
+                    ">
+                      Loading plans...
+                    </div>
+
+                  ) : (
+
+                    <div className="
+                      grid md:grid-cols-2
+                      gap-4
+                    ">
+
+                      {plans.map(
+                        (plan) => {
+
+                          const selected =
+                            formData.selectedPlanId ===
+                            plan.id;
+
+                          return (
+
+                            <button
+                              key={plan.id}
+                              type="button"
+                              onClick={() =>
+                                setFormData(
+                                  (prev) => ({
+                                    ...prev,
+
+                                    selectedPlanId:
+                                      plan.id,
+
+                                    selectedPlanName:
+                                      plan.name,
+                                  })
+                                )
+                              }
+                              className={`
+                                text-left
+                                p-5
+                                rounded-2xl
+                                border
+                                transition-all
+                                ${
+                                  selected
+                                    ? `
+                                      border-violet-500
+                                      bg-violet-500/10
+                                    `
+                                    : `
+                                      border-zinc-700
+                                      bg-zinc-900/30
+                                    `
+                                }
+                              `}
+                            >
+
+                              <div className="
+                                flex items-center
+                                justify-between
+                              ">
+
+                                <h3 className="
+                                  text-white
+                                  text-xl
+                                  font-bold
+                                ">
+
+                                  {plan.name}
+
+                                </h3>
+
+                                <CreditCard
+                                  className="
+                                    text-violet-400
+                                  "
+                                />
+
+                              </div>
+
+                              <p className="
+                                text-zinc-400
+                                mt-2
+                              ">
+
+                                {plan.description}
+
+                              </p>
+
+                              <div className="
+                                mt-4
+                                text-3xl
+                                font-black
+                                text-white
+                              ">
+
+                                ₹
+                                {plan.priceMonthly}
+
+                                <span className="
+                                  text-sm
+                                  text-zinc-400
+                                  ml-1
+                                ">
+
+                                  /month
+
+                                </span>
+
+                              </div>
+
+                            </button>
+                          );
+                        }
+                      )}
+
+                    </div>
+                  )}
+
+                </div>
+
+              </StepWrapper>
+            )}
+
+          </AnimatePresence>
+
+          {/* Footer */}
+          <div className="
+            flex justify-between
+            mt-10
+          ">
 
             <Button
-              className="w-full"
-              disabled={loading}
+              variant="outline"
+              onClick={prevStep}
+              disabled={step === 1}
             >
-              {loading ? "Creating..." : "Create Account"}
-            </Button>
-          </form>
 
-          <p className="text-zinc-400 text-sm mt-6">
-            Already have an account?{" "}
+              <ArrowLeft
+                size={18}
+              />
+
+              Back
+
+            </Button>
+
+            {step < 4 ? (
+
+              <Button
+                onClick={nextStep}
+                disabled={
+                  !isStepValid
+                }
+              >
+
+                Next
+
+                <ArrowRight
+                  size={18}
+                />
+
+              </Button>
+
+            ) : (
+
+              <Button
+                onClick={
+                  handleRegister
+                }
+                disabled={
+                  loading
+                }
+              >
+
+                {loading
+                  ? "Creating..."
+                  : "Create Enterprise Account"}
+
+              </Button>
+            )}
+
+          </div>
+
+          {/* Footer */}
+          <div className="
+            mt-8
+            text-center
+            text-zinc-300
+          ">
+
+            Already have an account?
+
             <Link
               to="/login"
-              className="text-violet-500"
+              className="
+                ml-2
+                text-violet-300
+                font-semibold
+              "
             >
+
               Login
+
             </Link>
-          </p>
+
+          </div>
+
         </CardContent>
+
       </Card>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   STEP WRAPPER
+========================================================= */
+
+function StepWrapper({
+  children,
+  keyName,
+}) {
+
+  return (
+    <motion.div
+      key={keyName}
+      initial={{
+        opacity: 0,
+        x: 40,
+      }}
+      animate={{
+        opacity: 1,
+        x: 0,
+      }}
+      exit={{
+        opacity: 0,
+        x: -40,
+      }}
+    >
+
+      {children}
+
+    </motion.div>
+  );
+}
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+function StyledInput({
+  icon: Icon,
+  ...props
+}) {
+
+  return (
+
+    <div className="
+      flex items-center
+      gap-3
+      rounded-2xl
+      border border-white/10
+      bg-black/30
+      px-4 py-3
+    ">
+
+      <Icon
+        size={18}
+        className="
+          text-zinc-400
+        "
+      />
+
+      <Input
+        {...props}
+        className="
+          border-0
+          bg-transparent
+          text-white
+          placeholder:text-zinc-500
+          focus-visible:ring-0
+        "
+      />
+
     </div>
   );
 }

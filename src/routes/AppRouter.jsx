@@ -6,11 +6,12 @@ import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 
 import ProtectedRoute from "./ProtectedRoute";
+import PermissionRoute from "./PermissionRoute";
 import AdminDashboard from "@/pages/Admin/AdminDashboard";
 import AdminAnalytics from "@/pages/Admin/AdminAnalytics";
 
 import RoleRoute from "./RoleRoute";
-import SellerApprovals from "@/pages/Admin/SellerApprovals";
+import SellerEncyclopedia from "@/pages/Admin/SellerEncyclopedia";
 import AdminLayout from "@/layouts/AdminLayout";
 import HomeRoute from "./HomeRoute";
 import SubscriptionRoute from "./SubscriptionRoute";
@@ -48,6 +49,23 @@ import ThreatDetectionCenter
 import SecurityCenter from "@/pages/Security/SecurityCenter";
 
 import AdminContactMessages from "@/pages/Admin/AdminContactMessages";
+
+import CompleteProfile
+  from "@/pages/Auth/CompleteProfile";
+
+import OrganizationSetup
+  from "@/pages/Auth/OrganizationSetup";
+
+import ComplianceUpload
+  from "@/pages/Auth/ComplianceUpload";
+
+import PendingApproval
+  from "@/pages/Auth/PendingApproval";
+
+import AccountRestricted
+  from "@/pages/Auth/AccountRestricted";
+
+import SellerGovernanceCenter from "@/pages/Admin/SellerGovernanceCenter";
 
 export default function AppRouter() {
   return (
@@ -118,14 +136,72 @@ export default function AppRouter() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/complete-profile"
+            element={
+              <ProtectedRoute>
+                <CompleteProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/organization-setup"
+            element={
+              <ProtectedRoute
+                requireProfile
+              >
+                <OrganizationSetup />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/compliance-upload"
+            element={
+              <ProtectedRoute
+                requireProfile
+                requireOrganization
+              >
+                <ComplianceUpload />
+              </ProtectedRoute>
+            }
+          />
+
+
+          <Route
+            path="/pending-approval"
+            element={
+              <ProtectedRoute
+                requireProfile
+                requireOrganization
+                requireCompliance
+              >
+                <PendingApproval />
+              </ProtectedRoute>
+            }
+          />
+
         </Route>
+
+
+
+        <Route
+          path="/account-restricted"
+          element={
+            <ProtectedRoute>
+              <AccountRestricted />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/admin"
           element={
             <ProtectedRoute>
               <RoleRoute
-                allowedRoles={[
+                allowedPlatformRoles={[
                   "admin",
                   "super_admin",
                 ]}
@@ -142,8 +218,8 @@ export default function AppRouter() {
           />
 
           <Route
-            path="sellers"
-            element={<SellerApprovals />}
+            path="seller/:sellerId"
+            element={<SellerEncyclopedia />}
           />
 
           <Route
@@ -155,7 +231,7 @@ export default function AppRouter() {
             path="subscriptions"
             element={
               <RoleRoute
-                allowedRoles={[
+                allowedPlatformRoles={[
                   "super_admin",
                 ]}
               >
@@ -168,7 +244,7 @@ export default function AppRouter() {
             path="user-subscriptions"
             element={
               <RoleRoute
-                allowedRoles={[
+                allowedPlatformRoles={[
                   "super_admin",
                 ]}
               >
@@ -200,18 +276,34 @@ export default function AppRouter() {
             element={<AdminContactMessages />}
           />
 
+          <Route
+            path="seller-governance-center"
+            element={<SellerGovernanceCenter />}
+          />
+
         </Route>
 
         <Route
           path="/seller"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute
+              requireProfile
+              requireOrganization
+              requireCompliance
+              requireApproval
+            >
               <RoleRoute
-                allowedRoles={[
-                  "seller",
-                  "admin",
-                  "super_admin"
-                ]}
+                // // allowedPlatformRoles={[
+                // //   "admin",
+                // //   "super_admin",
+                // //   "compliance_officer",
+                // //   "support_agent",
+                // // ]}
+                // allowedOrganizationRoles={[
+                //   "owner",
+                //   "seller_admin",
+                // ]}
+                minimumOrganizationRole="viewer"
               >
                 <SellerLayout />
               </RoleRoute>
@@ -268,7 +360,12 @@ export default function AppRouter() {
 
           <Route
             path="inventory"
-            element={<Inventory />}
+            element={
+              <PermissionRoute
+                permission="inventory.manage"
+              >
+                <Inventory />
+              </PermissionRoute>}
           />
 
           <Route
