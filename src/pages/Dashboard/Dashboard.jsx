@@ -68,7 +68,7 @@ export default function Dashboard() {
           <div className="max-w-4xl">
 
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-300 text-sm mb-8">
-              Modern Ecommerce ERP Platform
+              Build For Indian Modern Ecommerce ERP Platform
             </div>
 
             <h1 className="text-6xl md:text-7xl font-black leading-tight tracking-tight">
