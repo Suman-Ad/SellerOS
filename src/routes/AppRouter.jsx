@@ -67,6 +67,9 @@ import AccountRestricted
 
 import SellerGovernanceCenter from "@/pages/Admin/SellerGovernanceCenter";
 
+import TeamManagement
+  from "@/pages/Organization/TeamManagement";
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
@@ -391,6 +394,27 @@ export default function AppRouter() {
             path="profile-settings"
             element={<UserProfile />}
           />
+
+          <Route
+          path="organization-team"
+          element={
+            <ProtectedRoute
+              requireProfile
+              requireOrganization
+              requireCompliance
+              requireApproval
+            >
+              <RoleRoute
+                allowedOrganizationRoles={[
+                  "owner",
+                  "seller_admin",
+                ]}
+              >
+                <TeamManagement />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
 
         </Route>
 

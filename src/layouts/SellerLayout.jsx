@@ -131,6 +131,11 @@ export default function SellerLayout() {
           path: "/seller/analytics",
           icon: BarChart3,
         },
+        {
+          name: "Staff",
+          path: "/seller/organization-team",
+          icon: Users,
+        },
       ],
     },
 

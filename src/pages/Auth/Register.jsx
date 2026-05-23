@@ -7,6 +7,7 @@ import {
 import {
   Link,
   useNavigate,
+  useSearchParams,
 } from "react-router-dom";
 
 import {
@@ -141,6 +142,14 @@ export default function Register() {
 
   const navigate =
     useNavigate();
+
+  const [searchParams] =
+    useSearchParams();
+
+  const inviteToken =
+    searchParams.get(
+      "invite"
+    );
 
   /* =====================================================
      STATE
@@ -398,7 +407,16 @@ export default function Register() {
           "Registration successful. Verify your email."
         );
 
-        navigate("/login");
+        if (inviteToken) {
+
+          navigate(
+            `/login?invite=${inviteToken}`
+          );
+
+        } else {
+
+          navigate("/login");
+        }
 
       } catch (error) {
 
@@ -444,7 +462,16 @@ export default function Register() {
           "Google onboarding successful"
         );
 
-        navigate("/seller");
+        if (inviteToken) {
+
+          navigate(
+            `/invite/${inviteToken}`
+          );
+
+        } else {
+
+          navigate("/seller");
+        }
 
       } catch (error) {
 
@@ -561,10 +588,9 @@ export default function Register() {
                       h-2
                       rounded-full
                       transition-all
-                      ${
-                        step >= item
-                          ? "bg-violet-500"
-                          : "bg-zinc-700"
+                      ${step >= item
+                        ? "bg-violet-500"
+                        : "bg-zinc-700"
                       }
                     `}
                   />
@@ -620,14 +646,13 @@ export default function Register() {
                           border
                           text-left
                           transition-all
-                          ${
-                            formData.userType ===
+                          ${formData.userType ===
                             type.value
-                              ? `
+                            ? `
                                 border-violet-500
                                 bg-violet-500/10
                               `
-                              : `
+                            : `
                                 border-zinc-700
                                 bg-zinc-900/40
                               `
@@ -959,13 +984,12 @@ export default function Register() {
                                 rounded-2xl
                                 border
                                 transition-all
-                                ${
-                                  selected
-                                    ? `
+                                ${selected
+                                  ? `
                                       border-violet-500
                                       bg-violet-500/10
                                     `
-                                    : `
+                                  : `
                                       border-zinc-700
                                       bg-zinc-900/30
                                     `
@@ -1109,7 +1133,11 @@ export default function Register() {
             Already have an account?
 
             <Link
-              to="/login"
+              to={
+                inviteToken
+                  ? `/login?invite=${inviteToken}`
+                  : "/login"
+              }
               className="
                 ml-2
                 text-violet-300

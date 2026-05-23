@@ -5,6 +5,7 @@ import {
 import {
   Link,
   useNavigate,
+  useSearchParams,
 } from "react-router-dom";
 
 import {
@@ -55,6 +56,14 @@ export default function Login() {
   const navigate =
     useNavigate();
 
+  const [searchParams] =
+    useSearchParams();
+
+  const inviteToken =
+    searchParams.get(
+      "invite"
+    );
+
   /* =====================================================
      STATE
   ===================================================== */
@@ -91,8 +100,25 @@ export default function Login() {
      ROLE REDIRECT
   ===================================================== */
 
-  const redirectByRole =
+  const redirectAfterAuth =
     (role) => {
+
+      /* =====================================
+         INVITATION FLOW
+      ===================================== */
+
+      if (inviteToken) {
+
+        navigate(
+          `/invite/${inviteToken}`
+        );
+
+        return;
+      }
+
+      /* =====================================
+         NORMAL FLOW
+      ===================================== */
 
       switch (role) {
 
@@ -160,7 +186,7 @@ export default function Login() {
           "Login successful"
         );
 
-        redirectByRole(
+        redirectAfterAuth(
           response.userData.role
         );
 
@@ -205,7 +231,7 @@ export default function Login() {
           "Google login successful"
         );
 
-        redirectByRole(
+        redirectAfterAuth(
           response.userData.role
         );
 
@@ -597,7 +623,11 @@ export default function Login() {
               Don’t have an account?
 
               <Link
-                to="/register"
+                to={
+                  inviteToken
+                    ? `/register?invite=${inviteToken}`
+                    : "/register"
+                }
                 className="
                   ml-2
                   text-violet-300
