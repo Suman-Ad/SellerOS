@@ -106,14 +106,12 @@ export default function OrganizationSetup() {
      HELPERS
   ===================================================== */
 
-  const updateField =
-    (field, value) => {
-
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+  const updateField = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   /* =====================================================
      CREATE ORGANIZATION
@@ -204,9 +202,10 @@ export default function OrganizationSetup() {
           "Organization created successfully"
         );
 
-        navigate(
-          "/compliance-upload"
-        );
+
+        setTimeout(() => {
+          navigate("/compliance-upload");
+        }, 1000);
 
       } catch (error) {
 

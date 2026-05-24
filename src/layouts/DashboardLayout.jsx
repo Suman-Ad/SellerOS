@@ -183,7 +183,7 @@ export default function DashboardLayout() {
 
 
   return (
-    <div className="h-screen bg-zinc-950 text-white flex overflow-hiddenv">
+    <div className="h-screen bg-zinc-950 text-white flex overflow-hidden">
 
       {/* Sidebar */}
       <aside
@@ -350,7 +350,7 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-auto bg-zinc-950">
 
         {/* Topbar */}
-        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-1000">
+        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-[1000]">
 
           {/* Left */}
           <div className="flex items-center gap-4">
@@ -503,7 +503,7 @@ export default function DashboardLayout() {
             {/* Dropdown */}
             {showProfileMenu && (
 
-              <div className="absolute right-0 top-16 w-64 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-50">
+              <div className="absolute right-0 top-16 w-64 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-11">
 
                 {/* User Info */}
                 <div className="p-4 border-b border-zinc-800">
@@ -564,7 +564,7 @@ export default function DashboardLayout() {
         <div className="p-4 md:p-6">
           <Outlet />
         </div>
-        <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between sticky bottom-0">
+        <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between sticky bottom-0 z-10">
 
           <p>
             © 2026 SellerOS ERP

@@ -621,7 +621,7 @@ export default function SellerEncyclopedia() {
               const document =
                 seller
                   ?.complianceDocuments?.[
-                  item.key
+                item.key
                 ];
 
               return (
@@ -673,21 +673,37 @@ export default function SellerEncyclopedia() {
                         {document.status}
                       </p>
 
-                      <a
-                        href={
-                          document.url
-                        }
-                        target="_blank"
-                        rel="noreferrer"
+                      <Button
+                        asChild
                         className="
-                          text-violet-400
-                          underline
-                        "
+    bg-violet-600
+    hover:bg-violet-700
+    w-full
+  "
                       >
-
-                        View Document
-
-                      </a>
+                        <a
+                          href={document.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View Document
+                        </a>
+                      </Button>
+                      {document?.url && (
+                        <iframe
+                          src={document.url}
+                          title={item.title}
+                          className="
+      w-full
+      h-64
+      rounded-xl
+      mt-4
+      border
+      border-zinc-700
+      bg-white
+    "
+                        />
+                      )}
 
                     </div>
 
@@ -943,10 +959,9 @@ function TimelineItem({
       <div className={`
         w-5 h-5
         rounded-full
-        ${
-          status === "completed"
-            ? "bg-green-500"
-            : "bg-yellow-500"
+        ${status === "completed"
+          ? "bg-green-500"
+          : "bg-yellow-500"
         }
       `} />
 

@@ -39,6 +39,9 @@ exports.sendInvitationEmail =
       document:
         "organization_invitations/{inviteId}",
 
+      region:
+        "us-central1",
+
       secrets: [
         RESEND_API_KEY,
       ],
@@ -52,7 +55,7 @@ exports.sendInvitationEmail =
           event.data.data();
 
         const inviteUrl =
-          `https://YOURDOMAIN.com/invite/${invitation.token}`;
+          `https://selleros-e7bb4.web.app/invite/${invitation.token}`;
 
         await resend.emails.send({
 

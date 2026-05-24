@@ -324,7 +324,7 @@ export default function AdminLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Topbar */}
-        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between">
+        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between z-[1000] sticky top-0">
 
           {/* Left */}
           <div className="flex items-center gap-4">

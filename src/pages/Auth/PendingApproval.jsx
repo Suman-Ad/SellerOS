@@ -36,6 +36,15 @@ import {
 import logo
   from "@/assets/image.png";
 
+import {
+  GOVERNANCE_STATUS,
+  COMPLIANCE_STATUS,
+} from "@/constants/userLifecycle";
+
+import {
+  canAccessDashboard,
+} from "@/utils/lifecycle/lifecycleResolver";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -75,7 +84,9 @@ export default function PendingApproval() {
   useEffect(() => {
 
     if (
-      userData?.isApproved
+      canAccessDashboard(
+        userData
+      )
     ) {
 
       navigate("/seller");
@@ -90,13 +101,15 @@ export default function PendingApproval() {
      STATUS
   ===================================================== */
 
-  const approvalStatus =
-    userData?.approvalStatus ||
-    "pending";
+  const sellerStatus =
+    userData?.governance
+      ?.sellerStatus ||
 
-  const complianceStatus =
-    userData?.complianceStatus ||
-    {};
+    GOVERNANCE_STATUS
+      .PENDING_REVIEW;
+
+  const compliance =
+    userData?.compliance || {};
 
   const steps = [
 
@@ -108,7 +121,8 @@ export default function PendingApproval() {
         MailCheck,
 
       completed:
-        userData?.emailVerified,
+        userData?.authStatus
+          ?.emailVerified,
     },
 
     {
@@ -131,7 +145,8 @@ export default function PendingApproval() {
         Building2,
 
       completed:
-        !!userData?.organizationId,
+        !!userData?.organization
+          ?.organizationId,
     },
 
     {
@@ -142,10 +157,11 @@ export default function PendingApproval() {
         FileCheck,
 
       completed:
-        complianceStatus?.gst ===
-          "approved" &&
-        complianceStatus?.pan ===
-          "approved",
+        compliance?.gst?.status ===
+        COMPLIANCE_STATUS.APPROVED &&
+
+        compliance?.pan?.status ===
+        COMPLIANCE_STATUS.APPROVED,
     },
 
     {
@@ -156,9 +172,44 @@ export default function PendingApproval() {
         ShieldCheck,
 
       completed:
-        userData?.isApproved,
+        sellerStatus ===
+        GOVERNANCE_STATUS.APPROVED,
     },
   ];
+
+  const governanceDescriptions = {
+
+    pending_review:
+      "Your account is waiting for governance review.",
+
+    under_review:
+      "Compliance officers are reviewing your documents.",
+
+    approved:
+      "Your enterprise workspace has been approved.",
+
+    rejected:
+      "Your compliance verification was rejected.",
+
+    suspended:
+      "Your seller account is currently suspended.",
+  };
+
+  const statusDescription =
+    governanceDescriptions[
+    sellerStatus
+    ] ||
+    governanceDescriptions
+      .pending_review;
+
+  const formattedStatus =
+    sellerStatus
+      .replace(/_/g, " ")
+      .replace(
+        /\b\w/g,
+        (char) =>
+          char.toUpperCase()
+      );
 
   /* =====================================================
      UI
@@ -306,10 +357,10 @@ export default function PendingApproval() {
 
                     Status:
                     {" "}
-                    {approvalStatus
+                    {sellerStatus
                       .charAt(0)
                       .toUpperCase() +
-                      approvalStatus.slice(1)}
+                      sellerStatus.slice(1)}
 
                   </h3>
 
@@ -318,7 +369,7 @@ export default function PendingApproval() {
                     mt-1
                   ">
 
-                    Our compliance team is reviewing your account & organization.
+                    {statusDescription}
 
                   </p>
 
@@ -327,6 +378,56 @@ export default function PendingApproval() {
               </div>
 
             </div>
+
+            {userData?.reKyc?.required && (
+
+              <div className="
+    rounded-3xl
+    border border-blue-500/20
+    bg-blue-500/10
+    p-6
+    mb-10
+  ">
+
+                <div className="
+      flex items-center
+      gap-4
+    ">
+
+                  <ShieldCheck
+                    className="
+          text-blue-300
+        "
+                    size={30}
+                  />
+
+                  <div>
+
+                    <h3 className="
+          text-white
+          text-xl
+          font-bold
+        ">
+
+                      Re-KYC Required
+
+                    </h3>
+
+                    <p className="
+          text-zinc-300
+          mt-1
+        ">
+
+                      Additional compliance verification has been requested.
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              </div>
+            )}
 
             {/* Progress */}
             <div className="
@@ -381,13 +482,12 @@ export default function PendingApproval() {
                             rounded-2xl
                             flex items-center
                             justify-center
-                            ${
-                              step.completed
-                                ? `
+                            ${step.completed
+                              ? `
                                   bg-green-500/20
                                   text-green-300
                                 `
-                                : `
+                              : `
                                   bg-yellow-500/20
                                   text-yellow-300
                                 `
@@ -432,13 +532,12 @@ export default function PendingApproval() {
                           rounded-full
                           text-sm
                           font-semibold
-                          ${
-                            step.completed
-                              ? `
+                          ${step.completed
+                            ? `
                                 bg-green-500/20
                                 text-green-300
                               `
-                              : `
+                            : `
                                 bg-yellow-500/20
                                 text-yellow-300
                               `

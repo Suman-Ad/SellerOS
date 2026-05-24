@@ -59,6 +59,10 @@ import {
 import logo
   from "@/assets/image.png";
 
+import {
+  ONBOARDING_STEPS,
+} from "@/constants/userLifecycle";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -92,19 +96,6 @@ export default function CompleteProfile() {
 
       mobile: "",
 
-      businessName: "",
-
-      website: "",
-
-      address: "",
-
-      state: "",
-
-      city: "",
-
-      country: "India",
-
-      bio: "",
     });
 
   /* =====================================================
@@ -126,27 +117,6 @@ export default function CompleteProfile() {
 
       mobile:
         userData.phoneNumber || "",
-
-      businessName:
-        userData.businessName || "",
-
-      website:
-        userData.website || "",
-
-      address:
-        userData.address || "",
-
-      state:
-        userData.state || "",
-
-      city:
-        userData.city || "",
-
-      country:
-        userData.country || "India",
-
-      bio:
-        userData.bio || "",
     });
 
   }, [userData]);
@@ -171,12 +141,52 @@ export default function CompleteProfile() {
   const handleSave =
     async () => {
 
+      if (loading) return;
+
       try {
 
         if (!user) {
 
           toast.error(
             "Authentication required"
+          );
+
+          return;
+        }
+
+        const normalizedUsername =
+          formData.username
+            .trim()
+            .toLowerCase();
+
+        if (
+          normalizedUsername.length < 3
+        ) {
+
+          toast.error(
+            "Username must be at least 3 characters"
+          );
+
+          return;
+        }
+
+        if (
+          !formData.fullName.trim()
+        ) {
+
+          toast.error(
+            "Full name required"
+          );
+
+          return;
+        }
+
+        if (
+          !formData.mobile.trim()
+        ) {
+
+          toast.error(
+            "Mobile number required"
           );
 
           return;
@@ -203,33 +213,18 @@ export default function CompleteProfile() {
             phoneNumber:
               formData.mobile,
 
-            businessName:
-              formData.businessName,
-
-            website:
-              formData.website,
-
-            address:
-              formData.address,
-
-            state:
-              formData.state,
-
-            city:
-              formData.city,
-
-            country:
-              formData.country,
-
-            bio:
-              formData.bio,
-
             onboarding: {
 
-              ...userData.onboarding,
+              ...(userData.onboarding || {}),
 
               profileCompleted:
                 true,
+
+              currentStep:
+                ONBOARDING_STEPS.ORGANIZATION,
+
+              onboardingUpdatedAt:
+                serverTimestamp(),
             },
 
             updatedAt:
@@ -247,16 +242,17 @@ export default function CompleteProfile() {
            ROUTING
         ===================== */
 
-        if (
-          !userData.organizationId
-        ) {
+        // if (
+        //   !userData?.organization
+        //     ?.organizationId
+        // ) {
 
-          navigate(
-            "/organization-setup"
-          );
+        //   navigate(
+        //     "/organization-setup"
+        //   );
 
-          return;
-        }
+        //   return;
+        // }
 
         navigate("/organization-setup");
 
@@ -483,130 +479,6 @@ export default function CompleteProfile() {
                     e.target.value
                   )
                 }
-              />
-
-              <StyledInput
-                icon={Building2}
-                placeholder="Business Name"
-                value={
-                  formData.businessName
-                }
-                onChange={(e) =>
-                  updateField(
-                    "businessName",
-                    e.target.value
-                  )
-                }
-              />
-
-              <StyledInput
-                icon={Globe}
-                placeholder="Website"
-                value={
-                  formData.website
-                }
-                onChange={(e) =>
-                  updateField(
-                    "website",
-                    e.target.value
-                  )
-                }
-              />
-
-              <StyledInput
-                icon={MapPin}
-                placeholder="State"
-                value={
-                  formData.state
-                }
-                onChange={(e) =>
-                  updateField(
-                    "state",
-                    e.target.value
-                  )
-                }
-              />
-
-              <StyledInput
-                icon={MapPin}
-                placeholder="City"
-                value={
-                  formData.city
-                }
-                onChange={(e) =>
-                  updateField(
-                    "city",
-                    e.target.value
-                  )
-                }
-              />
-
-              <StyledInput
-                icon={MapPin}
-                placeholder="Country"
-                value={
-                  formData.country
-                }
-                onChange={(e) =>
-                  updateField(
-                    "country",
-                    e.target.value
-                  )
-                }
-              />
-
-            </div>
-
-            {/* Address */}
-            <div className="
-              mt-5
-            ">
-
-              <Textarea
-                placeholder="Business Address"
-                value={
-                  formData.address
-                }
-                onChange={(e) =>
-                  updateField(
-                    "address",
-                    e.target.value
-                  )
-                }
-                className="
-                  min-h-[120px]
-                  border-white/10
-                  bg-black/20
-                  text-white
-                  placeholder:text-zinc-500
-                "
-              />
-
-            </div>
-
-            {/* Bio */}
-            <div className="
-              mt-5
-            ">
-
-              <Textarea
-                placeholder="Business Bio / About"
-                value={
-                  formData.bio
-                }
-                onChange={(e) =>
-                  updateField(
-                    "bio",
-                    e.target.value
-                  )
-                }
-                className="
-                  min-h-[120px]
-                  border-white/10
-                  bg-black/20
-                  text-white
-                  placeholder:text-zinc-500
-                "
               />
 
             </div>

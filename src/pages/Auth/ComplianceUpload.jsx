@@ -240,92 +240,90 @@ export default function ComplianceUpload() {
               formData.bankAccountNo,
 
             complianceDocuments:
+            {
+
+              gst: {
+
+                number:
+                  formData.gstNo,
+
+                url:
+                  gstUrl,
+
+                uploadedAt:
+                  serverTimestamp(),
+
+                status:
+                  "pending",
+              },
+
+              pan: {
+
+                number:
+                  formData.panNo,
+
+                url:
+                  panUrl,
+
+                uploadedAt:
+                  serverTimestamp(),
+
+                status:
+                  "pending",
+              },
+
+              governmentId:
               {
 
-                gst: {
+                number:
+                  formData.governmentIdNo,
 
-                  number:
-                    formData.gstNo,
+                url:
+                  governmentUrl,
 
-                  url:
-                    gstUrl,
+                uploadedAt:
+                  serverTimestamp(),
 
-                  uploadedAt:
-                    serverTimestamp(),
-
-                  status:
-                    "pending",
-                },
-
-                pan: {
-
-                  number:
-                    formData.panNo,
-
-                  url:
-                    panUrl,
-
-                  uploadedAt:
-                    serverTimestamp(),
-
-                  status:
-                    "pending",
-                },
-
-                governmentId:
-                  {
-
-                    number:
-                      formData.governmentIdNo,
-
-                    url:
-                      governmentUrl,
-
-                    uploadedAt:
-                      serverTimestamp(),
-
-                    status:
-                      "pending",
-                  },
-
-                bank: {
-
-                  number:
-                    formData.bankAccountNo,
-
-                  url:
-                    bankUrl,
-
-                  uploadedAt:
-                    serverTimestamp(),
-
-                  status:
-                    "pending",
-                },
+                status:
+                  "pending",
               },
+
+              bank: {
+
+                number:
+                  formData.bankAccountNo,
+
+                url:
+                  bankUrl,
+
+                uploadedAt:
+                  serverTimestamp(),
+
+                status:
+                  "pending",
+              },
+            },
 
             complianceStatus:
-              {
+            {
 
-                gst:
-                  "pending",
+              gst:
+                "pending",
 
-                pan:
-                  "pending",
+              pan:
+                "pending",
 
-                bankVerification:
-                  "pending",
+              bankVerification:
+                "pending",
 
-                addressVerification:
-                  "pending",
-              },
+              addressVerification:
+                "pending",
+            },
 
             onboarding: {
-
               ...userData.onboarding,
-
-              complianceSubmitted:
-                true,
+              documentsUploaded: true,
+              complianceSubmitted: true,
             },
 
             updatedAt:
@@ -482,6 +480,7 @@ export default function ComplianceUpload() {
                 numberValue={
                   formData.gstNo
                 }
+                fileName={files.gst?.name}
                 onNumberChange={(e) =>
                   updateField(
                     "gstNo",
@@ -503,6 +502,7 @@ export default function ComplianceUpload() {
                 numberValue={
                   formData.panNo
                 }
+                fileName={files.pan?.name}
                 onNumberChange={(e) =>
                   updateField(
                     "panNo",
@@ -524,6 +524,7 @@ export default function ComplianceUpload() {
                 numberValue={
                   formData.governmentIdNo
                 }
+                fileName={files.governmentId?.name}
                 onNumberChange={(e) =>
                   updateField(
                     "governmentIdNo",
@@ -545,6 +546,7 @@ export default function ComplianceUpload() {
                 numberValue={
                   formData.bankAccountNo
                 }
+                fileName={files.bank?.name}
                 onNumberChange={(e) =>
                   updateField(
                     "bankAccountNo",
@@ -672,6 +674,8 @@ function DocumentUploadCard({
   onNumberChange,
 
   onFileChange,
+
+  fileName,
 }) {
 
   return (
@@ -764,6 +768,17 @@ function DocumentUploadCard({
           className="hidden"
           onChange={onFileChange}
         />
+        {fileName && (
+          <p className="
+    text-xs
+    text-green-400
+    mt-3
+    text-center
+    break-all
+  ">
+            {fileName}
+          </p>
+        )}
 
       </label>
 

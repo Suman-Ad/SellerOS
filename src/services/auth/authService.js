@@ -42,6 +42,10 @@ import {
 import logActivity
   from "@/utils/activity/logActivity";
 
+import {
+  resolveRedirectPath,
+} from "@/utils/lifecycle/lifecycleResolver";
+
 /* =========================================================
    PROVIDERS
 ========================================================= */
@@ -160,19 +164,20 @@ const updateLoginMetadata =
         uid
       );
 
-      await updateDoc(
-        userRef,
-        {
+      await updateDoc(userRef, {
 
+        "authStatus.emailVerified":
           emailVerified,
 
-          "security.lastLoginAt":
-            serverTimestamp(),
+        "security.lastLoginAt":
+          serverTimestamp(),
 
-          updatedAt:
-            serverTimestamp(),
-        }
-      );
+        "analytics.lastActiveAt":
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp(),
+      });
 
     } catch (error) {
 
@@ -317,12 +322,6 @@ export const registerWithEmail =
 
           pin:
             businessData.pin,
-
-          approvalStatus:
-            "pending",
-
-          isApproved:
-            false,
 
           subscription: {
 
@@ -512,24 +511,41 @@ export const loginWithEmail =
       const userData =
         profile.data;
 
+      const redirectPath =
+        resolveRedirectPath(
+          userData
+        );
       /* =====================
          APPROVAL VALIDATION
       ===================== */
 
-      if (
-        userData.role ===
-          "seller" &&
-        !userData.isApproved
-      ) {
+      /* =====================
+   RESTRICT ONLY AFTER
+   FULL ONBOARDING
+===================== */
 
-        await signOut(auth);
+      // const onboardingCompleted =
+      //   userData?.onboarding?.profileCompleted &&
+      //   userData?.organization
+      //     ?.organizationId &&
+      //   userData?.onboarding?.complianceSubmitted;
 
-        return {
-          success: false,
-          error:
-            "Seller account pending approval.",
-        };
-      }
+      // if (
+      //   onboardingCompleted &&
+      //   redirectPath === "/onboarding"
+      // ) {
+
+      //   return {
+      //     success: true,
+
+      //     user: firebaseUser,
+
+      //     userData,
+
+      //     redirectPath,
+      //   };
+      // }
+
 
       /* =====================
          BLOCK VALIDATION
@@ -541,7 +557,8 @@ export const loginWithEmail =
           "suspended",
           "rejected",
         ].includes(
-          userData.status
+          userData?.governance
+            ?.sellerStatus
         )
       ) {
 
@@ -596,23 +613,25 @@ export const loginWithEmail =
         meta: {
 
           role:
-            userData.role,
+            userData?.access?.role,
 
           fullName:
             userData.fullName,
 
           organizationId:
-            userData.organizationId,
+            userData?.organization
+              ?.organizationId,
         },
       });
 
       return {
         success: true,
 
-        user:
-          firebaseUser,
+        user: firebaseUser,
 
         userData,
+
+        redirectPath,
       };
 
     } catch (error) {
@@ -685,6 +704,14 @@ export const loginWithGoogle =
           firebaseUser.uid,
       });
 
+      const userData =
+        profile.data;
+
+      const redirectPath =
+        resolveRedirectPath(
+          userData
+        );
+
       /* =====================
          LOGIN METADATA
       ===================== */
@@ -718,7 +745,7 @@ export const loginWithGoogle =
         meta: {
 
           role:
-            profile.data?.role,
+            profile.data?.access?.role,
         },
       });
 
@@ -728,8 +755,9 @@ export const loginWithGoogle =
         user:
           firebaseUser,
 
-        userData:
-          profile.data,
+        userData,
+
+        redirectPath,
       };
 
     } catch (error) {

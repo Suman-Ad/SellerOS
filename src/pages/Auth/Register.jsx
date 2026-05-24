@@ -64,37 +64,48 @@ import {
   toast,
 } from "sonner";
 
+import {
+  USER_TYPES,
+} from "@/constants/userLifecycle";
+
 /* =========================================================
    USER TYPES
 ========================================================= */
 
-const USER_TYPES = [
+const USER_TYPE_OPTIONS = [
+
   {
-    value: "seller",
-    label: "Seller",
+    value:
+      USER_TYPES.SELLER,
+
+    label:
+      "Seller",
   },
 
   {
-    value: "staff",
-    label: "Staff",
+    value:
+      USER_TYPES.STAFF,
+
+    label:
+      "Staff",
   },
 
   {
-    value: "supplier",
-    label: "Supplier",
+    value:
+      USER_TYPES.SUPPLIER,
+
+    label:
+      "Supplier",
   },
 
   {
-    value: "partner",
-    label: "Partner",
-  },
+    value:
+      USER_TYPES.PARTNER,
 
-  {
-    value: "logistics",
-    label: "Logistics",
+    label:
+      "Partner",
   },
 ];
-
 /* =========================================================
    INITIAL FORM
 ========================================================= */
@@ -114,20 +125,6 @@ const INITIAL_FORM = {
   password: "",
 
   confirmPassword: "",
-
-  businessName: "",
-
-  gstNo: "",
-
-  govId: "",
-
-  address: "",
-
-  pin: "",
-
-  state: "",
-
-  city: "",
 
   selectedPlanId: "",
 
@@ -302,7 +299,6 @@ export default function Register() {
         case 4:
 
           return (
-            formData.businessName &&
             formData.selectedPlanId
           );
 
@@ -357,33 +353,6 @@ export default function Register() {
             userType:
               formData.userType,
 
-            organizationName:
-              formData.businessName,
-
-            businessData: {
-
-              businessName:
-                formData.businessName,
-
-              gstNo:
-                formData.gstNo,
-
-              govId:
-                formData.govId,
-
-              address:
-                formData.address,
-
-              pin:
-                formData.pin,
-
-              state:
-                formData.state,
-
-              city:
-                formData.city,
-            },
-
             subscriptionData: {
 
               planId:
@@ -415,7 +384,9 @@ export default function Register() {
 
         } else {
 
-          navigate("/login");
+          navigate(
+            "/verify-email"
+          );
         }
 
       } catch (error) {
@@ -470,7 +441,10 @@ export default function Register() {
 
         } else {
 
-          navigate("/seller");
+          navigate(
+            response.redirectPath ||
+            "/complete-profile"
+          );
         }
 
       } catch (error) {
@@ -629,7 +603,7 @@ export default function Register() {
                   gap-4
                 ">
 
-                  {USER_TYPES.map(
+                  {USER_TYPE_OPTIONS.map(
                     (type) => (
 
                       <button
@@ -751,6 +725,7 @@ export default function Register() {
 
             {/* STEP 3 */}
             {step === 3 && (
+              
 
               <StepWrapper
                 keyName="step3"
@@ -766,6 +741,25 @@ export default function Register() {
                   Authentication
 
                 </h2>
+
+                <button
+                  onClick={
+                    handleGoogleRegister
+                  }
+                  className="
+                    mt-6
+                    w-full
+                    py-4
+                    rounded-2xl
+                    bg-white
+                    text-black
+                    font-semibold
+                  "
+                >
+
+                  Continue with Google
+
+                </button>
 
                 <div className="
                   grid md:grid-cols-2
@@ -819,24 +813,7 @@ export default function Register() {
 
                 </div>
 
-                <button
-                  onClick={
-                    handleGoogleRegister
-                  }
-                  className="
-                    mt-6
-                    w-full
-                    py-4
-                    rounded-2xl
-                    bg-white
-                    text-black
-                    font-semibold
-                  "
-                >
-
-                  Continue with Google
-
-                </button>
+                
 
               </StepWrapper>
             )}
@@ -859,68 +836,6 @@ export default function Register() {
 
                 </h2>
 
-                <div className="
-                  grid md:grid-cols-2
-                  gap-4
-                ">
-
-                  <StyledInput
-                    icon={Building2}
-                    placeholder="Business Name"
-                    value={
-                      formData.businessName
-                    }
-                    onChange={(e) =>
-                      updateField(
-                        "businessName",
-                        e.target.value
-                      )
-                    }
-                  />
-
-                  <StyledInput
-                    icon={ShieldCheck}
-                    placeholder="GST Number"
-                    value={
-                      formData.gstNo
-                    }
-                    onChange={(e) =>
-                      updateField(
-                        "gstNo",
-                        e.target.value
-                      )
-                    }
-                  />
-
-                  <StyledInput
-                    icon={ShieldCheck}
-                    placeholder="Government ID"
-                    value={
-                      formData.govId
-                    }
-                    onChange={(e) =>
-                      updateField(
-                        "govId",
-                        e.target.value
-                      )
-                    }
-                  />
-
-                  <StyledInput
-                    icon={MapPin}
-                    placeholder="Address"
-                    value={
-                      formData.address
-                    }
-                    onChange={(e) =>
-                      updateField(
-                        "address",
-                        e.target.value
-                      )
-                    }
-                  />
-
-                </div>
 
                 {/* Subscription Plans */}
                 <div className="
@@ -934,7 +849,7 @@ export default function Register() {
                     mb-5
                   ">
 
-                    Select Subscription
+                    Select Plan
 
                   </h3>
 

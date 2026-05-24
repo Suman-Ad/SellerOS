@@ -184,7 +184,7 @@ export default function SellerLayout() {
 
 
   return (
-    <div className="h-screen bg-zinc-950 text-white flex overflow-hiddenv">
+    <div className="h-screen bg-zinc-950 text-white flex overflow-hidden">
 
       {/* Sidebar */}
       <aside
@@ -360,7 +360,7 @@ export default function SellerLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Topbar */}
-        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between">
+        <header className="h-20 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-xl px-6 flex items-center justify-between sticky top-0 z-[1000]">
 
           {/* Left */}
           <div className="flex items-center gap-4">
@@ -510,7 +510,7 @@ export default function SellerLayout() {
             {/* Dropdown */}
             {showProfileMenu && (
 
-              <div className="absolute right-0 top-16 w-64 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-1001">
+              <div className="absolute right-0 top-16 w-64 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden z-50">
 
                 {/* User Info */}
                 <div className="p-4 border-b border-zinc-800">

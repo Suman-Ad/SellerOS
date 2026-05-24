@@ -16,8 +16,6 @@ import {
 
   Ban,
 
-  Building2,
-
   CheckCircle2,
 
   Clock3,
@@ -30,11 +28,11 @@ import {
 
   ShieldAlert,
 
+  ShieldCheck,
+
   User,
 
   XCircle,
-
-  ShieldCheck,
 
 } from "lucide-react";
 
@@ -53,6 +51,8 @@ import {
   serverTimestamp,
 
   updateDoc,
+
+  where,
 
 } from "firebase/firestore";
 
@@ -84,7 +84,23 @@ import {
 import logActivity
   from "@/utils/activity/logActivity";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+} from "react-router-dom";
+
+import {
+
+  GOVERNANCE_STATUS,
+
+  REKYC_STATUS,
+
+  ONBOARDING_STEPS,
+
+  USER_TYPES,
+
+  COMPLIANCE_STATUS,
+
+} from "@/constants/userLifecycle";
 
 /* =========================================================
    COMPONENT
@@ -92,8 +108,19 @@ import { useNavigate } from "react-router-dom";
 
 export default function SellerGovernanceCenter() {
 
+  const navigate =
+    useNavigate();
+
   const {
+
     user,
+
+    userData,
+
+    isSuperAdmin,
+
+    isAdmin,
+
   } = useAuth();
 
   /* =====================================================
@@ -120,7 +147,17 @@ export default function SellerGovernanceCenter() {
     setActiveFilter] =
     useState("pending");
 
-  const navigate = useNavigate();
+  const hasGovernanceAccess =
+
+    isSuperAdmin ||
+
+    (
+      isAdmin &&
+
+      userData?.authStatus
+        ?.emailVerified === true
+    );
+
   /* =====================================================
      LOAD SELLERS
   ===================================================== */
@@ -133,13 +170,16 @@ export default function SellerGovernanceCenter() {
         setLoading(true);
 
         const q = query(
+
           collection(
             db,
             "users"
           ),
-          orderBy(
-            "createdAt",
-            "desc"
+
+          where(
+            "userType",
+            "==",
+            USER_TYPES.SELLER
           )
         );
 
@@ -147,12 +187,21 @@ export default function SellerGovernanceCenter() {
           await getDocs(q);
 
         const data =
-          snapshot.docs.map(
-            (doc) => ({
+          snapshot.docs
+            .map((doc) => ({
               id: doc.id,
               ...doc.data(),
-            })
-          );
+            }))
+            .sort((a, b) => {
+
+              const aTime =
+                a?.createdAt?.seconds || 0;
+
+              const bTime =
+                b?.createdAt?.seconds || 0;
+
+              return bTime - aTime;
+            });
 
         setSellers(data);
 
@@ -191,9 +240,9 @@ export default function SellerGovernanceCenter() {
         (item) => {
 
           const searchValue = `
-            ${item.fullName}
-            ${item.email}
-            ${item.businessName}
+            ${item.fullName || ""}
+            ${item.email || ""}
+            ${item?.organization?.organizationName || ""}
           `
             .toLowerCase();
 
@@ -205,54 +254,57 @@ export default function SellerGovernanceCenter() {
           let matchesFilter =
             true;
 
-          switch (
-          activeFilter
-          ) {
+          switch (activeFilter) {
 
             case "pending":
 
               matchesFilter =
-                item.approvalStatus ===
-                "pending";
+                item?.governance?.sellerStatus ===
+                GOVERNANCE_STATUS.PENDING_REVIEW;
 
               break;
 
             case "approved":
 
               matchesFilter =
-                item.isApproved ===
-                true;
+                item?.governance?.sellerStatus ===
+                GOVERNANCE_STATUS.APPROVED;
 
               break;
 
             case "rejected":
 
               matchesFilter =
-                item.approvalStatus ===
-                "rejected";
+                item?.governance?.sellerStatus ===
+                GOVERNANCE_STATUS.REJECTED;
 
               break;
 
             case "suspended":
 
               matchesFilter =
-                item.status ===
-                "suspended";
+                item?.governance?.sellerStatus ===
+                GOVERNANCE_STATUS.SUSPENDED;
 
               break;
 
             case "flagged":
 
               matchesFilter =
-                item.status ===
-                "flagged";
+                item?.governance?.flagged === true;
+
+              break;
+
+            case "rekyc":
+
+              matchesFilter =
+                item?.reKyc?.required === true;
 
               break;
 
             default:
 
-              matchesFilter =
-                true;
+              matchesFilter = true;
           }
 
           return (
@@ -274,10 +326,21 @@ export default function SellerGovernanceCenter() {
 
   const updateSellerStatus =
     async ({
+
       seller,
-      updates,
+
+      governance = null,
+
+      reKyc = null,
+
+      onboarding = null,
+
+      compliance = null,
+
       activityType,
+
       activityTitle,
+
       activityDescription,
     }) => {
 
@@ -286,18 +349,42 @@ export default function SellerGovernanceCenter() {
         const userRef = doc(
           db,
           "users",
-          seller.uid
+          seller.id
         );
+
+        const payload = {
+
+          updatedAt:
+            serverTimestamp(),
+        };
+
+        if (governance) {
+
+          payload.governance =
+            governance;
+        }
+
+        if (reKyc) {
+
+          payload.reKyc =
+            reKyc;
+        }
+
+        if (onboarding) {
+
+          payload.onboarding =
+            onboarding;
+        }
+
+        if (compliance) {
+
+          payload.compliance =
+            compliance;
+        }
 
         await updateDoc(
           userRef,
-          {
-
-            ...updates,
-
-            updatedAt:
-              serverTimestamp(),
-          }
+          payload
         );
 
         await logActivity({
@@ -317,7 +404,7 @@ export default function SellerGovernanceCenter() {
           meta: {
 
             targetUserId:
-              seller.uid,
+              seller.id,
 
             targetEmail:
               seller.email,
@@ -328,7 +415,7 @@ export default function SellerGovernanceCenter() {
           activityTitle
         );
 
-        fetchSellers();
+        await fetchSellers();
 
       } catch (error) {
 
@@ -349,38 +436,66 @@ export default function SellerGovernanceCenter() {
     pending:
       sellers.filter(
         (u) =>
-          u.approvalStatus ===
-          "pending"
+          u?.governance?.sellerStatus ===
+          GOVERNANCE_STATUS.PENDING_REVIEW
       ).length,
 
     approved:
       sellers.filter(
         (u) =>
-          u.isApproved ===
-          true
+          u?.governance?.sellerStatus ===
+          GOVERNANCE_STATUS.APPROVED
       ).length,
 
     rejected:
       sellers.filter(
         (u) =>
-          u.approvalStatus ===
-          "rejected"
+          u?.governance?.sellerStatus ===
+          GOVERNANCE_STATUS.REJECTED
       ).length,
 
     suspended:
       sellers.filter(
         (u) =>
-          u.status ===
-          "suspended"
+          u?.governance?.sellerStatus ===
+          GOVERNANCE_STATUS.SUSPENDED
       ).length,
 
     flagged:
       sellers.filter(
         (u) =>
-          u.status ===
-          "flagged"
+          u?.governance?.flagged === true
+      ).length,
+
+    rekyc:
+      sellers.filter(
+        (u) =>
+          u?.reKyc?.required === true
       ).length,
   };
+
+  /* =====================================================
+     APPROVAL GUARD
+  ===================================================== */
+
+  const canApproveSeller =
+    (seller) => {
+
+      const compliance =
+        seller?.compliance || {};
+
+      return (
+
+        compliance?.gst?.status ===
+        COMPLIANCE_STATUS.APPROVED &&
+
+        compliance?.pan?.status ===
+        COMPLIANCE_STATUS.APPROVED
+      );
+    };
+
+
+
 
   /* =====================================================
      UI
@@ -427,33 +542,26 @@ export default function SellerGovernanceCenter() {
 
         </div>
 
-        <div className="
-          flex items-center
-          gap-3
-        ">
+        <Button
+          variant="outline"
+          className="
+            border-zinc-700
+          "
+        >
 
-          <Button
-            variant="outline"
-            className="
-              border-zinc-700
-            "
-          >
+          <Filter
+            size={18}
+          />
 
-            <Filter
-              size={18}
-            />
+          Governance Filters
 
-            Governance Filters
-
-          </Button>
-
-        </div>
+        </Button>
 
       </div>
 
       {/* STATS */}
       <div className="
-        grid md:grid-cols-5
+        grid md:grid-cols-6
         gap-5
         mb-10
       ">
@@ -484,8 +592,14 @@ export default function SellerGovernanceCenter() {
 
         <StatCard
           icon={ShieldAlert}
-          title="Risk Flags"
+          title="Flags"
           value={stats.flagged}
+        />
+
+        <StatCard
+          icon={ShieldCheck}
+          title="Re-KYC"
+          value={stats.rekyc}
         />
 
       </div>
@@ -503,6 +617,7 @@ export default function SellerGovernanceCenter() {
           "rejected",
           "suspended",
           "flagged",
+          "rekyc",
           "all",
         ].map((filter) => (
 
@@ -572,7 +687,7 @@ export default function SellerGovernanceCenter() {
             (seller) => (
 
               <motion.div
-                key={seller.uid}
+                key={seller.id}
                 initial={{
                   opacity: 0,
                   y: 20,
@@ -634,13 +749,15 @@ export default function SellerGovernanceCenter() {
 
                           <p className="
                             text-zinc-400
-                            mt-1 whitespace-nowrap
+                            mt-1
                             flex items-center
                             gap-2
                           ">
+
                             <ShieldCheck
                               size={18}
                             />
+
                             {seller.email}
 
                           </p>
@@ -653,21 +770,21 @@ export default function SellerGovernanceCenter() {
 
                             <StatusBadge
                               label={
-                                seller.approvalStatus ||
-                                "pending"
+                                seller?.governance?.sellerStatus ||
+                                GOVERNANCE_STATUS.PENDING_REVIEW
                               }
                               color="yellow"
                             />
 
                             <StatusBadge
                               label={
-                                seller.organizationRole ||
+                                seller?.organization?.organizationRole ||
                                 "viewer"
                               }
                               color="violet"
                             />
 
-                            {seller.onboarding
+                            {seller?.onboarding
                               ?.complianceSubmitted && (
 
                                 <StatusBadge
@@ -675,6 +792,14 @@ export default function SellerGovernanceCenter() {
                                   color="green"
                                 />
                               )}
+
+                            {seller?.reKyc?.required && (
+
+                              <StatusBadge
+                                label="Re-KYC Required"
+                                color="blue"
+                              />
+                            )}
 
                           </div>
 
@@ -690,18 +815,13 @@ export default function SellerGovernanceCenter() {
 
                         <Button
                           variant="outline"
-
                           className="
                             border-zinc-700
                           "
-                          onClick={() => {
-                            // setSelectedSeller(
-                            //   seller
-                            // );
+                          onClick={() =>
                             navigate(
-                              `/admin/seller/${seller.uid}`
+                              `/admin/seller/${seller.id}`
                             )
-                          }
                           }
                         >
 
@@ -713,32 +833,71 @@ export default function SellerGovernanceCenter() {
 
                         </Button>
 
-                        <Button
+                        {/* APPROVE */}
+                        {/* <Button
                           className="
                             bg-green-600
                             hover:bg-green-700
                           "
-                          onClick={() =>
-                            updateSellerStatus({
+                          onClick={async () => {
+
+                            if (
+                              !canApproveSeller(
+                                seller
+                              )
+                            ) {
+
+                              toast.error(
+                                "Compliance verification incomplete"
+                              );
+
+                              return;
+                            }
+
+                            await updateSellerStatus({
 
                               seller,
 
-                              updates: {
+                              governance: {
 
-                                isApproved:
-                                  true,
+                                ...seller.governance,
 
-                                approvalStatus:
-                                  "approved",
-
-                                status:
-                                  "active",
+                                sellerStatus:
+                                  GOVERNANCE_STATUS.APPROVED,
 
                                 approvedAt:
                                   serverTimestamp(),
 
                                 approvedBy:
                                   user.uid,
+                              },
+
+                              reKyc: {
+
+                                ...seller.reKyc,
+
+                                required:
+                                  false,
+
+                                status:
+                                  REKYC_STATUS.APPROVED,
+
+                                completed:
+                                  true,
+
+                                completedAt:
+                                  serverTimestamp(),
+                              },
+
+                              onboarding: {
+
+                                ...(seller.onboarding || {}),
+
+                                onboardingCompleted:
+                                  true,
+
+                                currentStep:
+                                  ONBOARDING_STEPS.COMPLETED,
                               },
 
                               activityType:
@@ -749,8 +908,8 @@ export default function SellerGovernanceCenter() {
 
                               activityDescription:
                                 `${seller.fullName} approved`,
-                            })
-                          }
+                            });
+                          }}
                         >
 
                           <CheckCircle2
@@ -759,8 +918,29 @@ export default function SellerGovernanceCenter() {
 
                           Approve
 
+                        </Button> */}
+
+                        <Button
+                          className="
+    bg-green-600
+    hover:bg-green-700
+  "
+                          onClick={() =>
+                            setSelectedSeller(
+                              seller
+                            )
+                          }
+                        >
+
+                          <CheckCircle2
+                            size={18}
+                          />
+
+                          Review & Approve
+
                         </Button>
 
+                        {/* REJECT */}
                         <Button
                           className="
                             bg-red-600
@@ -771,13 +951,12 @@ export default function SellerGovernanceCenter() {
 
                               seller,
 
-                              updates: {
+                              governance: {
 
-                                approvalStatus:
-                                  "rejected",
+                                ...seller.governance,
 
-                                status:
-                                  "rejected",
+                                sellerStatus:
+                                  GOVERNANCE_STATUS.REJECTED,
 
                                 rejectedAt:
                                   serverTimestamp(),
@@ -806,6 +985,7 @@ export default function SellerGovernanceCenter() {
 
                         </Button>
 
+                        {/* SUSPEND */}
                         <Button
                           className="
                             bg-yellow-600
@@ -816,10 +996,12 @@ export default function SellerGovernanceCenter() {
 
                               seller,
 
-                              updates: {
+                              governance: {
 
-                                status:
-                                  "suspended",
+                                ...seller.governance,
+
+                                sellerStatus:
+                                  GOVERNANCE_STATUS.SUSPENDED,
 
                                 suspendedAt:
                                   serverTimestamp(),
@@ -848,38 +1030,31 @@ export default function SellerGovernanceCenter() {
 
                         </Button>
 
+                        {/* RE-KYC */}
                         <Button
                           className="
-    bg-blue-600
-    hover:bg-blue-700
-  "
+                            bg-blue-600
+                            hover:bg-blue-700
+                          "
                           onClick={() =>
                             updateSellerStatus({
 
                               seller,
 
-                              updates: {
+                              reKyc: {
 
-                                isApproved: false,
+                                ...seller.reKyc,
 
-                                approvalStatus:
-                                  "pending",
+                                required:
+                                  true,
 
                                 status:
-                                  "rekyc_required",
+                                  REKYC_STATUS.REQUESTED,
 
-                                onboarding: {
-
-                                  ...seller.onboarding,
-
-                                  complianceSubmitted:
-                                    false,
-                                },
-
-                                reKycRequestedAt:
+                                requestedAt:
                                   serverTimestamp(),
 
-                                reKycRequestedBy:
+                                requestedBy:
                                   user.uid,
                               },
 
@@ -898,6 +1073,8 @@ export default function SellerGovernanceCenter() {
                           Re-KYC
 
                         </Button>
+
+
 
                       </div>
 
@@ -919,10 +1096,21 @@ export default function SellerGovernanceCenter() {
 
         <SellerReviewModal
           seller={selectedSeller}
+          user={user}
+          updateSellerStatus={
+            updateSellerStatus
+          }
+          onUpdateSeller={
+            setSelectedSeller
+          }
+          canApproveSeller={
+            canApproveSeller
+          }
+          onRefresh={
+            fetchSellers
+          }
           onClose={() =>
-            setSelectedSeller(
-              null
-            )
+            setSelectedSeller(null)
           }
         />
       )}
@@ -936,9 +1124,175 @@ export default function SellerGovernanceCenter() {
 ========================================================= */
 
 function SellerReviewModal({
+
   seller,
+
+  user,
+
+  updateSellerStatus,
+
+  onUpdateSeller,
+
+  canApproveSeller,
+
+  onRefresh,
+
   onClose,
 }) {
+
+  /* =========================================
+     APPROVE COMPLIANCE
+  ========================================= */
+
+  const approveComplianceDocument =
+    async (
+      seller,
+      key
+    ) => {
+
+      try {
+
+        const compliance = {
+          ...seller.compliance,
+        };
+
+        compliance[key] = {
+
+          ...compliance[key],
+
+          status:
+            COMPLIANCE_STATUS.APPROVED,
+
+          verifiedAt:
+            serverTimestamp(),
+
+          verifiedBy:
+            user.uid,
+        };
+
+        await updateSellerStatus({
+
+          seller,
+
+          compliance,
+
+          activityType:
+            "compliance_approved",
+
+          activityTitle:
+            "Compliance Approved",
+
+          activityDescription:
+            `${key} approved for ${seller.fullName}`,
+        });
+
+        const updatedSeller = {
+
+          ...seller,
+
+          compliance,
+        };
+
+        onUpdateSeller(
+          updatedSeller
+        );
+
+        await onRefresh();
+
+        toast.success(
+          `${key.toUpperCase()} approved`
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast.error(
+          "Compliance approval failed"
+        );
+      }
+    };
+
+  /* =========================================
+     REJECT COMPLIANCE
+  ========================================= */
+
+  const rejectComplianceDocument =
+    async (
+      seller,
+      key
+    ) => {
+
+      try {
+
+        const compliance = {
+          ...seller.compliance,
+        };
+
+        compliance[key] = {
+
+          ...compliance[key],
+
+          status:
+            COMPLIANCE_STATUS.REJECTED,
+
+          rejectedAt:
+            serverTimestamp(),
+
+          rejectedBy:
+            user.uid,
+        };
+
+        await updateSellerStatus({
+
+          seller,
+
+          compliance,
+
+          governance: {
+
+            ...seller.governance,
+
+            sellerStatus:
+              GOVERNANCE_STATUS.REJECTED,
+          },
+
+          activityType:
+            "compliance_rejected",
+
+          activityTitle:
+            "Compliance Rejected",
+
+          activityDescription:
+            `${key} rejected for ${seller.fullName}`,
+        });
+
+        const updatedSeller = {
+
+          ...seller,
+
+          compliance,
+        };
+
+        onUpdateSeller(
+          updatedSeller
+        );
+
+        await onRefresh();
+
+        toast.success(
+          `${key.toUpperCase()} rejected`
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast.error(
+          "Compliance rejection failed"
+        );
+      }
+    };
 
   return (
 
@@ -954,7 +1308,7 @@ function SellerReviewModal({
 
       <div className="
         w-full
-        max-w-5xl
+        max-w-6xl
         rounded-3xl
         border border-zinc-800
         bg-zinc-950
@@ -963,10 +1317,12 @@ function SellerReviewModal({
         max-h-[90vh]
       ">
 
+        {/* HEADER */}
+
         <div className="
           flex items-center
           justify-between
-          mb-8
+          mb-10
         ">
 
           <div>
@@ -977,7 +1333,7 @@ function SellerReviewModal({
               text-white
             ">
 
-              Seller Review
+              Seller Compliance Review
 
             </h2>
 
@@ -986,7 +1342,7 @@ function SellerReviewModal({
               mt-2
             ">
 
-              Enterprise compliance & onboarding verification
+              Enterprise governance verification workflow
 
             </p>
 
@@ -1004,14 +1360,15 @@ function SellerReviewModal({
         </div>
 
         {/* PROFILE */}
+
         <div className="
           grid md:grid-cols-2
           gap-6
-          mb-8
+          mb-10
         ">
 
           <ReviewField
-            label="Full Name"
+            label="Seller"
             value={seller.fullName}
           />
 
@@ -1021,29 +1378,32 @@ function SellerReviewModal({
           />
 
           <ReviewField
-            label="Organization Role"
+            label="Status"
             value={
-              seller.organizationRole
+              seller?.governance
+                ?.sellerStatus
             }
           />
 
           <ReviewField
-            label="Approval Status"
+            label="Organization Role"
             value={
-              seller.approvalStatus
+              seller?.organization
+                ?.organizationRole
             }
           />
 
         </div>
 
-        {/* COMPLIANCE */}
+        {/* DOCUMENTS */}
+
         <div>
 
           <h3 className="
             text-2xl
             font-bold
             text-white
-            mb-6
+            mb-8
           ">
 
             Compliance Documents
@@ -1058,35 +1418,37 @@ function SellerReviewModal({
             {[
               {
                 key: "gst",
-                title:
-                  "GST Verification",
+                title: "GST",
               },
 
               {
                 key: "pan",
-                title:
-                  "PAN Verification",
+                title: "PAN",
               },
 
               {
-                key:
-                  "governmentId",
-                title:
-                  "Government ID",
+                key: "kyc",
+                title: "KYC",
               },
 
               {
                 key: "bank",
-                title:
-                  "Bank Verification",
+                title: "Bank",
               },
             ].map((item) => {
 
               const document =
-                seller
-                  ?.complianceDocuments?.[
-                item.key
+                seller?.compliance?.[
+                  item.key
                 ];
+
+              const isPending =
+
+                document?.status ===
+                  COMPLIANCE_STATUS.UPLOADED ||
+
+                document?.status ===
+                  COMPLIANCE_STATUS.PENDING;
 
               return (
 
@@ -1103,11 +1465,11 @@ function SellerReviewModal({
                   <div className="
                     flex items-center
                     justify-between
-                    mb-4
+                    mb-5
                   ">
 
                     <h4 className="
-                      text-lg
+                      text-xl
                       font-bold
                       text-white
                     ">
@@ -1116,70 +1478,216 @@ function SellerReviewModal({
 
                     </h4>
 
-                    <FileCheck
-                      className="
-                        text-violet-400
-                      "
+                    <StatusBadge
+                      label={
+                        document?.status ||
+                        "missing"
+                      }
+                      color={
+                        document?.status ===
+                        COMPLIANCE_STATUS.APPROVED
+                          ? "green"
+                          : document?.status ===
+                            COMPLIANCE_STATUS.REJECTED
+                          ? "red"
+                          : "yellow"
+                      }
                     />
 
                   </div>
 
-                  {document ? (
-
-                    <div>
-
-                      <p className="
-                        text-zinc-400
-                        mb-3
-                      ">
-
-                        Status:
-                        {" "}
-                        {document.status}
-
-                      </p>
-
-                      <a
-                        href={
-                          document.url
-                        }
-                        target="_blank"
-                        rel="noreferrer"
-                        className="
-                          text-violet-400
-                          underline
-                        "
-                      >
-
-                        View Document
-
-                      </a>
-
-                    </div>
-
-                  ) : (
+                  {!document && (
 
                     <div className="
-                      flex items-center
-                      gap-3
-                      text-yellow-400
+                      text-red-400
                     ">
 
-                      <AlertTriangle
-                        size={18}
-                      />
-
-                      Not Uploaded
+                      Document missing
 
                     </div>
-
                   )}
+
+                  {document?.url && (
+
+                    <iframe
+                      src={document.url}
+                      title={item.title}
+                      className="
+                        w-full
+                        h-72
+                        rounded-xl
+                        border border-zinc-800
+                        bg-black
+                      "
+                    />
+                  )}
+
+                  {isPending && (
+
+                    <div className="
+                      mt-4
+                      rounded-xl
+                      border border-yellow-500/20
+                      bg-yellow-500/10
+                      p-3
+                      text-yellow-300
+                      text-sm
+                      font-medium
+                    ">
+
+                      Pending compliance verification
+
+                    </div>
+                  )}
+
+                  <div className="
+                    flex gap-3
+                    mt-5
+                  ">
+
+                    <Button
+                      size="sm"
+                      className="
+                        bg-green-600
+                        hover:bg-green-700
+                      "
+                      disabled={
+                        !document
+                      }
+                      onClick={() =>
+                        approveComplianceDocument(
+                          seller,
+                          item.key
+                        )
+                      }
+                    >
+
+                      Approve
+
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      className="
+                        bg-red-600
+                        hover:bg-red-700
+                      "
+                      disabled={
+                        !document
+                      }
+                      onClick={() =>
+                        rejectComplianceDocument(
+                          seller,
+                          item.key
+                        )
+                      }
+                    >
+
+                      Reject
+
+                    </Button>
+
+                  </div>
 
                 </div>
               );
             })}
 
           </div>
+
+        </div>
+
+        {/* FINAL APPROVAL */}
+
+        <div className="
+          mt-10
+          border-t border-zinc-800
+          pt-8
+        ">
+
+          <Button
+            className="
+              w-full
+              h-14
+              text-lg
+              font-bold
+              bg-green-600
+              hover:bg-green-700
+            "
+            disabled={
+              !canApproveSeller(
+                seller
+              )
+            }
+            onClick={async () => {
+
+              await updateSellerStatus({
+
+                seller,
+
+                governance: {
+
+                  ...seller.governance,
+
+                  sellerStatus:
+                    GOVERNANCE_STATUS.APPROVED,
+
+                  approvedAt:
+                    serverTimestamp(),
+
+                  approvedBy:
+                    user.uid,
+                },
+
+                reKyc: {
+
+                  ...seller.reKyc,
+
+                  required: false,
+
+                  status:
+                    REKYC_STATUS.APPROVED,
+
+                  completed: true,
+
+                  completedAt:
+                    serverTimestamp(),
+                },
+
+                onboarding: {
+
+                  ...seller.onboarding,
+
+                  onboardingCompleted:
+                    true,
+
+                  currentStep:
+                    ONBOARDING_STEPS.COMPLETED,
+                },
+
+                activityType:
+                  "seller_approved",
+
+                activityTitle:
+                  "Seller Approved",
+
+                activityDescription:
+                  `${seller.fullName} approved`,
+              });
+
+              await onRefresh();
+
+              toast.success(
+                "Seller approved successfully"
+              );
+
+              onClose();
+            }}
+          >
+
+            Final Seller Approval
+
+          </Button>
 
         </div>
 
@@ -1240,6 +1748,15 @@ function StatusBadge({
   color = "violet",
 }) {
 
+  const formattedLabel =
+    label
+      ?.replace(/_/g, " ")
+      ?.replace(
+        /\b\w/g,
+        (char) =>
+          char.toUpperCase()
+      );
+
   const colors = {
 
     yellow:
@@ -1253,6 +1770,9 @@ function StatusBadge({
 
     violet:
       "bg-violet-500/20 text-violet-300",
+
+    blue:
+      "bg-blue-500/20 text-blue-300",
   };
 
   return (
@@ -1265,7 +1785,7 @@ function StatusBadge({
       ${colors[color]}
     `}>
 
-      {label}
+      {formattedLabel}
 
     </div>
   );

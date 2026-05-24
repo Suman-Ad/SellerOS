@@ -35,6 +35,10 @@ import {
   Link,
 } from "react-router-dom";
 
+import {
+  GOVERNANCE_STATUS,
+} from "@/constants/userLifecycle";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -49,10 +53,16 @@ export default function AccountRestricted() {
      STATUS
   ===================================================== */
 
-  const status =
-    userData?.status ||
-    "restricted";
+  const sellerStatus =
+    userData?.governance
+      ?.sellerStatus ||
 
+    GOVERNANCE_STATUS
+      .PENDING_REVIEW;
+
+  const requiresReKyc =
+    userData?.reKyc
+      ?.required === true;
   /* =====================================================
      CONFIG
   ===================================================== */
@@ -167,7 +177,7 @@ export default function AccountRestricted() {
         "Contact Risk Team",
     },
 
-    pending: {
+    pending_review: {
 
       icon:
         Clock3,
@@ -197,9 +207,10 @@ export default function AccountRestricted() {
 
   const current =
     statusConfig[
-      status
+    sellerStatus
     ] ||
-    statusConfig.pending;
+    statusConfig
+      .pending_review;
 
   const Icon =
     current.icon;
@@ -294,6 +305,55 @@ export default function AccountRestricted() {
 
               </p>
 
+              {requiresReKyc && (
+
+                <div className="
+    rounded-2xl
+    border border-blue-500/20
+    bg-blue-500/10
+    p-5
+    mt-8
+  ">
+
+                  <div className="
+      flex items-center
+      gap-3
+    ">
+
+                    <ShieldAlert
+                      className="
+          text-blue-300
+        "
+                    />
+
+                    <div>
+
+                      <h3 className="
+          text-white
+          font-bold
+        ">
+
+                        Additional Verification Required
+
+                      </h3>
+
+                      <p className="
+          text-zinc-300
+          text-sm
+          mt-1
+        ">
+
+                        Your account requires updated KYC verification documents.
+
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              )}
+
             </div>
 
             {/* STATUS INFO */}
@@ -306,7 +366,8 @@ export default function AccountRestricted() {
               <InfoCard
                 title="Account Status"
                 value={
-                  userData?.status ||
+                  userData?.governance
+                    ?.sellerStatus ||
                   "restricted"
                 }
               />
@@ -314,7 +375,8 @@ export default function AccountRestricted() {
               <InfoCard
                 title="Approval Status"
                 value={
-                  userData?.approvalStatus ||
+                  userData?.governance
+                    ?.sellerStatus ||
                   "pending"
                 }
               />
@@ -322,8 +384,28 @@ export default function AccountRestricted() {
               <InfoCard
                 title="Organization Role"
                 value={
-                  userData?.organizationRole ||
+                  userData?.organization
+                    ?.organizationRole ||
                   "viewer"
+                }
+              />
+
+              <InfoCard
+                title="Re-KYC"
+                value={
+                  requiresReKyc
+                    ? "Required"
+                    : "Not Required"
+                }
+              />
+
+              <InfoCard
+                title="Security Flag"
+                value={
+                  userData?.governance
+                    ?.flagged
+                    ? "Flagged"
+                    : "Normal"
                 }
               />
 

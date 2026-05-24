@@ -34,6 +34,16 @@ import {
   buildRBACFlags,
 } from "@/services/rbac/roleServices";
 
+import {
+
+  isSellerApproved,
+
+  canAccessDashboard,
+
+  requiresReKyc,
+
+} from "@/utils/lifecycle/lifecycleResolver";
+
 /* =========================================================
    CONTEXT
 ========================================================= */
@@ -100,24 +110,49 @@ export function AuthProvider({
         const profile =
           snapshot.data();
 
-        setUserData(profile);
+        const normalizedProfile = {
+
+          ...profile,
+
+          access:
+            profile.access || {},
+
+          organization:
+            profile.organization || {},
+
+          governance:
+            profile.governance || {},
+
+          onboarding:
+            profile.onboarding || {},
+
+          compliance:
+            profile.compliance || {},
+
+          reKyc:
+            profile.reKyc || {},
+        };
+
+        setUserData(normalizedProfile);
 
         const hydratedPermissions =
-  buildUserPermissions({
+          buildUserPermissions({
 
-    role:
-      profile.role,
+            role:
+              profile?.access?.role,
 
-    organizationRole:
-      profile.organizationRole,
+            organizationRole:
+              profile?.organization
+                ?.organizationRole,
 
-    customPermissions:
-      profile.permissions || [],
-  });
+            customPermissions:
+              profile?.access
+                ?.permissions || [],
+          });
 
-setPermissions(
-  hydratedPermissions
-);
+        setPermissions(
+          hydratedPermissions
+        );
 
         return profile;
 
@@ -195,11 +230,13 @@ setPermissions(
           );
 
         if (
-          profile?.organizationId
+          profile?.organization
+            ?.organizationId
         ) {
 
           await fetchOrganization(
-            profile.organizationId
+            profile?.organization
+              ?.organizationId
           );
         }
 
@@ -222,13 +259,13 @@ setPermissions(
       try {
 
         if (
-          !userData?.organizationId
+          !userData?.organization?.organizationId
         ) {
           return;
         }
 
         await fetchOrganization(
-          userData.organizationId
+          userData?.organization?.organizationId
         );
 
       } catch (error) {
@@ -284,11 +321,13 @@ setPermissions(
               ===================== */
 
               if (
-                profile?.organizationId
+                profile?.organization
+                  ?.organizationId
               ) {
 
                 await fetchOrganization(
-                  profile.organizationId
+                  profile?.organization
+                    ?.organizationId
                 );
               }
 
@@ -371,24 +410,57 @@ setPermissions(
 
 
   const rbac =
-  buildRBACFlags({
+    buildRBACFlags({
 
-    role:
-      userData?.role,
+      role:
+        userData?.access?.role,
 
-    organizationRole:
-      userData?.organizationRole,
-  });
+      organizationRole:
+        userData?.organization?.organizationRole,
+    });
 
   const isApproved =
-    userData?.isApproved === true;
+    isSellerApproved(
+      userData
+    );
 
   const isProfileComplete =
     userData?.onboarding
       ?.profileCompleted;
 
+
+  const isSuperAdmin =
+    userData?.access?.role ===
+    "super_admin";
+
+  const isAdmin =
+    [
+      "admin",
+      "super_admin",
+    ].includes(
+      userData?.access?.role
+    );
+
+  const isSeller =
+    [
+      "seller",
+    ].includes(
+      userData?.userType
+    );
+
   const hasOrganization =
-    !!organization;
+    !!userData?.organization
+      ?.organizationId;
+
+  const reKycRequired =
+    requiresReKyc(
+      userData
+    );
+
+  const dashboardAccess =
+    canAccessDashboard(
+      userData
+    );
 
   /* =====================================================
      CONTEXT VALUE
@@ -400,7 +472,53 @@ setPermissions(
          CORE
       ===================== */
 
+      // user,
+      // currentUser: user,
+
+      // userData,
+
+      // organization,
+
+      // permissions,
+
+      // loading,
+
+      // authInitialized,
+
+      // /* =====================
+      //    FLAGS
+      // ===================== */
+
+      // isAuthenticated,
+
+      // isApproved,
+
+      // isProfileComplete,
+
+      // hasOrganization,
+
+      // ...rbac,
+
+      // dashboardAccess,
+
+      // reKycRequired,
+
+      // rbac,
+
+      // isSuperAdmin,
+
+      // /* =====================
+      //    METHODS
+      // ===================== */
+
+      // refreshUser,
+
+      // refreshOrganization,
+
+      // logout,
+
       user,
+
       currentUser: user,
 
       userData,
@@ -413,29 +531,32 @@ setPermissions(
 
       authInitialized,
 
-      /* =====================
-         FLAGS
-      ===================== */
+      /* FLAGS */
 
       isAuthenticated,
 
-      isApproved,
+      isAdmin,
 
-      isProfileComplete,
+      isSuperAdmin,
+
+      isSeller,
 
       hasOrganization,
 
-      ...rbac,
+      dashboardAccess,
 
-      /* =====================
-         METHODS
-      ===================== */
+      reKycRequired,
+
+      rbac,
+
+      /* METHODS */
 
       refreshUser,
 
       refreshOrganization,
 
       logout,
+
     }),
 
     [
@@ -449,6 +570,12 @@ setPermissions(
       isApproved,
       isProfileComplete,
       hasOrganization,
+      rbac,
+      dashboardAccess,
+      reKycRequired,
+      isSuperAdmin,
+      isAdmin,
+      isSeller,
     ]
   );
 

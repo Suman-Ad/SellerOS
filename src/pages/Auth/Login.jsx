@@ -100,55 +100,70 @@ export default function Login() {
      ROLE REDIRECT
   ===================================================== */
 
-  const redirectAfterAuth =
-    (role) => {
+  // const redirectAfterAuth = (userData) => {
 
-      /* =====================================
-         INVITATION FLOW
-      ===================================== */
+  //   const platformRole =
+  //     userData?.platformRole;
 
-      if (inviteToken) {
+  //   const organizationRole =
+  //     userData?.organizationRole;
 
-        navigate(
-          `/invite/${inviteToken}`
-        );
+  //   /* =====================================
+  //      INVITATION FLOW
+  //   ===================================== */
 
-        return;
-      }
+  //   if (inviteToken) {
 
-      /* =====================================
-         NORMAL FLOW
-      ===================================== */
+  //     navigate(
+  //       `/invite/${inviteToken}`
+  //     );
 
-      switch (role) {
+  //     return;
+  //   }
 
-        case "super_admin":
+  //   /* =====================================
+  //      PLATFORM ADMIN
+  //   ===================================== */
 
-        case "admin":
+  //   if (
+  //     [
+  //       "super_admin",
+  //       "admin",
+  //       "support_agent",
+  //       "compliance_officer",
+  //     ].includes(platformRole)
+  //   ) {
 
-          navigate("/admin");
+  //     navigate("/admin");
 
-          break;
+  //     return;
+  //   }
 
-        case "seller":
+  //   /* =====================================
+  //      ORGANIZATION USERS
+  //   ===================================== */
 
-        case "seller_admin":
+  //   if (
+  //     [
+  //       "owner",
+  //       "seller_admin",
+  //       "manager",
+  //       "staff",
+  //       "viewer",
+  //     ].includes(organizationRole)
+  //   ) {
 
-          navigate("/seller");
+  //     navigate("/seller");
 
-          break;
+  //     return;
+  //   }
 
-        case "staff":
+  //   /* =====================================
+  //      DEFAULT
+  //   ===================================== */
 
-          navigate("/staff");
-
-          break;
-
-        default:
-
-          navigate("/");
-      }
-    };
+  //   navigate("/");
+  // };
 
   /* =====================================================
      EMAIL LOGIN
@@ -172,7 +187,6 @@ export default function Login() {
             password:
               formData.password,
           });
-
         if (!response.success) {
 
           toast.error(
@@ -186,9 +200,24 @@ export default function Login() {
           "Login successful"
         );
 
-        redirectAfterAuth(
-          response.userData.role
+        if (inviteToken) {
+
+          navigate(
+            `/invite/${inviteToken}`
+          );
+
+          return;
+        }
+
+        navigate(
+          response.redirectPath ||
+          "/seller"
         );
+
+
+        // redirectAfterAuth(
+        //   response.userData
+        // );
 
       } catch (error) {
 
@@ -228,11 +257,21 @@ export default function Login() {
         }
 
         toast.success(
-          "Google login successful"
+          "Google authentication successful"
         );
 
-        redirectAfterAuth(
-          response.userData.role
+        if (inviteToken) {
+
+          navigate(
+            `/invite/${inviteToken}`
+          );
+
+          return;
+        }
+
+        navigate(
+          response.redirectPath ||
+          "/seller"
         );
 
       } catch (error) {

@@ -8,6 +8,16 @@ import {
 
 import { db } from "@/firebase/config";
 
+import {
+  GOVERNANCE_STATUS,
+  ONBOARDING_STEPS,
+  COMPLIANCE_STATUS,
+  REKYC_STATUS,
+  USER_TYPES,
+  ORGANIZATION_ROLES,
+  PLATFORM_ROLES,
+} from "@/constants/userLifecycle";
+
 /* =========================================================
    DEFAULT USER PROFILE
 ========================================================= */
@@ -20,9 +30,9 @@ const buildDefaultUserProfile = ({
   return {
     uid: firebaseUser.uid,
 
-    /* =====================================================
+    /* =========================================
        BASIC INFO
-    ===================================================== */
+    ========================================= */
 
     email: firebaseUser.email || "",
 
@@ -41,111 +51,201 @@ const buildDefaultUserProfile = ({
       firebaseUser.phoneNumber ||
       "",
 
-    avatar: firebaseUser.photoURL || "",
+    avatar:
+      firebaseUser.photoURL || "",
 
     banner: "",
 
-    /* =====================================================
-       AUTH INFO
-    ===================================================== */
-
-    authProvider: provider,
-
-    emailVerified: firebaseUser.emailVerified,
-
-    /* =====================================================
+    /* =========================================
        USER TYPE
-    ===================================================== */
+    ========================================= */
 
     userType:
-      additionalData.userType || "seller",
+      additionalData.userType ||
+      USER_TYPES.SELLER,
 
-    /* =====================================================
-       ORGANIZATION
-    ===================================================== */
+    /* =========================================
+       AUTH STATUS
+    ========================================= */
 
-    organizationId: null,
+    authStatus: {
+      emailVerified:
+        firebaseUser.emailVerified || false,
 
-    organizationRole: "owner",
+      phoneVerified: false,
 
-    /* =====================================================
-       ROLE SYSTEM
-    ===================================================== */
+      mfaEnabled: false,
 
-    role: "user",
-
-    permissions: [],
-
-    /* =====================================================
-       ACCOUNT STATUS
-    ===================================================== */
-
-    status: firebaseUser.emailVerified
-      ? "email_verified"
-      : "pending",
-
-    /* =====================================================
-       COMPLIANCE STATUS
-    ===================================================== */
-
-    complianceStatus: {
-      kyc: "pending",
-      gst: "pending",
-      pan: "pending",
-      bankVerification: "pending",
-      addressVerification: "pending",
+      accountLocked: false,
     },
 
-    /* =====================================================
+    /* =========================================
+       ORGANIZATION
+    ========================================= */
+
+    organization: {
+      organizationId: null,
+
+      organizationRole:
+        ORGANIZATION_ROLES.OWNER,
+
+      department: null,
+    },
+
+    /* =========================================
+       ACCESS CONTROL
+    ========================================= */
+
+    access: {
+      role: PLATFORM_ROLES.USER,
+
+      permissions: [],
+    },
+
+    /* =========================================
+       GOVERNANCE
+    ========================================= */
+
+    governance: {
+      sellerStatus:
+        GOVERNANCE_STATUS.PENDING_REVIEW,
+
+      approvedAt: null,
+      approvedBy: null,
+
+      rejectedAt: null,
+      rejectedBy: null,
+
+      suspendedAt: null,
+      suspendedBy: null,
+
+      flagged: false,
+    },
+
+    /* =========================================
+       COMPLIANCE
+    ========================================= */
+
+    compliance: {
+      gst: {
+        status:
+          COMPLIANCE_STATUS.PENDING,
+
+        verifiedAt: null,
+      },
+
+      pan: {
+        status:
+          COMPLIANCE_STATUS.PENDING,
+
+        verifiedAt: null,
+      },
+
+      kyc: {
+        status:
+          COMPLIANCE_STATUS.PENDING,
+
+        verifiedAt: null,
+      },
+
+      bank: {
+        status:
+          COMPLIANCE_STATUS.PENDING,
+
+        verifiedAt: null,
+      },
+
+      address: {
+        status:
+          COMPLIANCE_STATUS.PENDING,
+
+        verifiedAt: null,
+      },
+    },
+
+    /* =========================================
+       RE-KYC
+    ========================================= */
+
+    reKyc: {
+      status:
+        REKYC_STATUS.NOT_REQUIRED,
+
+      required: false,
+
+      reason: "",
+
+      requestedAt: null,
+
+      requestedBy: null,
+
+      completed: false,
+
+      completedAt: null,
+    },
+
+    /* =========================================
+       ONBOARDING
+    ========================================= */
+
+    onboarding: {
+      currentStep:
+        ONBOARDING_STEPS.PROFILE,
+
+      profileCompleted: false,
+
+      organizationSetupCompleted: false,
+
+      documentsUploaded: false,
+
+      complianceSubmitted: false,
+
+      onboardingCompleted: false,
+    },
+
+    /* =========================================
        SUBSCRIPTION
-    ===================================================== */
+    ========================================= */
 
     subscription: {
       plan: "free",
+
       status: "inactive",
+
       expiresAt: null,
     },
 
-    /* =====================================================
+    /* =========================================
        SECURITY
-    ===================================================== */
+    ========================================= */
 
     security: {
       lastLoginAt: serverTimestamp(),
+
       lastPasswordChange: null,
+
       failedAttempts: 0,
-      mfaEnabled: false,
+
       lastDevice: "web",
     },
 
-    /* =====================================================
-       ONBOARDING
-    ===================================================== */
-
-    onboarding: {
-      accountCreated: true,
-      profileCompleted: false,
-      organizationCreated: false,
-      documentsUploaded: false,
-      complianceSubmitted: false,
-      approved: false,
-    },
-
-    /* =====================================================
+    /* =========================================
        ANALYTICS
-    ===================================================== */
+    ========================================= */
 
     analytics: {
       totalLogins: 1,
+
       lastActiveAt: serverTimestamp(),
     },
 
-    /* =====================================================
+    /* =========================================
        SYSTEM
-    ===================================================== */
+    ========================================= */
 
     metadata: {
       createdByProvider: provider,
+
       registrationSource: "web",
     },
 
@@ -282,7 +382,12 @@ export const syncUserProfile = async ({
     const existingData = existingUser.data();
 
     const updatePayload = {
-      emailVerified: firebaseUser.emailVerified,
+      authStatus: {
+        ...existingData.authStatus,
+
+        emailVerified:
+          firebaseUser.emailVerified,
+      },
 
       fullName:
         existingData.fullName ||
@@ -362,15 +467,43 @@ export const updateOnboardingStep = async ({
    UPDATE USER STATUS
 ========================================================= */
 
-export const updateUserStatus = async ({
+// export const updateUserStatus = async ({
+//   uid,
+//   status,
+// }) => {
+//   try {
+//     const userRef = doc(db, "users", uid);
+
+//     await updateDoc(userRef, {
+//       status,
+//       updatedAt: serverTimestamp(),
+//     });
+
+//     return {
+//       success: true,
+//     };
+//   } catch (error) {
+//     console.error("Update status error:", error);
+
+//     return {
+//       success: false,
+//       error: error.message,
+//     };
+//   }
+// };
+
+export const updateGovernanceStatus = async ({
   uid,
-  status,
+  sellerStatus,
 }) => {
   try {
     const userRef = doc(db, "users", uid);
 
     await updateDoc(userRef, {
-      status,
+      governance: {
+        sellerStatus,
+      },
+
       updatedAt: serverTimestamp(),
     });
 
@@ -378,7 +511,10 @@ export const updateUserStatus = async ({
       success: true,
     };
   } catch (error) {
-    console.error("Update status error:", error);
+    console.error(
+      "Update governance status error:",
+      error
+    );
 
     return {
       success: false,
@@ -386,7 +522,6 @@ export const updateUserStatus = async ({
     };
   }
 };
-
 /* =========================================================
    ASSIGN ROLE
 ========================================================= */
@@ -400,8 +535,10 @@ export const assignUserRole = async ({
     const userRef = doc(db, "users", uid);
 
     await updateDoc(userRef, {
-      role,
-      permissions,
+      access: {
+        role,
+        permissions,
+      },
       updatedAt: serverTimestamp(),
     });
 
@@ -430,15 +567,29 @@ export const attachOrganizationToUser = async ({
   try {
     const userRef = doc(db, "users", uid);
 
+    const existingSnapshot =
+      await getDoc(userRef);
+
+    const existingData =
+      existingSnapshot.data();
+
     await updateDoc(userRef, {
-      organizationId,
-      organizationRole,
+      organization: {
+        ...existingData.organization,
 
-      onboarding: {
-        organizationCreated: true,
+        organizationId,
+
+        organizationRole,
       },
+      onboarding: {
+        ...existingData.onboarding,
 
-      updatedAt: serverTimestamp(),
+        organizationSetupCompleted:
+          true,
+
+        currentStep:
+          ONBOARDING_STEPS.DOCUMENTS,
+      },
     });
 
     return {

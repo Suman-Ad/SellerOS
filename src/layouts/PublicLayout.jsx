@@ -184,10 +184,18 @@ export default function PublicLayout() {
 
                         <div className="space-y-3 text-sm text-zinc-400">
 
-                            <p>About</p>
-                            <p>Contact</p>
-                            <p>Privacy Policy</p>
-                            <p>Terms</p>
+                            <p onClick={() => navigate("/about")} className="cursor-pointer">
+                                About
+                            </p>
+                            <p onClick={() => navigate("/contact-us")} className="cursor-pointer">
+                                Contact
+                            </p>
+                            <p onClick={() => navigate("/privacy-policy")} className="cursor-pointer">
+                                Privacy Policy
+                            </p>
+                            <p onClick={() => navigate("/terms")} className="cursor-pointer">
+                                Terms
+                            </p>
 
                         </div>
 
@@ -195,16 +203,18 @@ export default function PublicLayout() {
 
                     <div>
 
-                        <h3 className="font-semibold mb-4">
+                        <h3 onClick={() => navigate("/support")} className="font-semibold mb-4">
                             Support
                         </h3>
 
                         <div className="space-y-3 text-sm text-zinc-400">
 
-                            <p>Help Center</p>
-                            <p>FAQ</p>
-                            <p>Email Support</p>
-                            <p>Install App</p>
+                            <p onClick={() => navigate("/help-center")} className="cursor-pointer">
+                                Help Center
+                            </p>
+                            <p onClick={() => navigate("/faq")} className="cursor-pointer">
+                                FAQ
+                            </p>
 
                         </div>
 

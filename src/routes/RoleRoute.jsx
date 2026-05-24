@@ -27,25 +27,25 @@ export default function RoleRoute({
 
   children,
 
-  /* =====================================================
+  /* =========================================
      PLATFORM ACCESS
-  ===================================================== */
+  ========================================= */
 
   allowedPlatformRoles = [],
 
   minimumPlatformRole = null,
 
-  /* =====================================================
+  /* =========================================
      ORGANIZATION ACCESS
-  ===================================================== */
+  ========================================= */
 
   allowedOrganizationRoles = [],
 
   minimumOrganizationRole = null,
 
-  /* =====================================================
+  /* =========================================
      OVERRIDES
-  ===================================================== */
+  ========================================= */
 
   allowSuperAdminOverride = true,
 }) {
@@ -64,9 +64,9 @@ export default function RoleRoute({
     isSuperAdmin,
   } = useAuth();
 
-  /* =====================================================
+  /* =========================================
      LOADING
-  ===================================================== */
+  ========================================= */
 
   if (loading) {
 
@@ -75,9 +75,12 @@ export default function RoleRoute({
       <div className="
         min-h-screen
         bg-black
-        flex items-center
+        flex
+        items-center
         justify-center
         text-white
+        text-xl
+        font-semibold
       ">
 
         Loading permissions...
@@ -86,9 +89,9 @@ export default function RoleRoute({
     );
   }
 
-  /* =====================================================
+  /* =========================================
      AUTH CHECK
-  ===================================================== */
+  ========================================= */
 
   if (!user) {
 
@@ -103,9 +106,23 @@ export default function RoleRoute({
     );
   }
 
-  /* =====================================================
+  /* =========================================
+     PROFILE CHECK
+  ========================================= */
+
+  if (!userData) {
+
+    return (
+      <Navigate
+        to="/complete-profile"
+        replace
+      />
+    );
+  }
+
+  /* =========================================
      SUPER ADMIN OVERRIDE
-  ===================================================== */
+  ========================================= */
 
   if (
     allowSuperAdminOverride &&
@@ -115,9 +132,20 @@ export default function RoleRoute({
     return children;
   }
 
-  /* =====================================================
+  /* =========================================
+     CURRENT ROLES
+  ========================================= */
+
+  const platformRole =
+    userData?.access?.role;
+
+  const organizationRole =
+    userData?.organization
+      ?.organizationRole;
+
+  /* =========================================
      PLATFORM ROLE CHECK
-  ===================================================== */
+  ========================================= */
 
   if (
     allowedPlatformRoles.length >
@@ -128,7 +156,7 @@ export default function RoleRoute({
       hasPlatformRole({
 
         currentRole:
-          userData?.role,
+          platformRole,
 
         allowedRoles:
           allowedPlatformRoles,
@@ -145,9 +173,9 @@ export default function RoleRoute({
     }
   }
 
-  /* =====================================================
+  /* =========================================
      PLATFORM MINIMUM ROLE
-  ===================================================== */
+  ========================================= */
 
   if (
     minimumPlatformRole
@@ -157,7 +185,7 @@ export default function RoleRoute({
       hasMinimumPlatformRole({
 
         currentRole:
-          userData?.role,
+          platformRole,
 
         requiredRole:
           minimumPlatformRole,
@@ -174,9 +202,9 @@ export default function RoleRoute({
     }
   }
 
-  /* =====================================================
+  /* =========================================
      ORGANIZATION ROLE CHECK
-  ===================================================== */
+  ========================================= */
 
   if (
     allowedOrganizationRoles.length >
@@ -187,7 +215,7 @@ export default function RoleRoute({
       hasOrganizationRole({
 
         currentRole:
-          userData?.organizationRole,
+          organizationRole,
 
         allowedRoles:
           allowedOrganizationRoles,
@@ -204,9 +232,9 @@ export default function RoleRoute({
     }
   }
 
-  /* =====================================================
+  /* =========================================
      ORGANIZATION MINIMUM ROLE
-  ===================================================== */
+  ========================================= */
 
   if (
     minimumOrganizationRole
@@ -216,7 +244,7 @@ export default function RoleRoute({
       hasMinimumOrganizationRole({
 
         currentRole:
-          userData?.organizationRole,
+          organizationRole,
 
         requiredRole:
           minimumOrganizationRole,
@@ -233,9 +261,9 @@ export default function RoleRoute({
     }
   }
 
-  /* =====================================================
+  /* =========================================
      SUCCESS
-  ===================================================== */
+  ========================================= */
 
   return children;
 }

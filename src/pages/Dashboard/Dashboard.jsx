@@ -8,6 +8,8 @@ import {
   Smartphone,
 } from "lucide-react";
 
+import { useAuth } from "@/context/AuthContext";
+
 import { useNavigate } from "react-router-dom";
 
 import SubscriptionDashboardCard
@@ -16,6 +18,13 @@ import SubscriptionDashboardCard
 export default function Dashboard() {
 
   const navigate = useNavigate();
+
+  const {
+      user,
+      userData,
+      loading,
+    } = useAuth();
+    
 
   const features = [
     {
@@ -86,27 +95,28 @@ export default function Dashboard() {
               inventory, orders, analytics, marketplaces,
               and team operations with one powerful ERP system.
             </p>
+            {!user && (
+              <div className="flex flex-wrap gap-4 mt-10">
 
-            <div className="flex flex-wrap gap-4 mt-10">
+                <Button
+                  size="lg"
+                  className="bg-violet-600 hover:bg-violet-700 h-14 px-8 text-base"
+                  onClick={() => navigate("/register")}
+                >
+                  Get Started
+                </Button>
 
-              <Button
-                size="lg"
-                className="bg-violet-600 hover:bg-violet-700 h-14 px-8 text-base"
-                onClick={() => navigate("/register")}
-              >
-                Get Started
-              </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-zinc-700 bg-zinc-900 hover:bg-zinc-800 h-14 px-8 text-base"
+                  onClick={() => navigate("/login")}
+                >
+                  Login
+                </Button>
 
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-zinc-700 bg-zinc-900 hover:bg-zinc-800 h-14 px-8 text-base"
-                onClick={() => navigate("/login")}
-              >
-                Login
-              </Button>
-
-            </div>
+              </div>
+            )}
 
           </div>
 

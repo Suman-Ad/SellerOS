@@ -17,6 +17,13 @@ import {
   attachOrganizationToUser,
 } from "./userSync";
 
+import {
+  ORGANIZATION_ROLES,
+} from "@/constants/userLifecycle";
+
+import {
+  ONBOARDING_STEPS,
+} from "@/constants/userLifecycle";
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -98,12 +105,36 @@ const buildOrganizationModel = ({
     ===================================================== */
 
     compliance: {
-      gstVerified: false,
-      panVerified: false,
-      businessLicenseVerified: false,
-      bankVerified: false,
+
+      gst: {
+        status: "pending",
+        verifiedAt: null,
+      },
+
+      pan: {
+        status: "pending",
+        verifiedAt: null,
+      },
+
+      businessLicense: {
+        status: "pending",
+        verifiedAt: null,
+      },
+
+      bank: {
+        status: "pending",
+        verifiedAt: null,
+      },
     },
 
+    lifecycle: {
+
+      onboardingCompleted: false,
+
+      activated: false,
+
+      activatedAt: null,
+    },
     /* =====================================================
        SUBSCRIPTION
     ===================================================== */
@@ -113,6 +144,7 @@ const buildOrganizationModel = ({
       status: "active",
       expiresAt: null,
     },
+
 
     /* =====================================================
        SETTINGS
@@ -141,7 +173,15 @@ const buildOrganizationModel = ({
        STATUS
     ===================================================== */
 
-    status: "active",
+    governance: {
+      status: "active",
+
+      verified: false,
+
+      suspended: false,
+
+      flagged: false,
+    },
 
     /* =====================================================
        METADATA
@@ -207,7 +247,7 @@ export const createOrganization = async ({
       organizationId,
       userId: ownerId,
 
-      organizationRole: "owner",
+      organizationRole: ORGANIZATION_ROLES.OWNER,
 
       permissions: [
         "organization.manage",
@@ -218,7 +258,15 @@ export const createOrganization = async ({
         "compliance.manage",
       ],
 
-      status: "active",
+      governance: {
+        status: "active",
+
+        verified: false,
+
+        suspended: false,
+
+        flagged: false,
+      },
 
       joinedAt: serverTimestamp(),
 
@@ -234,8 +282,19 @@ export const createOrganization = async ({
     await attachOrganizationToUser({
       uid: ownerId,
       organizationId,
-      organizationRole: "owner",
+      organizationRole: ORGANIZATION_ROLES.OWNER,
     });
+
+    const userRef = doc(
+      db,
+      "users",
+      ownerId
+    );
+
+    // await updateDoc(userRef, {
+    //   "onboarding.organizationCreated": true,
+    //   updatedAt: serverTimestamp(),
+    // });
 
     return {
       success: true,
@@ -390,7 +449,15 @@ export const addOrganizationMember = async ({
 
       permissions,
 
-      status: "active",
+      governance: {
+        status: "active",
+
+        verified: false,
+
+        suspended: false,
+
+        flagged: false,
+      },
 
       joinedAt: serverTimestamp(),
 
@@ -562,7 +629,7 @@ export const inviteOrganizationMember =
 
         email,
 
-        role,
+        organizationRole: role,
 
         status: "pending",
 
