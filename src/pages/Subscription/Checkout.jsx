@@ -1,9 +1,15 @@
+// src/pages/Subscription/Checkout.jsx
 import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
 
 import { useEffect, useMemo, useState } from "react";
+
+import {
+  getFunctions,
+  httpsCallable,
+} from "firebase/functions";
 
 import {
   Card,
@@ -36,6 +42,10 @@ import { db } from "@/firebase/config";
 
 import { useAuth } from "@/context/AuthContext";
 
+import {
+  activateSubscription,
+} from "@/services/subscription/activateSubscription";
+
 export default function Checkout() {
 
   const location = useLocation();
@@ -46,6 +56,9 @@ export default function Checkout() {
 
   const [loading, setLoading] =
     useState(false);
+
+  const functions =
+    getFunctions();
 
   // =========================================
   // Safe State Access
@@ -106,167 +119,336 @@ export default function Checkout() {
   // Activate Subscription
   // =========================================
 
-  const handleActivatePlan =
-    async () => {
 
-      try {
+  const handlePayment = async () => {
 
-        if (!user?.uid) {
+    try {
 
-          return toast.error(
-            "User not found"
-          );
-        }
+      if (!user?.uid) {
+        toast.error("User not found");
+        return;
+      }
 
-        setLoading(true);
+      setLoading(true);
 
-        // =========================================
-        // Expiry Date
-        // =========================================
-
-        const expiryDate =
-          new Date();
-
-        if (
-          billingCycle === "monthly"
-        ) {
-
-          expiryDate.setMonth(
-            expiryDate.getMonth() + 1
-          );
-
-        } else {
-
-          expiryDate.setFullYear(
-            expiryDate.getFullYear() + 1
-          );
-        }
-
-        // =========================================
-        // Transaction IDs
-        // =========================================
-
-        const transactionId =
-          `TXN-${Date.now()}`;
-
-        const invoiceId =
-          `INV-${Date.now()}`;
-
-        // =========================================
-        // Update User
-        // =========================================
-
-        await updateDoc(
-          doc(db, "users", user.uid),
-          {
-
-            subscription: {
-
-              planId: plan.id,
-
-              planName:
-                plan.name,
-
-              status: "active",
-
-              isActive: true,
-
-              billingCycle,
-
-              subscribedAt:
-                serverTimestamp(),
-
-              expiresAt:
-                Timestamp.fromDate(
-                  expiryDate
-                ),
-
-              features:
-                plan.features || [],
-
-              limits: {
-
-                maxProducts:
-                  plan.maxProducts ||
-                  0,
-
-                maxOrdersPerMonth:
-                  plan.maxOrdersPerMonth ||
-                  0,
-
-                maxStaffAccounts:
-                  plan.maxStaffAccounts ||
-                  0,
-              },
-            },
-
-            updatedAt:
-              serverTimestamp(),
-          }
+      const createOrder =
+        httpsCallable(
+          functions,
+          "createRazorpayOrder"
         );
 
-        // =========================================
-        // Payment History
-        // =========================================
-
-        await addDoc(
-          collection(
-            db,
-            "paymentHistory"
-          ),
-          {
-
-            uid: user.uid,
-
-            planId: plan.id,
-
-            planName:
-              plan.name,
-
-            billingCycle,
-
-            paymentMethod:
-              "Razorpay",
-
-            transactionId,
-
-            invoiceId,
-
-            basePrice,
-
-            gst,
-
-            total,
-
-            status: "paid",
-
-            createdAt:
-              serverTimestamp(),
-          }
+      const verifyPayment =
+        httpsCallable(
+          functions,
+          "verifyRazorpayPayment"
         );
 
-        toast.success(
-          "Subscription activated successfully"
-        );
+      const response =
+        await createOrder({
+          planId:
+            plan.id,
 
-        navigate("/billing-history");
+          billingCycle,
+        });
 
-      } catch (error) {
+      const order =
+        response.data.order;
 
-        console.error(
-          "CHECKOUT ERROR:",
-          error
-        );
+      if (!window.Razorpay) {
 
         toast.error(
-          error.message
+          "Razorpay SDK not loaded"
         );
 
-      } finally {
-
-        setLoading(false);
+        return;
       }
-    };
+
+      const razorpayKey =
+        import.meta.env
+          .VITE_RAZORPAY_KEY_ID;
+
+      console.log(
+        "RAZORPAY KEY:",
+        razorpayKey
+      );
+
+      if (!razorpayKey) {
+
+        toast.error(
+          "Razorpay Key ID missing"
+        );
+
+        return;
+      }
+
+      const options = {
+
+        key: razorpayKey,
+
+        amount:
+          order.amount,
+
+        currency:
+          order.currency,
+
+        name:
+          "SellerOS",
+
+        description:
+          `${plan.name} Subscription`,
+
+        order_id:
+          order.id,
+
+        prefill: {
+
+          email:
+            user?.email || "",
+        },
+
+        theme: {
+          color: "#7c3aed",
+        },
+
+        handler:
+          async function (
+            razorpayResponse
+          ) {
+
+            try {
+
+              const verifyResult =
+                await verifyPayment({
+
+                  razorpay_order_id:
+                    razorpayResponse.razorpay_order_id,
+
+                  razorpay_payment_id:
+                    razorpayResponse.razorpay_payment_id,
+
+                  razorpay_signature:
+                    razorpayResponse.razorpay_signature,
+                });
+
+              if (
+                !verifyResult.data
+                  .verified
+              ) {
+
+                toast.error(
+                  "Payment verification failed"
+                );
+
+                return;
+              }
+
+              const expiryDate =
+                new Date();
+
+              if (
+                billingCycle ===
+                "monthly"
+              ) {
+
+                expiryDate.setMonth(
+                  expiryDate.getMonth() + 1
+                );
+
+              } else {
+
+                expiryDate.setFullYear(
+                  expiryDate.getFullYear() + 1
+                );
+              }
+
+              const invoiceId =
+                `INV-${Date.now()}`;
+
+              // await updateDoc(
+              //   doc(
+              //     db,
+              //     "users",
+              //     user.uid
+              //   ),
+              //   {
+
+              //     subscription: {
+
+              //       planId:
+              //         plan.id,
+
+              //       planName:
+              //         plan.name,
+
+              //       status:
+              //         "active",
+
+              //       isActive:
+              //         true,
+
+              //       billingCycle,
+
+              //       subscribedAt:
+              //         serverTimestamp(),
+
+              //       expiresAt:
+              //         Timestamp.fromDate(
+              //           expiryDate
+              //         ),
+
+              //       features:
+              //         plan.features ||
+              //         [],
+
+              //       limits: {
+
+              //         maxProducts:
+              //           plan.maxProducts ||
+              //           0,
+
+              //         maxOrdersPerMonth:
+              //           plan.maxOrdersPerMonth ||
+              //           0,
+
+              //         maxStaffAccounts:
+              //           plan.maxStaffAccounts ||
+              //           0,
+              //       },
+              //     },
+
+              //     updatedAt:
+              //       serverTimestamp(),
+              //   }
+              // );
+
+              // await addDoc(
+              //   collection(
+              //     db,
+              //     "paymentHistory"
+              //   ),
+              //   {
+
+              //     uid:
+              //       user.uid,
+
+              //     planId:
+              //       plan.id,
+
+              //     planName:
+              //       plan.name,
+
+              //     billingCycle,
+
+              //     paymentMethod:
+              //       "Razorpay",
+
+              //     razorpayOrderId:
+              //       razorpayResponse.razorpay_order_id,
+
+              //     razorpayPaymentId:
+              //       razorpayResponse.razorpay_payment_id,
+
+              //     invoiceId,
+
+              //     basePrice,
+
+              //     gst,
+
+              //     total,
+
+              //     verified:
+              //       true,
+
+              //     status:
+              //       "paid",
+
+              //     createdAt:
+              //       serverTimestamp(),
+              //   }
+              // );
+
+              await activateSubscription({
+
+                userId:
+                  user.uid,
+
+                plan,
+
+                billingCycle,
+
+                paymentInfo: {
+
+                  method:
+                    "Razorpay",
+
+                  verified:
+                    true,
+
+                  razorpayOrderId:
+                    razorpayResponse
+                      .razorpay_order_id,
+
+                  razorpayPaymentId:
+                    razorpayResponse
+                      .razorpay_payment_id,
+                },
+              });
+
+              toast.success(
+                "Subscription activated successfully"
+              );
+
+              navigate(
+                "/billing-history"
+              );
+
+            } catch (error) {
+
+              console.error(
+                error
+              );
+
+              toast.error(
+                "Payment verification failed"
+              );
+            }
+          },
+      };
+
+      const razorpay =
+        new window.Razorpay(
+          options
+        );
+
+      razorpay.open();
+
+    } catch (error) {
+
+      console.error(
+        "CHECKOUT ERROR:",
+        error
+      );
+
+      console.error(
+        "CODE:",
+        error.code
+      );
+
+      console.error(
+        "DETAILS:",
+        error.details
+      );
+
+      toast.error(
+        error.message ||
+        JSON.stringify(error)
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
 
   return (
 
@@ -593,7 +775,7 @@ export default function Checkout() {
                 {/* Pay */}
                 <Button
                   onClick={
-                    handleActivatePlan
+                    handlePayment
                   }
                   disabled={loading}
                   className="

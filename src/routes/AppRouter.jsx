@@ -1,3 +1,5 @@
+// src\routes\AppRouter.jsx
+
 // import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // import Dashboard from "@/pages/Dashboard/Dashboard";
@@ -903,6 +905,8 @@ export default function AppRouter() {
                   "free",
                   "growth",
                   "enterprise",
+                  "pro",
+                  "starter"
                 ]}
               >
                 <SellerAnalytics />

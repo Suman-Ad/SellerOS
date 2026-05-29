@@ -9,6 +9,10 @@ import { db } from "@/firebase/config";
 import logActivity
     from "@/utils/activity/logActivity";
 
+import {
+    incrementOrders,
+} from "@/utils/subscription/SubscriptionUsageTracker";
+
 // ====================================
 // EXECUTE ORDERS IMPORT
 // ====================================
@@ -501,14 +505,23 @@ const executeOrdersImport = async ({
 
         await commitBatch();
 
-        // ====================================
-        // RETURN
-        // ====================================
+        /* ====================================
+   UPDATE SUBSCRIPTION USAGE
+==================================== */
+
+        if (
+            imported > 0 &&
+            user?.uid
+        ) {
+
+            await incrementOrders(
+                user.uid,
+                imported
+            );
+        }
 
         return {
-
             imported,
-
             failed,
         };
 

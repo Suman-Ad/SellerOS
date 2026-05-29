@@ -52,6 +52,7 @@ export default function AddProduct() {
     const {
         canCreateProduct,
         remainingProducts,
+        productValidation,
         hasFeature,
     } = useSubscription();
 
@@ -474,14 +475,19 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
             e.preventDefault();
 
             try {
-                // if (!canCreateProduct) {
 
-                //     toast.error(
-                //         "Product limit reached"
-                //     );
+                if (!canCreateProduct) {
 
-                //     return;
-                // }
+                    toast.error(
+                        productValidation?.reason ||
+                        `Product limit reached`
+                    );
+
+                    navigate("/upgrade-plan");
+
+                    return;
+                }
+
                 setLoading(true);
 
                 // ========================================
@@ -603,26 +609,82 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
 
                 </p>
 
+                <div
+                    className="
+    mt-3
+    inline-flex
+    items-center
+    gap-2
+    px-3
+    py-2
+    rounded-lg
+    bg-zinc-800
+    text-sm
+"
+                >
+
+                    <span className="text-zinc-400">
+                        Remaining Products:
+                    </span>
+
+                    <span
+                        className={
+                            remainingProducts <= 10
+                                ? "text-red-400 font-semibold"
+                                : "text-green-400 font-semibold"
+                        }
+                    >
+                        {remainingProducts}
+                    </span>
+
+                </div>
+
                 <div className="flex flex-wrap gap-3 mt-4">
 
                     <Button
                         variant="outline"
-                        onClick={() =>
+                        onClick={() => {
+
+                            if (!canCreateProduct) {
+
+                                toast.error(
+                                    productValidation?.reason ||
+                                    "Product limit reached"
+                                );
+
+                                navigate("/upgrade-plan");
+
+                                return;
+                            }
+
                             navigate(
                                 "/seller/products/import-marketplace"
-                            )
-                        }
+                            );
+                        }}
                     >
                         Marketplace CSV Upload
                     </Button>
 
                     <Button
                         variant="outline"
-                        onClick={() =>
+                        onClick={() => {
+
+                            if (!canCreateProduct) {
+
+                                toast.error(
+                                    productValidation?.reason ||
+                                    "Product limit reached"
+                                );
+
+                                navigate("/upgrade-plan");
+
+                                return;
+                            }
+
                             navigate(
                                 "/seller/products/import-internal"
-                            )
-                        }
+                            );
+                        }}
                     >
                         Internal Bulk Upload
                     </Button>
@@ -1295,7 +1357,10 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                         <Button
                             variant="outline"
                             type="submit"
-                            disabled={loading}
+                            disabled={
+                                loading ||
+                                !canCreateProduct
+                            }
                             className="w-full"
                         >
 

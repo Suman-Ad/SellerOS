@@ -10,6 +10,8 @@ import { db } from "@/firebase/config";
 import logActivity
     from "@/utils/activity/logActivity";
 
+import { incrementProducts } from "@/utils/subscription/SubscriptionUsageTracker";
+
 // ====================================
 // EXECUTE INVENTORY IMPORT
 // ====================================
@@ -226,6 +228,11 @@ const executeInventoryImport =
                         null,
                 },
             });
+
+            await incrementProducts(
+                user.uid,
+                1
+            );
 
 
             // ====================================

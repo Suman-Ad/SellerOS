@@ -2,12 +2,29 @@ import { useMemo } from "react";
 
 import { useAuth } from "@/context/AuthContext";
 
+import {
+
+    canCreateProduct as validateProduct,
+
+    canCreateOrder as validateOrder,
+
+    canCreateStaff as validateStaff,
+
+    isSubscriptionActive,
+
+    isSubscriptionExpired,
+
+} from "@/services/subscription/subscriptionService";
+
 export default function useSubscription() {
 
     const { userData } = useAuth();
 
     const subscription =
         userData?.subscription || {};
+
+    const usage =
+        userData?.usage || {};
 
     // =========================
     // Plan Info
@@ -27,10 +44,10 @@ export default function useSubscription() {
     // =========================
 
     const maxProducts =
-        subscription.maxProducts || 0;
+        subscription?.limits?.maxProducts || 0;
 
     const usedProducts =
-        userData?.usage?.products || 0;
+        usage?.products || 0;
 
     const remainingProducts =
         Math.max(
@@ -38,18 +55,24 @@ export default function useSubscription() {
             0
         );
 
+    const productValidation =
+        validateProduct({
+            subscription,
+            usage,
+        });
+
     const canCreateProduct =
-        remainingProducts > 0;
+        productValidation.allowed;
 
     // =========================
     // Order Limits
     // =========================
 
     const maxOrders =
-        subscription.maxOrdersPerMonth || 0;
+        subscription?.limits?.maxOrdersPerMonth || 0;
 
     const usedOrders =
-        userData?.usage?.orders || 0;
+        usage?.orders || 0;
 
     const remainingOrders =
         Math.max(
@@ -57,18 +80,24 @@ export default function useSubscription() {
             0
         );
 
+    const orderValidation =
+        validateOrder({
+            subscription,
+            usage,
+        });
+
     const canCreateOrder =
-        remainingOrders > 0;
+        orderValidation.allowed;
 
     // =========================
     // Staff Limits
     // =========================
 
     const maxStaff =
-        subscription.maxStaffAccounts || 0;
+        subscription?.limits?.maxStaffAccounts || 0;
 
     const usedStaff =
-        userData?.usage?.staff || 0;
+        usage?.staff || 0;
 
     const remainingStaff =
         Math.max(
@@ -76,8 +105,14 @@ export default function useSubscription() {
             0
         );
 
+    const staffValidation =
+        validateStaff({
+            subscription,
+            usage,
+        });
+
     const canAddStaff =
-        remainingStaff > 0;
+        staffValidation.allowed;
 
     // =========================
     // Feature Check
@@ -111,9 +146,17 @@ export default function useSubscription() {
     // =========================
     // Subscription Status
     // =========================
+    const expiresAt =
+        subscription?.expiresAt?.toDate
+            ? subscription.expiresAt.toDate()
+            : subscription?.expiresAt
+                ? new Date(subscription.expiresAt)
+                : null;
 
     const isActive =
-        subscription.isActive || false;
+        isSubscriptionActive(
+            subscription
+        );
 
     const status =
         subscription.status || "inactive";
@@ -122,12 +165,10 @@ export default function useSubscription() {
     // Expiry Check
     // =========================
 
-    const expiresAt =
-        subscription.expiresAt?.toDate?.();
-
-    const isExpired = expiresAt
-        ? new Date() > expiresAt
-        : false;
+    const isExpired =
+        isSubscriptionExpired(
+            subscription
+        );
 
     // =========================
     // Remaining Days
@@ -211,6 +252,7 @@ export default function useSubscription() {
         usedProducts,
         remainingProducts,
         canCreateProduct,
+        productValidation,
         productUsagePercent,
 
         // Orders
@@ -218,6 +260,7 @@ export default function useSubscription() {
         usedOrders,
         remainingOrders,
         canCreateOrder,
+        orderValidation,
         orderUsagePercent,
 
         // Staff
@@ -225,6 +268,11 @@ export default function useSubscription() {
         usedStaff,
         remainingStaff,
         canAddStaff,
+        staffValidation,
         staffUsagePercent,
+
+
+        subscription,
+        usage,
     };
 }

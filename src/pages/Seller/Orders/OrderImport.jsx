@@ -22,6 +22,9 @@ import checkDuplicateOrders from "@/utils/import/checkDuplicateOrders";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+import useSubscription
+    from "@/hooks/useSubscription";
+
 import {
     addDoc,
     collection,
@@ -41,6 +44,12 @@ const OrderImport = () => {
 
     const { user, userData } =
         useAuth();
+
+    const {
+        canCreateOrder,
+        remainingOrders,
+        orderValidation,
+    } = useSubscription();
 
     const fileInputRef =
         useRef();
@@ -173,6 +182,18 @@ const OrderImport = () => {
 
     const handleUpload =
         async (file) => {
+
+            if (!canCreateOrder) {
+
+                alert(
+                    orderValidation?.reason ||
+                    "Order limit reached"
+                );
+
+                navigate("/upgrade-plan");
+
+                return;
+            }
 
             try {
 
@@ -538,6 +559,18 @@ const OrderImport = () => {
     const handleConfirmImport =
         async () => {
 
+            if (!canCreateOrder) {
+
+                alert(
+                    orderValidation?.reason ||
+                    "Order limit reached"
+                );
+
+                navigate("/upgrade-plan");
+
+                return;
+            }
+
             try {
 
                 if (
@@ -770,6 +803,28 @@ const OrderImport = () => {
                     Import marketplace orders using CSV or Excel
 
                 </p>
+
+                <div className="mt-2">
+
+                    <span
+                        className="
+        inline-flex
+        px-3
+        py-1
+        rounded-lg
+        bg-zinc-100
+        text-sm
+        "
+                    >
+
+                        Remaining Orders:
+                        <strong className="ml-2">
+                            {remainingOrders}
+                        </strong>
+
+                    </span>
+
+                </div>
 
                 <OrderImportHistory />
 

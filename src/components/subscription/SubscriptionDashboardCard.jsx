@@ -1,3 +1,5 @@
+// src\components\subscription\SubscriptionDashboardCard.jsx
+
 import {
   Crown,
   CalendarClock,
@@ -18,39 +20,34 @@ export default function SubscriptionDashboardCard({
   onUpgrade,
 }) {
 
+  const subscription = useSubscription();
+
   const {
+    planName = "Free",
+    isEnterprise = false,
 
-    // Plan
-    planName,
-    isEnterprise,
+    status = "inactive",
+    isExpired = false,
+    remainingDays = 0,
 
-    // Status
-    status,
-    isExpired,
-    remainingDays,
+    features = [],
 
-    // Features
-    features,
+    maxProducts = 0,
+    usedProducts = 0,
+    remainingProducts = 0,
+    productUsagePercent = 0,
 
-    // Product
-    maxProducts,
-    usedProducts,
-    remainingProducts,
-    productUsagePercent,
+    maxOrders = 0,
+    usedOrders = 0,
+    remainingOrders = 0,
+    orderUsagePercent = 0,
 
-    // Orders
-    maxOrders,
-    usedOrders,
-    remainingOrders,
-    orderUsagePercent,
+    maxStaff = 0,
+    usedStaff = 0,
+    remainingStaff = 0,
+    staffUsagePercent = 0,
+  } = subscription || {};
 
-    // Staff
-    maxStaff,
-    usedStaff,
-    remainingStaff,
-    staffUsagePercent,
-
-  } = useSubscription();
 
   return (
 
@@ -99,10 +96,9 @@ export default function SubscriptionDashboardCard({
                 <div
                   className={`
                     px-4 py-2 rounded-full text-sm font-semibold
-                    ${
-                      isExpired
-                        ? "bg-red-500/20 text-red-100"
-                        : "bg-emerald-500/20 text-emerald-100"
+                    ${isExpired
+                      ? "bg-red-500/20 text-red-100"
+                      : "bg-emerald-500/20 text-emerald-100"
                     }
                   `}
                 >
@@ -141,7 +137,7 @@ export default function SubscriptionDashboardCard({
             <div>
 
               <Button
-                onClick={onUpgrade}
+                onClick={() => onUpgrade?.()}
                 className="
                   bg-white
                   text-black
@@ -311,8 +307,7 @@ function UsageCard({
               {used}
 
               <span className="text-zinc-500 text-base font-medium">
-                {" "}
-                / {max}
+                / {max === 0 ? "Unlimited" : max}
               </span>
 
             </h3>
@@ -346,9 +341,9 @@ function UsageCard({
         <div className="flex items-center justify-between mt-3 text-sm">
 
           <span className="text-zinc-400">
-
-            {percent.toFixed(0)}% Used
-
+            {max === 0
+              ? "Unlimited"
+              : `${percent.toFixed(0)}% Used`}
           </span>
 
           <span className="text-zinc-400">

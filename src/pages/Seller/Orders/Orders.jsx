@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import useSubscription from "@/hooks/useSubscription";
 
 const Orders = () => {
     const { user } = useAuth();
@@ -33,6 +34,12 @@ const Orders = () => {
 
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
+
+    const {
+        canCreateOrder,
+        remainingOrders,
+        orderValidation,
+    } = useSubscription();
 
     const navigate = useNavigate();
 
@@ -209,13 +216,54 @@ const Orders = () => {
                     <p className="text-sm text-gray-500 mt-1">
                         Manage marketplace orders and fulfillment
                     </p>
+
+                    <div className="mt-2">
+
+                        <span
+                            className="
+        inline-flex
+        items-center
+        px-3
+        py-1
+        rounded-lg
+        bg-zinc-100
+        text-sm
+        "
+                        >
+
+                            Remaining Orders:
+
+                            <span className="ml-2 font-semibold">
+
+                                {remainingOrders}
+
+                            </span>
+
+                        </span>
+
+                    </div>
+
+
                     <Button
                         variant="outline"
-                        onClick={() =>
+                        onClick={() => {
+
+                            if (!canCreateOrder) {
+
+                                alert(
+                                    orderValidation?.reason ||
+                                    "Monthly order limit reached"
+                                );
+
+                                navigate("/upgrade-plan");
+
+                                return;
+                            }
+
                             navigate(
                                 "/seller/orders/import"
-                            )
-                        }
+                            );
+                        }}
                     >
                         Import Orders
                     </Button>
@@ -233,11 +281,24 @@ const Orders = () => {
 
                     <Button
                         variant="outline"
-                        onClick={() =>
+                        onClick={() => {
+
+                            if (!canCreateOrder) {
+
+                                alert(
+                                    orderValidation?.reason ||
+                                    "Monthly order limit reached"
+                                );
+
+                                navigate("/upgrade-plan");
+
+                                return;
+                            }
+
                             navigate(
                                 "/seller/orders/manifest-import"
-                            )
-                        }
+                            );
+                        }}
                     >
                         Import Manifest
                     </Button>

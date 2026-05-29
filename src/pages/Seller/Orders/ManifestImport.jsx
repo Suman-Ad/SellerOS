@@ -18,6 +18,9 @@ import { useNavigate } from "react-router-dom";
 
 import { db } from "@/firebase/config";
 
+import useSubscription
+    from "@/hooks/useSubscription";
+
 pdfjsLib.GlobalWorkerOptions.workerSrc =
     `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -25,6 +28,11 @@ const ManifestImport = () => {
 
     const [loading, setLoading] =
         useState(false);
+
+    const {
+        canCreateOrder,
+        orderValidation,
+    } = useSubscription();
 
     const [rows, setRows] =
         useState([]);
@@ -44,6 +52,18 @@ const ManifestImport = () => {
     // ====================================
 
     const extractPDF = async (file) => {
+
+        if (!canCreateOrder) {
+
+            alert(
+                orderValidation?.reason ||
+                "Order limit reached"
+            );
+
+            navigate("/upgrade-plan");
+
+            return;
+        }
 
         try {
 

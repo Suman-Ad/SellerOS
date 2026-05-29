@@ -1,3 +1,5 @@
+/// src/pages/Subscription/BillingHistory.jsx
+
 import { useEffect, useState } from "react";
 
 import {
@@ -342,11 +344,9 @@ export default function BillingHistory() {
                                       size={16}
                                     />
 
-                                    TXN:
-                                    {" "}
-                                    {
-                                      payment.transactionId
-                                    }
+                                    Payment:
+                                    {payment.razorpayPaymentId ||
+                                      payment.transactionId}
 
                                   </div>
 

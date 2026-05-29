@@ -30,6 +30,10 @@ import {
 
 import { toast } from "sonner";
 
+import {
+  activateSubscription,
+} from "@/services/subscription/activateSubscription";
+
 export default function UserSubscriptionManager() {
 
   const [users, setUsers] = useState([]);
@@ -142,22 +146,42 @@ export default function UserSubscriptionManager() {
         return toast.error("Plan not found");
       }
 
-      await updateDoc(
-        doc(db, "users", selectedUser.id),
-        {
-          subscription: {
-            planId: plan.id,
-            planName: plan.name,
+      // await updateDoc(
+      //   doc(db, "users", selectedUser.id),
+      //   {
+      //     subscription: {
+      //       planId: plan.id,
+      //       planName: plan.name,
 
-            status: "active",
+      //       status: "active",
 
-            isActive: true,
+      //       isActive: true,
 
-            updatedAt:
-              serverTimestamp(),
-          },
-        }
-      );
+      //       updatedAt:
+      //         serverTimestamp(),
+      //     },
+      //   }
+      // );
+
+      await activateSubscription({
+
+        userId:
+          selectedUser.id,
+
+        plan,
+
+        billingCycle:
+          "monthly",
+
+        paymentInfo: {
+
+          method:
+            "Admin",
+
+          verified:
+            true,
+        },
+      });
 
       toast.success(
         "Subscription updated"
@@ -386,10 +410,9 @@ export default function UserSubscriptionManager() {
                         <div
                           className={`
                             px-3 py-1 rounded-full text-sm
-                            ${
-                              subscription.isActive
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-red-500/10 text-red-400"
+                            ${subscription.isActive
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-red-500/10 text-red-400"
                             }
                           `}
                         >
@@ -422,7 +445,7 @@ export default function UserSubscriptionManager() {
                     <select
                       value={
                         selectedUser?.id ===
-                        user.id
+                          user.id
                           ? selectedPlan
                           : ""
                       }
