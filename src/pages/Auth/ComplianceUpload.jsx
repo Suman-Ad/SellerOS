@@ -307,17 +307,29 @@ export default function ComplianceUpload() {
             complianceStatus:
             {
 
-              gst:
-                "pending",
+              gst: {
+                status: "pending",
+                updatedAt:
+                  serverTimestamp(),
+              },
 
-              pan:
-                "pending",
+              pan: {
+                status: "pending",
+                updatedAt:
+                  serverTimestamp(),
+              },
 
-              bankVerification:
-                "pending",
+              governmentId: {
+                status: "pending",
+                updatedAt:
+                  serverTimestamp(),
+              },
 
-              addressVerification:
-                "pending",
+              bank: {
+                status: "pending",
+                updatedAt:
+                  serverTimestamp(),
+              },
             },
 
             onboarding: {

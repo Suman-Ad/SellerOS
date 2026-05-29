@@ -111,6 +111,10 @@ export const PLATFORM_ROLES = {
 
   SELLER: "seller",
 
+  SUPPLIER: "supplier",
+
+  PARTNER: "partner",
+
   ADMIN: "admin",
 
   SUPER_ADMIN: "super_admin",

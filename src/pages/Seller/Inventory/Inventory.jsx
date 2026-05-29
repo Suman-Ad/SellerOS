@@ -142,6 +142,26 @@ export default function Inventory() {
             image:
               product.images?.[0] || "",
 
+            buyingPrice:
+              Number(
+                variant.buyingPrice || 0
+              ),
+
+            sellingPrice:
+              Number(
+                variant.sellingPrice || 0
+              ),
+
+            estimatedProfit:
+              Number(
+                variant.estimatedProfit || 0
+              ),
+
+            totalExtraCost:
+              Number(
+                variant.totalExtraCost || 0
+              ),
+
             inventoryValue:
               Number(stock) *
               Number(variant.buyingPrice || 0),
@@ -375,8 +395,81 @@ export default function Inventory() {
       ),
     },
 
+    {
+      accessorKey: "buyingPrice",
 
+      header: "Buying",
 
+      cell: ({ row }) => (
+
+        <span className="text-cyan-400 font-medium">
+
+          ₹{
+            Number(
+              row.original.buyingPrice || 0
+            ).toFixed(2)
+          }
+
+        </span>
+      ),
+    },
+
+    {
+      accessorKey: "sellingPrice",
+
+      header: "Selling",
+
+      cell: ({ row }) => (
+
+        <span className="text-indigo-400 font-semibold">
+
+          ₹{
+            Number(
+              row.original.sellingPrice || 0
+            ).toFixed(2)
+          }
+
+        </span>
+      ),
+    },
+
+    {
+      accessorKey: "sellingPrice",
+
+      header: "Selling",
+
+      cell: ({ row }) => (
+
+        <span className="text-indigo-400 font-semibold">
+
+          ₹{
+            Number(
+              row.original.sellingPrice || 0
+            ).toFixed(2)
+          }
+
+        </span>
+      ),
+    },
+
+    {
+      accessorKey: "totalExtraCost",
+
+      header: "Extra Cost",
+
+      cell: ({ row }) => (
+
+        <span className="text-orange-400 font-medium">
+
+          ₹{
+            Number(
+              row.original.totalExtraCost || 0
+            ).toFixed(2)
+          }
+
+        </span>
+      ),
+    },
 
   ];
 

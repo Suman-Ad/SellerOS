@@ -220,6 +220,17 @@ const Orders = () => {
                         Import Orders
                     </Button>
 
+                    {/* <Button
+                        variant="outline"
+                        onClick={() =>
+                            navigate(
+                                "/seller/orders/import-history"
+                            )
+                        }
+                    >
+                        Import History
+                    </Button> */}
+
                     <Button
                         variant="outline"
                         onClick={() =>

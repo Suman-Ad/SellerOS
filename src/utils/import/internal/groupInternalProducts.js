@@ -154,14 +154,62 @@ export const groupInternalProducts = (
 
                 buyingPrice:
                     Number(
-                        row.buyingPrice ||
-                        0
+                        row.buyingPrice || 0
                     ),
+
+                marginPercent:
+                    Number(
+                        row.marginPercent || 0
+                    ),
+
+                gstPercent:
+                    Number(
+                        row.gstPercent || 0
+                    ),
+
+                extraCosts: {
+
+                    packaging:
+                        Number(
+                            row.packaging || 0
+                        ),
+
+                    labeling:
+                        Number(
+                            row.labeling || 0
+                        ),
+
+                    rto:
+                        Number(
+                            row.rto || 0
+                        ),
+
+                    return:
+                        Number(
+                            row.return || 0
+                        ),
+
+                    advertisement:
+                        Number(
+                            row.advertisement || 0
+                        ),
+
+                    delivery:
+                        Number(
+                            row.delivery || 0
+                        ),
+
+                    others:
+                        Number(
+                            row.others || 0
+                        ),
+                },
+
+                totalExtraCost: 0,
 
                 sellingPrice:
                     Number(
-                        row.sellingPrice ||
-                        0
+                        row.sellingPrice || 0
                     ),
 
                 inventoryHistory:

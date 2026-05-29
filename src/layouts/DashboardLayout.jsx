@@ -250,44 +250,62 @@ export default function DashboardLayout() {
                 </p>
 
               )}
-
               <div className="space-y-1">
+                {section.items
+                  .filter((item) => {
+                    // Only super_admin can see Admin Panel
+                    if (item.path === "/admin") {
+                      return userData?.access?.role === "super_admin";
+                    }
 
-                {section.items.map((item) => {
+                    // Everyone else can see normal ERP menus
+                    return true;
+                  })
+                  .map((item) => {
+                    const Icon = item.icon;
 
-                  const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        end={item.path === "/admin"}
+                        className={({ isActive }) =>
+                          `
+              flex items-center
+              ${collapsed ? "justify-center" : "gap-3"}
+              px-4 py-3 rounded-xl transition-all
+              ${isActive
+                            ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20"
+                            : "hover:bg-zinc-800 text-zinc-300"
+                          }
+            `
+                        }
+                      >
+                        {userData?.access?.role === "super_admin" &&
+                          item.path === "/admin" ? (
+                          <div className="flex items-center gap-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-2 py-0.5 rounded-full text-xs">
+                            <Icon size={18} />
 
-                  return (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      end={item.path === "/admin"}
-                      className={({ isActive }) =>
-                        `
-                      flex items-center
-                      ${collapsed
-                          ? "justify-center"
-                          : "gap-3"}
-                      px-4 py-3 rounded-xl transition-all
-                      ${isActive
-                          ? "bg-violet-600 text-white shadow-lg shadow-violet-500/20"
-                          : "hover:bg-zinc-800 text-zinc-300"}
-                    `
-                      }
-                    >
+                            {!collapsed && (
+                              <span className="font-medium">
+                                {item.name}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-2 py-0.5 rounded-full text-xs">
+                            <Icon size={18} />
 
-                      <Icon size={18} />
-
-                      {!collapsed && (
-                        <span className="font-medium">
-                          {item.name}
-                        </span>
-                      )}
-
-                    </NavLink>
-                  );
-                })}
-
+                            {!collapsed && (
+                              <span className="font-medium">
+                                {item.name}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </NavLink>
+                    );
+                  })}
               </div>
 
             </div>

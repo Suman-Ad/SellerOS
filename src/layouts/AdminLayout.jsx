@@ -121,13 +121,18 @@ export default function AdminLayout() {
         //   icon: Users,
         // },
         {
-          name: "Subscriptions",
+          name: "Subscriptions Control Center",
           path: "/admin/subscriptions",
           icon: CreditCard,
         },
         {
-          name: "User Plans",
+          name: "Users Plan Control Center",
           path: "/admin/user-subscriptions",
+          icon: Users,
+        },
+        {
+          name: "Users Control Center",
+          path: "/admin/users",
           icon: Users,
         },
         {
@@ -367,7 +372,7 @@ export default function AdminLayout() {
           <div className="flex items-center gap-3">
 
             {/* Pro Badge */}
-            {userData?.role === "super_admin" && (
+            {userData?.access?.role === "super_admin" && (
               <div className="hidden md:flex items-center gap-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 px-4 h-11 rounded-xl text-sm font-medium"
                 onClick={() => navigate("/admin/subscriptions")}
                 style={{ cursor: "pointer" }}
@@ -381,7 +386,7 @@ export default function AdminLayout() {
 
             {/* Quick Action */}
             <button className="hidden md:flex items-center gap-2 h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 transition font-medium"
-              onClick={() => navigate("/admin/sellers")}
+              onClick={() => navigate("/admin/seller-governance-center")}
               style={{ cursor: "pointer" }}
             >
 

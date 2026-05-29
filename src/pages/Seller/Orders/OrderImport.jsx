@@ -22,6 +22,17 @@ import checkDuplicateOrders from "@/utils/import/checkDuplicateOrders";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+import {
+    addDoc,
+    collection,
+    serverTimestamp,
+} from "firebase/firestore";
+
+import { db } from "@/firebase/config";
+
+import OrderImportHistory from "./OrderImportHistory";
+
+
 // ====================================
 // PAGE
 // ====================================
@@ -582,8 +593,13 @@ const OrderImport = () => {
                 const finalOrders =
                     duplicateCheck.newOrders || [];
 
+                const importBatchId =
+                    `IMPORT_${Date.now()}`;
+
                 const result =
                     await executeOrdersImport({
+
+                        importBatchId,
 
                         matchedOrders:
                             finalOrders,
@@ -591,6 +607,8 @@ const OrderImport = () => {
                         user,
                         sellerId:
                             user.uid,
+
+                        userData,
 
                         platform,
 
@@ -611,6 +629,74 @@ const OrderImport = () => {
 
                 setImportResult(
                     result
+                );
+
+                // ====================================
+                // SAVE IMPORT HISTORY
+                // ====================================
+
+                await addDoc(
+                    collection(
+                        db,
+                        "order_import_history"
+                    ),
+                    {
+                        importBatchId,
+                        sellerId:
+                            user.uid,
+
+                        fileName,
+
+                        platform,
+
+                        importType,
+
+                        uploadedAt:
+                            serverTimestamp(),
+
+                        totalRows:
+                            parsedRows.length,
+
+                        validRows:
+                            validRows.length,
+
+                        invalidRows:
+                            invalidRows.length,
+
+                        duplicateCount:
+                            duplicateRows.length,
+
+                        unmatchedCount:
+                            unmatchedRows.length,
+
+                        importedCount:
+                            result.imported || 0,
+
+                        status:
+                            "completed",
+
+                        createdBy: {
+                            uid:
+                                user.uid,
+
+                            email:
+                                user.email || "",
+
+                            name:
+                                userData?.fullName || "",
+
+                            OrgID:
+                                userData?.organization?.organizationId || "",
+                        },
+                        importedAt:
+                            serverTimestamp(),
+
+                        source:
+                            "OrderImport",
+
+                        version:
+                            "v1",
+                    }
                 );
 
                 setPreviewReady(false);
@@ -684,6 +770,9 @@ const OrderImport = () => {
                     Import marketplace orders using CSV or Excel
 
                 </p>
+
+                <OrderImportHistory />
+
 
             </div>
 
@@ -1028,21 +1117,40 @@ const OrderImport = () => {
 
                                     </option>
 
+                                    <option value="parentSKU">
+
+                                        SKU ID
+
+                                    </option>
+
+                                    <option value="productName">
+
+                                        Product Name
+
+                                    </option>
+
+                                    <option value="orderDate">
+
+                                        Order Date
+
+                                    </option>
+
                                     <option value="platformOrderId">
 
                                         Order ID
 
                                     </option>
 
-                                    <option value="parentSKU">
 
-                                        Parent SKU
+                                    <option value="productID">
+
+                                        Product ID
 
                                     </option>
 
-                                    <option value="variantSku">
+                                    <option value="variantSize">
 
-                                        Variant SKU
+                                        Variant Size
 
                                     </option>
 
@@ -1061,6 +1169,18 @@ const OrderImport = () => {
                                     <option value="customerName">
 
                                         Customer Name
+
+                                    </option>
+
+                                    <option value="awb">
+
+                                        Curier Tracking ID
+
+                                    </option>
+
+                                    <option value="orderStatus">
+
+                                        Order Status
 
                                     </option>
 

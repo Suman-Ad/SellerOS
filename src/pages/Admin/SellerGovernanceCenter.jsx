@@ -378,7 +378,7 @@ export default function SellerGovernanceCenter() {
 
         if (compliance) {
 
-          payload.compliance =
+          payload.complianceStatus =
             compliance;
         }
 
@@ -482,7 +482,7 @@ export default function SellerGovernanceCenter() {
     (seller) => {
 
       const compliance =
-        seller?.compliance || {};
+        seller?.complianceStatus || {};
 
       return (
 
@@ -1153,7 +1153,7 @@ function SellerReviewModal({
       try {
 
         const compliance = {
-          ...seller.compliance,
+          ...seller.complianceStatus,
         };
 
         compliance[key] = {
@@ -1174,6 +1174,7 @@ function SellerReviewModal({
 
           seller,
 
+
           compliance,
 
           activityType:
@@ -1190,7 +1191,8 @@ function SellerReviewModal({
 
           ...seller,
 
-          compliance,
+          complianceStatus:
+            compliance,
         };
 
         onUpdateSeller(
@@ -1226,7 +1228,7 @@ function SellerReviewModal({
       try {
 
         const compliance = {
-          ...seller.compliance,
+          ...seller.complianceStatus,
         };
 
         compliance[key] = {
@@ -1246,6 +1248,7 @@ function SellerReviewModal({
         await updateSellerStatus({
 
           seller,
+
 
           compliance,
 
@@ -1271,7 +1274,8 @@ function SellerReviewModal({
 
           ...seller,
 
-          compliance,
+          complianceStatus:
+            compliance,
         };
 
         onUpdateSeller(
@@ -1427,8 +1431,8 @@ function SellerReviewModal({
               },
 
               {
-                key: "kyc",
-                title: "KYC",
+                key: "governmentId",
+                title: "Government ID",
               },
 
               {
@@ -1438,17 +1442,22 @@ function SellerReviewModal({
             ].map((item) => {
 
               const document =
-                seller?.compliance?.[
-                  item.key
+                seller?.complianceDocuments?.[
+                item.key
+                ];
+
+              const documentStatus =
+                seller?.complianceStatus?.[
+                item.key
                 ];
 
               const isPending =
 
-                document?.status ===
-                  COMPLIANCE_STATUS.UPLOADED ||
+                documentStatus?.status ===
+                COMPLIANCE_STATUS.UPLOADED ||
 
-                document?.status ===
-                  COMPLIANCE_STATUS.PENDING;
+                documentStatus?.status ===
+                COMPLIANCE_STATUS.PENDING;
 
               return (
 
@@ -1480,17 +1489,17 @@ function SellerReviewModal({
 
                     <StatusBadge
                       label={
-                        document?.status ||
+                        documentStatus?.status ||
                         "missing"
                       }
                       color={
-                        document?.status ===
-                        COMPLIANCE_STATUS.APPROVED
+                        documentStatus?.status ===
+                          COMPLIANCE_STATUS.APPROVED
                           ? "green"
-                          : document?.status ===
+                          : documentStatus?.status ===
                             COMPLIANCE_STATUS.REJECTED
-                          ? "red"
-                          : "yellow"
+                            ? "red"
+                            : "yellow"
                       }
                     />
 

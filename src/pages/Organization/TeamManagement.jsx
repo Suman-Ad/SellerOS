@@ -74,6 +74,8 @@ import {
   toast,
 } from "sonner";
 
+import { useOrganizationDetails } from "@/utils/firebaseDB/OrganizationDetails";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -82,11 +84,14 @@ export default function TeamManagement() {
 
   const {
 
+    user,
     userData,
 
-    organization,
   } = useAuth();
 
+  const organization = useOrganizationDetails(
+    user?.uid
+  );
   /* =====================================================
      STATE
   ===================================================== */
@@ -137,7 +142,7 @@ export default function TeamManagement() {
             where(
               "organizationId",
               "==",
-              userData?.organizationId
+              userData?.organization?.organizationId
             )
           );
 
@@ -176,7 +181,7 @@ export default function TeamManagement() {
             where(
               "organizationId",
               "==",
-              userData?.organizationId
+              userData?.organization?.organizationId
             )
           );
 
@@ -221,14 +226,14 @@ export default function TeamManagement() {
   useEffect(() => {
 
     if (
-      userData?.organizationId
+      userData?.organization?.organizationId
     ) {
 
       fetchData();
     }
 
   }, [
-    userData?.organizationId,
+    userData?.organization?.organizationId,
   ]);
 
   /* =====================================================

@@ -518,35 +518,6 @@ export const loginWithEmail =
       /* =====================
          APPROVAL VALIDATION
       ===================== */
-
-      /* =====================
-   RESTRICT ONLY AFTER
-   FULL ONBOARDING
-===================== */
-
-      // const onboardingCompleted =
-      //   userData?.onboarding?.profileCompleted &&
-      //   userData?.organization
-      //     ?.organizationId &&
-      //   userData?.onboarding?.complianceSubmitted;
-
-      // if (
-      //   onboardingCompleted &&
-      //   redirectPath === "/onboarding"
-      // ) {
-
-      //   return {
-      //     success: true,
-
-      //     user: firebaseUser,
-
-      //     userData,
-
-      //     redirectPath,
-      //   };
-      // }
-
-
       /* =====================
          BLOCK VALIDATION
       ===================== */
@@ -737,7 +708,7 @@ export const loginWithGoogle =
           "google_login",
 
         title:
-          "Google Authentication",
+          `${firebaseUser.displayName || firebaseUser.email} - Google Authentication`,
 
         description:
           "User authenticated with Google",

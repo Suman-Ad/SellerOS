@@ -1,36 +1,21 @@
 const {
   onDocumentCreated,
-} = require(
-  "firebase-functions/v2/firestore"
-);
+} = require("firebase-functions/v2/firestore");
 
 const {
   defineSecret,
-} = require(
-  "firebase-functions/params"
-);
+} = require("firebase-functions/params");
 
-const RESEND_API_KEY =
-  defineSecret(
-    "re_eG5TtJWC_4MAfrAgFgqHY3sc2ceU6afrs"
-  );
-
-const admin =
-  require("firebase-admin");
-
-const {
-  Resend,
-} = require("resend");
-
-admin.initializeApp();
-
-const resend =
-  new Resend(
-    RESEND_API_KEY.value()
-  );
+const { Resend } = require("resend");
 
 /* =========================================================
-   SEND INVITATION EMAIL
+   SECRET
+========================================================= */
+
+const RESEND_API_KEY =
+  defineSecret("RESEND_API_KEY");
+/* =========================================================
+   FUNCTION
 ========================================================= */
 
 exports.sendInvitationEmail =
@@ -51,65 +36,81 @@ exports.sendInvitationEmail =
 
       try {
 
+        if (!event.data) {
+          console.log("No event data");
+          return;
+        }
+
         const invitation =
           event.data.data();
+
+        if (!invitation) {
+          console.log("No invitation data");
+          return;
+        }
+
+        const resend =
+          new Resend(
+            RESEND_API_KEY.value()
+          );
 
         const inviteUrl =
           `https://selleros-e7bb4.web.app/invite/${invitation.token}`;
 
-        await resend.emails.send({
+        const response =
+          await resend.emails.send({
 
-          from:
-            "SellerOS <onboarding@resend.dev>",
+            from:
+              "SellerOS <onboarding@resend.dev>",
 
-          to:
-            invitation.invitedEmail,
+            to:
+              invitation.invitedEmail,
 
-          subject:
-            `Invitation to join ${invitation.organizationName}`,
+            subject:
+              `Invitation to join ${invitation.organizationName}`,
 
-          html: `
-            <div style="font-family:sans-serif;padding:40px">
+            html: `
+              <div style="font-family:sans-serif;padding:40px">
+                <h1>You're invited to join SellerOS</h1>
 
-              <h1>
-                You're invited to join SellerOS
-              </h1>
+                <p>
+                  ${invitation.invitedByName}
+                  invited you to join:
+                </p>
 
-              <p>
-                ${invitation.invitedByName}
-                invited you to join:
-              </p>
+                <h2>
+                  ${invitation.organizationName}
+                </h2>
 
-              <h2>
-                ${invitation.organizationName}
-              </h2>
-
-              <a
-                href="${inviteUrl}"
-                style="
-                  display:inline-block;
-                  margin-top:20px;
-                  background:#7c3aed;
-                  color:white;
-                  padding:14px 24px;
-                  border-radius:10px;
-                  text-decoration:none;
-                "
-              >
-                Accept Invitation
-              </a>
-
-            </div>
-          `,
-        });
+                <a
+                  href="${inviteUrl}"
+                  style="
+                    display:inline-block;
+                    margin-top:20px;
+                    background:#7c3aed;
+                    color:white;
+                    padding:14px 24px;
+                    border-radius:10px;
+                    text-decoration:none;
+                  "
+                >
+                  Accept Invitation
+                </a>
+              </div>
+            `,
+          });
 
         console.log(
-          "Invitation email sent"
+          "Invitation sent:",
+          response
         );
 
       } catch (error) {
 
-        console.error(error);
+        console.error(
+          "Invitation error:",
+          error
+        );
       }
     }
   );

@@ -327,7 +327,13 @@ export default function ProtectedRoute({
     userData?.reKyc?.required ||
 
     sellerStatus ===
-    "rejected";
+    "rejected" ||
+
+    sellerStatus ===
+    "pending_review" ||
+
+    sellerStatus ===
+    "under_review";
 
   if (
     complianceEditable &&

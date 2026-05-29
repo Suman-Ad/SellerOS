@@ -31,6 +31,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { useOrganizationDetails } from "@/utils/firebaseDB/OrganizationDetails";
+
 import SubscriptionDashboardCard from "@/components/subscription/SubscriptionDashboardCard";
 
 export default function SellerLayout() {
@@ -49,6 +51,8 @@ export default function SellerLayout() {
       toast.error(error.message);
     }
   };
+
+  const organization = useOrganizationDetails(userData?.uid);
 
   const [collapsed,
     setCollapsed] =
@@ -488,17 +492,17 @@ export default function SellerLayout() {
             >
 
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-bold">
-                {userData?.firstName?.charAt(0) || "A"}{userData?.lastName?.charAt(0) || "A"}
+                {userData?.fullName?.charAt(0) || "A"}
               </div>
 
               <div className="hidden md:block text-left">
 
                 <p className="font-medium text-sm">
-                  {userData?.businessName || "Seller"}
+                  {organization?.organizationName || "Seller"}
                 </p>
 
                 <p className="text-xs text-zinc-400">
-                  {userData?.gstNo || "GST No:"}
+                  {userData?.complianceDocuments?.pan?.number || "PAN No: Not provided"}
                 </p>
 
               </div>
@@ -534,7 +538,11 @@ export default function SellerLayout() {
                     Profile Settings
                   </button>
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() =>
+                      navigate("/subscription-Dashboard")
+                    }
+                  >
                     Billing & Subscription
                   </button>
 

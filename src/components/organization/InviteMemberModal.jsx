@@ -51,6 +51,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
+import { useOrganizationDetails }from "@/utils/firebaseDB/OrganizationDetails";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -70,7 +72,6 @@ export default function InviteMemberModal({
 
     userData,
 
-    organization,
   } = useAuth();
 
   /* =====================================================
@@ -91,6 +92,9 @@ export default function InviteMemberModal({
       ORGANIZATION_ROLES.STAFF
     );
 
+  const organization = useOrganizationDetails(
+    user.uid
+  );
   /* =====================================================
      SUBMIT
   ===================================================== */
@@ -113,23 +117,47 @@ export default function InviteMemberModal({
           return;
         }
 
+        const organizationId =
+          userData?.organization?.organizationId;
+
+        if (!organizationId) {
+
+          console.error(
+            "Missing organizationId",
+            userData
+          );
+
+          toast.error(
+            "Organization ID missing"
+          );
+
+          return;
+        }
+
+        if (!organization?.organizationName) {
+
+          toast.error(
+            "Organization details not loaded"
+          );
+
+          return;
+        }
+
         await createOrganizationInvitation({
 
-          organizationId:
-            userData?.organizationId,
+          organizationId,
 
           organizationName:
-            organization?.name ||
-            "SellerOS Organization",
+            organization.organizationName,
 
           invitedBy:
             user.uid,
 
           invitedByName:
-            userData?.fullName,
+            userData?.fullName || "Admin",
 
           invitedEmail:
-            email,
+            email.trim().toLowerCase(),
 
           organizationRole,
         });

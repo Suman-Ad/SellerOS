@@ -82,13 +82,13 @@ const USER_TYPE_OPTIONS = [
       "Seller",
   },
 
-  {
-    value:
-      USER_TYPES.STAFF,
+  // {
+  //   value:
+  //     USER_TYPES.STAFF,
 
-    label:
-      "Staff",
-  },
+  //   label:
+  //     "Staff",
+  // },
 
   {
     value:
@@ -98,13 +98,13 @@ const USER_TYPE_OPTIONS = [
       "Supplier",
   },
 
-  {
-    value:
-      USER_TYPES.PARTNER,
+  // {
+  //   value:
+  //     USER_TYPES.PARTNER,
 
-    label:
-      "Partner",
-  },
+  //   label:
+  //     "Partner",
+  // },
 ];
 /* =========================================================
    INITIAL FORM

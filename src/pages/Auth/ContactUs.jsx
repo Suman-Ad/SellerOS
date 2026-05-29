@@ -411,7 +411,7 @@ export default function ContactUs() {
                             <div>
 
                                 <h3 className="text-2xl font-bold">
-                                    Sourav Adhikari & Hashibul Rahaman
+                                    Sourav Adhikari & Sk Hasibur Rahaman
                                 </h3>
 
                                 <p className="text-violet-400 font-medium mt-1">

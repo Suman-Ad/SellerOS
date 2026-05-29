@@ -43,6 +43,9 @@ import {
 import logActivity
     from "@/utils/activity/logActivity";
 
+import calculateSellingPrice
+    from "@/utils/pricing/calculateSellingPrice";
+
 
 export default function AddProduct() {
 
@@ -241,6 +244,29 @@ export default function AddProduct() {
 
                     buyingPrice: 0,
 
+                    marginPercent: 0,
+
+                    gstPercent: 0,
+
+                    extraCosts: {
+
+                        packaging: 0,
+
+                        labeling: 0,
+
+                        rto: 0,
+
+                        return: 0,
+
+                        advertisement: 0,
+
+                        delivery: 0,
+
+                        others: 0,
+                    },
+
+                    totalExtraCost: 0,
+
                     sellingPrice: 0,
 
                     inventoryHistory: [],
@@ -278,21 +304,103 @@ export default function AddProduct() {
         value
     ) => {
 
+        const existingVariant =
+            formData.variants[size];
+
+        const updatedVariant = {
+
+            ...existingVariant,
+        };
+
+        // ====================================
+        // EXTRA COST FIELDS
+        // ====================================
+
+        const extraCostFields = [
+
+            "packaging",
+
+            "labeling",
+
+            "rto",
+
+            "return",
+
+            "advertisement",
+
+            "delivery",
+
+            "others",
+        ];
+
+        // ====================================
+        // UPDATE EXTRA COSTS
+        // ====================================
+
+        if (
+            extraCostFields.includes(field)
+        ) {
+
+            updatedVariant.extraCosts = {
+
+                ...updatedVariant.extraCosts,
+
+                [field]:
+                    Number(value),
+            };
+        }
+
+        // ====================================
+        // NORMAL FIELDS
+        // ====================================
+
+        else {
+
+            updatedVariant[field] =
+                value;
+        }
+
+        // ====================================
+        // AUTO CALCULATE
+        // ====================================
+
+        const pricing =
+            calculateSellingPrice(
+                updatedVariant
+            );
+
+        updatedVariant.totalExtraCost =
+            pricing.totalExtraCost;
+
+        updatedVariant.marginAmount =
+            pricing.marginAmount;
+
+        updatedVariant.gstAmount =
+            pricing.gstAmount;
+
+        updatedVariant.basePrice =
+            pricing.basePrice;
+
+        updatedVariant.estimatedProfit =
+            pricing.estimatedProfit;
+
+        updatedVariant.sellingPrice =
+            pricing.sellingPrice;
+
+        // ====================================
+        // UPDATE STATE
+        // ====================================
+
         setFormData({
+
             ...formData,
 
             variants: {
 
                 ...formData.variants,
 
-                [size]: {
-
-                    ...formData.variants[
-                    size
-                    ],
-
-                    [field]: value,
-                },
+                [size]:
+                    updatedVariant,
             },
         });
     };
@@ -770,68 +878,408 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                <label className="text-sm text-zinc-100">
+                                                    <Input
+                                                        value={
+                                                            variant.sku
+                                                        }
+                                                        disabled
+                                                    />
+                                                </label>
+                                                <label className="text-sm text-zinc-100">
+                                                    Batch No
+                                                    <Input
+                                                        value={
+                                                            variant.batchNo
+                                                        }
+                                                        disabled
+                                                    />
+                                                </label>
+                                                <label className="text-sm text-zinc-100">
+                                                    Qty
+                                                    <Input
+                                                        placeholder="Qty"
+                                                        type="number"
+                                                        value={
+                                                            variant.qty
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "qty",
+                                                                e.target
+                                                                    .value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
+                                                <label className="text-sm text-zinc-100">
+                                                    Buying Price
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Buying Price"
+                                                        value={
+                                                            variant.buyingPrice
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "buyingPrice",
+                                                                e.target
+                                                                    .value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
 
-                                                <Input
-                                                    value={
-                                                        variant.sku
-                                                    }
-                                                    disabled
-                                                />
+                                                <label className="text-sm text-zinc-100">
+                                                    Margin %
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Margin %"
+                                                        value={
+                                                            variant.marginPercent || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "marginPercent",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
 
-                                                <Input
-                                                    value={
-                                                        variant.batchNo
-                                                    }
-                                                    disabled
-                                                />
+                                                <label className="text-sm text-zinc-100">
+                                                    Packaging
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Packaging"
+                                                        value={
+                                                            variant.extraCosts
+                                                                ?.packaging || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "packaging",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
 
-                                                <Input
-                                                    placeholder="Qty"
-                                                    type="number"
-                                                    value={
-                                                        variant.qty
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleVariantChange(
-                                                            size,
-                                                            "qty",
-                                                            e.target
-                                                                .value
-                                                        )
-                                                    }
-                                                />
+                                                <label className="text-sm text-zinc-100">
+                                                    Labeling
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Labeling"
+                                                        value={
+                                                            variant.extraCosts
+                                                                ?.labeling || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "labeling",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
 
-                                                <Input
-                                                    placeholder="Buying Price"
-                                                    type="number"
-                                                    value={
-                                                        variant.buyingPrice
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleVariantChange(
-                                                            size,
-                                                            "buyingPrice",
-                                                            e.target
-                                                                .value
-                                                        )
-                                                    }
-                                                />
+                                                <label className="text-sm text-zinc-100">
+                                                    RTO
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="RTO"
+                                                        value={
+                                                            variant.extraCosts
+                                                                ?.rto || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "rto",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
 
-                                                <Input
-                                                    placeholder="Selling Price"
-                                                    type="number"
-                                                    value={
-                                                        variant.sellingPrice
-                                                    }
-                                                    onChange={(e) =>
-                                                        handleVariantChange(
-                                                            size,
-                                                            "sellingPrice",
-                                                            e.target
-                                                                .value
-                                                        )
-                                                    }
-                                                />
+                                                <label className="text-sm text-zinc-100">
+                                                    Return
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Return"
+                                                        value={
+                                                            variant.extraCosts
+                                                                ?.return || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "return",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
+
+                                                <label className="text-sm text-zinc-100">
+                                                    Advertisement
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Advertisement"
+                                                        value={
+                                                            variant.extraCosts
+                                                                ?.advertisement || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "advertisement",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
+
+                                                <label className="text-sm text-zinc-100">
+                                                    Delivery
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Delivery"
+                                                        value={
+                                                            variant.extraCosts
+                                                                ?.delivery || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "delivery",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
+
+                                                <label className="text-sm text-zinc-100">
+                                                    Others
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Others"
+                                                        value={
+                                                            variant.extraCosts
+                                                                ?.others || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "others",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
+
+                                                <label className="text-sm text-zinc-100">
+                                                    Total Extra Cost
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Total Extra Cost"
+                                                        value={
+                                                            variant.totalExtraCost || 0
+                                                        }
+                                                        readOnly
+                                                    />
+                                                </label>
+
+                                                <label className="text-sm text-zinc-100">
+                                                    GST %
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="GST %"
+                                                        value={
+                                                            variant.gstPercent || 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleVariantChange(
+                                                                size,
+                                                                "gstPercent",
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                </label>
+
+                                                <label className="text-sm text-zinc-100">
+                                                    Selling Price
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Selling Price"
+                                                        value={
+                                                            variant.sellingPrice
+                                                        }
+                                                        readOnly
+                                                    />
+                                                </label>
+
+                                            </div>
+
+                                            <div className="
+    mt-6
+    grid
+    grid-cols-2
+    md:grid-cols-6
+    gap-4
+">
+
+                                                <div className="
+        rounded-xl
+        bg-zinc-800
+        p-4
+    ">
+
+                                                    <p className="text-xs text-zinc-400">
+
+                                                        Buying Price
+
+                                                    </p>
+
+                                                    <h3 className="text-lg font-bold text-white mt-1">
+
+                                                        ₹{
+                                                            Number(
+                                                                variant.buyingPrice || 0
+                                                            ).toFixed(2)
+                                                        }
+
+                                                    </h3>
+
+                                                </div>
+
+                                                <div className="
+        rounded-xl
+        bg-zinc-800
+        p-4
+    ">
+
+                                                    <p className="text-xs text-zinc-400">
+
+                                                        Margin Amount
+
+                                                    </p>
+
+                                                    <h3 className="text-lg font-bold text-cyan-400 mt-1">
+
+                                                        ₹{
+                                                            Number(
+                                                                variant.marginAmount || 0
+                                                            ).toFixed(2)
+                                                        }
+
+                                                    </h3>
+
+                                                </div>
+
+                                                <div className="
+        rounded-xl
+        bg-zinc-800
+        p-4
+    ">
+
+                                                    <p className="text-xs text-zinc-400">
+
+                                                        Extra Cost
+
+                                                    </p>
+
+                                                    <h3 className="text-lg font-bold text-orange-400 mt-1">
+
+                                                        ₹{
+                                                            Number(
+                                                                variant.totalExtraCost || 0
+                                                            ).toFixed(2)
+                                                        }
+
+                                                    </h3>
+
+                                                </div>
+
+                                                <div className="
+        rounded-xl
+        bg-zinc-800
+        p-4
+    ">
+
+                                                    <p className="text-xs text-zinc-400">
+
+                                                        GST Amount
+
+                                                    </p>
+
+                                                    <h3 className="text-lg font-bold text-yellow-400 mt-1">
+
+                                                        ₹{
+                                                            Number(
+                                                                variant.gstAmount || 0
+                                                            ).toFixed(2)
+                                                        }
+
+                                                    </h3>
+
+                                                </div>
+
+                                                <div className="
+        rounded-xl
+        bg-zinc-800
+        p-4
+    ">
+
+                                                    <p className="text-xs text-zinc-400">
+
+                                                        Estimated Profit
+
+                                                    </p>
+
+                                                    <h3 className="text-lg font-bold text-green-400 mt-1">
+
+                                                        ₹{
+                                                            Number(
+                                                                variant.estimatedProfit || 0
+                                                            ).toFixed(2)
+                                                        }
+
+                                                    </h3>
+
+                                                </div>
+
+                                                <div className="
+        rounded-xl
+        bg-gradient-to-r
+        from-indigo-500
+        to-cyan-500
+        p-4
+    ">
+
+                                                    <p className="text-xs text-white/80">
+
+                                                        Final Selling Price
+
+                                                    </p>
+
+                                                    <h3 className="text-2xl font-bold text-white mt-1">
+
+                                                        ₹{
+                                                            Number(
+                                                                variant.sellingPrice || 0
+                                                            ).toFixed(2)
+                                                        }
+
+                                                    </h3>
+
+                                                </div>
 
                                             </div>
 
@@ -845,7 +1293,7 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                         </div>
 
                         <Button
-                        variant="outline"
+                            variant="outline"
                             type="submit"
                             disabled={loading}
                             className="w-full"

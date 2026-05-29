@@ -428,6 +428,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
 } from "react-router-dom";
 
 /* =========================================================
@@ -564,6 +565,9 @@ import Orders
 import OrderImport
   from "@/pages/Seller/Orders/Orderimport";
 
+import OrderImportHistory
+  from "@/pages/Seller/Orders/OrderImportHistory";
+
 import OrderDetails
   from "@/pages/Seller/Orders/OrderDetails";
 
@@ -593,6 +597,10 @@ import SecurityCenter
 
 import ThreatDetectionCenter
   from "@/pages/Security/ThreatDetectionCenter";
+
+import UserControlCenter from "@/pages/Admin/UserControlCenter";
+import AcceptInvitation from "@/pages/Organization/AcceptInvitation";
+import SubscriptionDashboardCard from "@/components/subscription/SubscriptionDashboardCard";
 
 /* =========================================================
    COMPONENT
@@ -635,104 +643,120 @@ export default function AppRouter() {
             element={<ContactUs />}
           />
 
-        </Route>
+          <Route
+            path="invite/:token"
+            element={<AcceptInvitation />}
+          />
 
-        {/* =====================================================
+
+          {/* =====================================================
            SUBSCRIPTION
         ===================================================== */}
 
-        <Route
-          path="/upgrade-plan"
-          element={
-            <ProtectedRoute>
-              <UpgradePlan />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/subscription-Dashboard"
+            element={
+              <ProtectedRoute>
+                <SubscriptionDashboardCard
+                   onUpgrade={() => window.location.href = "/upgrade-plan"}
+                />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/upgrade-plan"
+            element={
+              <ProtectedRoute>
+                <UpgradePlan />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/billing-history"
-          element={
-            <ProtectedRoute>
-              <BillingHistory />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* =====================================================
+          <Route
+            path="/billing-history"
+            element={
+              <ProtectedRoute>
+                <BillingHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* =====================================================
            ONBOARDING
         ===================================================== */}
 
-        <Route
-          path="/complete-profile"
-          element={
-            <ProtectedRoute>
-              <CompleteProfile />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/complete-profile"
+            element={
+              <ProtectedRoute>
+                <CompleteProfile />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/organization-setup"
-          element={
-            <ProtectedRoute>
-              <OrganizationSetup />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/organization-setup"
+            element={
+              <ProtectedRoute>
+                <OrganizationSetup />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/compliance-upload"
-          element={
-            <ProtectedRoute>
-              <ComplianceUpload />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/compliance-upload"
+            element={
+              <ProtectedRoute>
+                <ComplianceUpload />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/pending-approval"
-          element={
-            <ProtectedRoute>
-              <PendingApproval />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/pending-approval"
+            element={
+              <ProtectedRoute>
+                <PendingApproval />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* =====================================================
+          {/* =====================================================
            ACCOUNT RESTRICTED
         ===================================================== */}
 
-        <Route
-          path="/account-restricted"
-          element={
-            <ProtectedRoute>
-              <AccountRestricted />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/account-restricted"
+            element={
+              <ProtectedRoute>
+                <AccountRestricted />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* =====================================================
+          {/* =====================================================
            SECURITY
         ===================================================== */}
 
-        <Route
-          path="/security-center"
-          element={
-            <ProtectedRoute>
-              <SecurityCenter />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/security-center"
+            element={
+              <ProtectedRoute>
+                <SecurityCenter />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
 
         {/* =====================================================
            ADMIN ROUTES
@@ -796,6 +820,17 @@ export default function AppRouter() {
               >
                 <UserSubscriptionManager />
               </RoleRoute>
+            }
+          />
+
+          <Route
+            path="users"
+            element={
+              <PermissionRoute
+                allowedPlatformRoles={["super_admin"]}
+              >
+                <UserControlCenter />
+              </PermissionRoute>
             }
           />
 
@@ -931,6 +966,11 @@ export default function AppRouter() {
           <Route
             path="orders/import"
             element={<OrderImport />}
+          />
+
+          <Route
+            path="orders/import-history"
+            element={<OrderImportHistory />}
           />
 
           <Route

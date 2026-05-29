@@ -1,5 +1,7 @@
 import {
+  use,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -31,9 +33,15 @@ import {
 
   ShieldAlert,
 
+  ShieldCheck,
+
   Store,
 
   User,
+
+  Globe,
+
+  ExternalLink,
 
 } from "lucide-react";
 
@@ -42,6 +50,14 @@ import {
   doc,
 
   getDoc,
+
+  collection,
+
+  query,
+
+  where,
+
+  getDocs,
 
 } from "firebase/firestore";
 
@@ -61,6 +77,10 @@ import {
 import {
   toast,
 } from "sonner";
+
+import {
+  useOrganizationDetails,
+} from "@/utils/firebaseDB/OrganizationDetails";
 
 /* =========================================================
    COMPONENT
@@ -83,8 +103,13 @@ export default function SellerEncyclopedia() {
     setSeller] =
     useState(null);
 
+  const organization =
+    useOrganizationDetails(
+        sellerId
+    );
+
   /* =====================================================
-     FETCH SELLER
+     FETCH
   ===================================================== */
 
   useEffect(() => {
@@ -127,12 +152,13 @@ export default function SellerEncyclopedia() {
             ...snapshot.data(),
           });
 
+
         } catch (error) {
 
           console.error(error);
 
           toast.error(
-            "Failed to load seller encyclopedia"
+            "Failed to load seller profile"
           );
 
         } finally {
@@ -149,6 +175,45 @@ export default function SellerEncyclopedia() {
   }, [sellerId]);
 
   /* =====================================================
+     NORMALIZED DATA
+  ===================================================== */
+
+  const profile =
+    seller?.profile || {};
+
+  // const organization =
+  //   seller?.organization || {};
+
+  const governance =
+    seller?.governance || {};
+
+  const subscription =
+    seller?.subscription || {};
+
+  const onboarding =
+    seller?.onboarding || {};
+
+  const complianceDocs =
+    seller?.complianceDocuments || {};
+
+  const complianceStatus =
+    seller?.complianceStatus || {};
+
+  const authStatus =
+    seller?.authStatus || {};
+
+  const access =
+    seller?.access || {};
+
+  const sellerStatus =
+    governance?.sellerStatus ||
+    "pending_review";
+
+  const isApproved =
+    sellerStatus ===
+    "approved";
+
+  /* =====================================================
      LOADING
   ===================================================== */
 
@@ -159,7 +224,8 @@ export default function SellerEncyclopedia() {
       <div className="
         min-h-screen
         bg-black
-        flex items-center
+        flex
+        items-center
         justify-center
         text-white
       ">
@@ -181,7 +247,8 @@ export default function SellerEncyclopedia() {
       <div className="
         min-h-screen
         bg-black
-        flex items-center
+        flex
+        items-center
         justify-center
         text-zinc-400
       ">
@@ -191,6 +258,38 @@ export default function SellerEncyclopedia() {
       </div>
     );
   }
+
+  /* =====================================================
+     COMPLIANCE LIST
+  ===================================================== */
+
+  const complianceItems = [
+
+    {
+      key: "gst",
+      title:
+        "GST Verification",
+    },
+
+    {
+      key: "pan",
+      title:
+        "PAN Verification",
+    },
+
+    {
+      key:
+        "governmentId",
+      title:
+        "Government ID",
+    },
+
+    {
+      key: "bank",
+      title:
+        "Bank Verification",
+    },
+  ];
 
   /* =====================================================
      UI
@@ -205,7 +304,10 @@ export default function SellerEncyclopedia() {
       p-6
     ">
 
-      {/* HEADER */}
+      {/* =====================================================
+         HEADER
+      ===================================================== */}
+
       <motion.div
         initial={{
           opacity: 0,
@@ -252,7 +354,9 @@ export default function SellerEncyclopedia() {
               font-black
             ">
 
-              {seller.fullName}
+              {profile?.fullName ||
+                seller?.fullName ||
+                "Unknown Seller"}
 
             </h1>
 
@@ -273,21 +377,36 @@ export default function SellerEncyclopedia() {
 
               <StatusBadge
                 label={
-                  seller.approvalStatus ||
-                  "pending"
+                  sellerStatus
                 }
-                color="yellow"
+                color={
+                  isApproved
+                    ? "green"
+                    : sellerStatus ===
+                      "rejected"
+                      ? "red"
+                      : "yellow"
+                }
               />
 
               <StatusBadge
                 label={
-                  seller.organizationRole ||
+                  seller?.organization
+                    ?.organizationRole ||
                   "viewer"
                 }
                 color="violet"
               />
 
-              {seller.isApproved && (
+              <StatusBadge
+                label={
+                  access?.role ||
+                  "seller"
+                }
+                color="blue"
+              />
+
+              {isApproved && (
 
                 <StatusBadge
                   label="Verified Seller"
@@ -317,7 +436,9 @@ export default function SellerEncyclopedia() {
               size={18}
             />
 
-            Verified Account
+            {isApproved
+              ? "Approved Seller"
+              : "Pending Approval"}
 
           </Button>
 
@@ -340,7 +461,10 @@ export default function SellerEncyclopedia() {
 
       </motion.div>
 
-      {/* OVERVIEW */}
+      {/* =====================================================
+         OVERVIEW
+      ===================================================== */}
+
       <div className="
         grid lg:grid-cols-4
         gap-5
@@ -351,7 +475,8 @@ export default function SellerEncyclopedia() {
           icon={Store}
           title="Organization"
           value={
-            seller.organizationName ||
+            organization
+              ?.organizationName ||
             "N/A"
           }
         />
@@ -360,7 +485,7 @@ export default function SellerEncyclopedia() {
           icon={FileCheck}
           title="Compliance"
           value={
-            seller.onboarding
+            onboarding
               ?.complianceSubmitted
               ? "Submitted"
               : "Pending"
@@ -371,7 +496,8 @@ export default function SellerEncyclopedia() {
           icon={CreditCard}
           title="Subscription"
           value={
-            seller.subscriptionPlan ||
+            subscription
+              ?.planName ||
             "Free"
           }
         />
@@ -380,14 +506,16 @@ export default function SellerEncyclopedia() {
           icon={Activity}
           title="Account Status"
           value={
-            seller.status ||
-            "pending"
+            sellerStatus
           }
         />
 
       </div>
 
-      {/* PROFILE + BUSINESS */}
+      {/* =====================================================
+         PROFILE + BUSINESS
+      ===================================================== */}
+
       <div className="
         grid xl:grid-cols-2
         gap-6
@@ -395,6 +523,7 @@ export default function SellerEncyclopedia() {
       ">
 
         {/* PROFILE */}
+
         <Card className="
           bg-zinc-950
           border-zinc-800
@@ -404,28 +533,10 @@ export default function SellerEncyclopedia() {
             p-6
           ">
 
-            <div className="
-              flex items-center
-              gap-3
-              mb-6
-            ">
-
-              <User
-                className="
-                  text-violet-400
-                "
-              />
-
-              <h2 className="
-                text-2xl
-                font-bold
-              ">
-
-                Identity Profile
-
-              </h2>
-
-            </div>
+            <SectionTitle
+              icon={User}
+              title="Identity Profile"
+            />
 
             <div className="
               grid gap-5
@@ -434,15 +545,17 @@ export default function SellerEncyclopedia() {
               <InfoRow
                 icon={Mail}
                 label="Email"
-                value={seller.email}
+                value={
+                  seller?.email
+                }
               />
 
               <InfoRow
                 icon={Phone}
                 label="Phone"
                 value={
-                  seller.phone ||
-                  "N/A"
+                  profile
+                    ?.phoneNumber
                 }
               />
 
@@ -450,7 +563,7 @@ export default function SellerEncyclopedia() {
                 icon={CalendarDays}
                 label="Joined"
                 value={
-                  seller.createdAt
+                  seller?.createdAt
                     ?.toDate?.()
                     ?.toLocaleDateString?.() ||
                   "N/A"
@@ -458,10 +571,30 @@ export default function SellerEncyclopedia() {
               />
 
               <InfoRow
+                icon={ShieldCheck}
+                label="Email Verification"
+                value={
+                  authStatus
+                    ?.emailVerified
+                    ? "Verified"
+                    : "Pending"
+                }
+              />
+
+              <InfoRow
+                icon={User}
+                label="Platform Role"
+                value={
+                  access?.role
+                }
+              />
+
+              <InfoRow
                 icon={Building2}
                 label="Organization Role"
                 value={
-                  seller.organizationRole
+                  seller?.organization
+                    ?.organizationRole
                 }
               />
 
@@ -472,6 +605,7 @@ export default function SellerEncyclopedia() {
         </Card>
 
         {/* BUSINESS */}
+
         <Card className="
           bg-zinc-950
           border-zinc-800
@@ -481,28 +615,10 @@ export default function SellerEncyclopedia() {
             p-6
           ">
 
-            <div className="
-              flex items-center
-              gap-3
-              mb-6
-            ">
-
-              <Store
-                className="
-                  text-violet-400
-                "
-              />
-
-              <h2 className="
-                text-2xl
-                font-bold
-              ">
-
-                Business Intelligence
-
-              </h2>
-
-            </div>
+            <SectionTitle
+              icon={Store}
+              title="Business Intelligence"
+            />
 
             <div className="
               grid gap-5
@@ -512,34 +628,52 @@ export default function SellerEncyclopedia() {
                 icon={Building2}
                 label="Organization"
                 value={
-                  seller.organizationName ||
-                  "N/A"
+                  organization
+                    ?.organizationName
+                }
+              />
+
+              <InfoRow
+                icon={Globe}
+                label="Website"
+                value={
+                  organization
+                    ?.website
+                }
+              />
+
+              <InfoRow
+                icon={Mail}
+                label="Business Email"
+                value={
+                  organization
+                    ?.businessEmail
+                }
+              />
+
+              <InfoRow
+                icon={Phone}
+                label="Business Phone"
+                value={
+                  organization
+                    ?.businessPhone
                 }
               />
 
               <InfoRow
                 icon={CreditCard}
-                label="GST Number"
+                label="Subscription Plan"
                 value={
-                  seller.gstNo ||
-                  "N/A"
-                }
-              />
-
-              <InfoRow
-                icon={FileCheck}
-                label="PAN Number"
-                value={
-                  seller.panNo ||
-                  "N/A"
+                  subscription
+                    ?.planName
                 }
               />
 
               <InfoRow
                 icon={ShieldAlert}
-                label="Approval Status"
+                label="Governance Status"
                 value={
-                  seller.approvalStatus
+                  sellerStatus
                 }
               />
 
@@ -551,7 +685,10 @@ export default function SellerEncyclopedia() {
 
       </div>
 
-      {/* COMPLIANCE */}
+      {/* =====================================================
+         COMPLIANCE
+      ===================================================== */}
+
       <Card className="
         bg-zinc-950
         border-zinc-800
@@ -562,28 +699,10 @@ export default function SellerEncyclopedia() {
           p-6
         ">
 
-          <div className="
-            flex items-center
-            gap-3
-            mb-8
-          ">
-
-            <ShieldAlert
-              className="
-                text-violet-400
-              "
-            />
-
-            <h2 className="
-              text-2xl
-              font-bold
-            ">
-
-              Compliance Intelligence
-
-            </h2>
-
-          </div>
+          <SectionTitle
+            icon={ShieldAlert}
+            title="Compliance Intelligence"
+          />
 
           <div className="
             grid md:grid-cols-2
@@ -591,137 +710,175 @@ export default function SellerEncyclopedia() {
             gap-5
           ">
 
-            {[
-              {
-                key: "gst",
-                title:
-                  "GST Verification",
-              },
+            {complianceItems.map(
+              (item) => {
 
-              {
-                key: "pan",
-                title:
-                  "PAN Verification",
-              },
+                const document =
+                  complianceDocs[
+                  item.key
+                  ];
 
-              {
-                key:
-                  "governmentId",
-                title:
-                  "Government ID",
-              },
+                const status =
+                  complianceStatus[
+                  item.key
+                  ];
 
-              {
-                key: "bank",
-                title:
-                  "Bank Verification",
-              },
-            ].map((item) => {
+                return (
 
-              const document =
-                seller
-                  ?.complianceDocuments?.[
-                item.key
-                ];
-
-              return (
-
-                <div
-                  key={item.key}
-                  className="
-                    rounded-2xl
-                    border border-zinc-800
-                    bg-zinc-900
-                    p-5
-                  "
-                >
-
-                  <div className="
-                    flex items-center
-                    justify-between
-                    mb-4
-                  ">
-
-                    <h3 className="
-                      text-lg
-                      font-bold
-                    ">
-
-                      {item.title}
-
-                    </h3>
-
-                    <FileCheck
-                      className="
-                        text-violet-400
-                      "
-                    />
-
-                  </div>
-
-                  {document ? (
-
-                    <div>
-
-                      <p className="
-                        text-zinc-400
-                        mb-4
-                      ">
-
-                        Status:
-                        {" "}
-                        {document.status}
-                      </p>
-
-                      <Button
-                        asChild
-                        className="
-    bg-violet-600
-    hover:bg-violet-700
-    w-full
-  "
-                      >
-                        <a
-                          href={document.url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View Document
-                        </a>
-                      </Button>
-                      {document?.url && (
-                        <iframe
-                          src={document.url}
-                          title={item.title}
-                          className="
-      w-full
-      h-64
-      rounded-xl
-      mt-4
-      border
-      border-zinc-700
-      bg-white
-    "
-                        />
-                      )}
-
-                    </div>
-
-                  ) : (
+                  <div
+                    key={item.key}
+                    className="
+                      rounded-2xl
+                      border border-zinc-800
+                      bg-zinc-900
+                      p-5
+                    "
+                  >
 
                     <div className="
-                      text-yellow-400
+                      flex items-center
+                      justify-between
+                      mb-4
                     ">
 
-                      Not Uploaded
+                      <h3 className="
+                        text-lg
+                        font-bold
+                      ">
+
+                        {item.title}
+
+                      </h3>
+
+                      <FileCheck
+                        className="
+                          text-violet-400
+                        "
+                      />
 
                     </div>
 
-                  )}
+                    {document ? (
 
-                </div>
-              );
-            })}
+                      <div>
+
+                        <div className="
+                          flex items-center
+                          justify-between
+                          mb-4
+                        ">
+
+                          <p className="
+                            text-zinc-400
+                          ">
+
+                            Status
+
+                          </p>
+
+                          <StatusBadge
+                            label={
+                              status
+                                ?.status ||
+                              "pending"
+                            }
+                            color={
+                              status
+                                ?.status ===
+                                "approved"
+                                ? "green"
+                                : status
+                                  ?.status ===
+                                  "rejected"
+                                  ? "red"
+                                  : "yellow"
+                            }
+                          />
+
+                        </div>
+
+                        <div className="
+                          text-zinc-400
+                          text-sm
+                          mb-4
+                          break-all
+                        ">
+
+                          {
+                            document
+                              ?.number
+                          }
+
+                        </div>
+
+                        <Button
+                          asChild
+                          className="
+                            bg-violet-600
+                            hover:bg-violet-700
+                            w-full
+                          "
+                        >
+
+                          <a
+                            href={
+                              document
+                                ?.url
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+
+                            <ExternalLink
+                              size={16}
+                            />
+
+                            View Document
+
+                          </a>
+
+                        </Button>
+
+                        {document?.url && (
+
+                          <iframe
+                            src={
+                              document.url
+                            }
+                            title={
+                              item.title
+                            }
+                            className="
+                              w-full
+                              h-64
+                              rounded-xl
+                              mt-4
+                              border
+                              border-zinc-700
+                              bg-white
+                            "
+                          />
+
+                        )}
+
+                      </div>
+
+                    ) : (
+
+                      <div className="
+                        text-yellow-400
+                      ">
+
+                        Not Uploaded
+
+                      </div>
+
+                    )}
+
+                  </div>
+                );
+              }
+            )}
 
           </div>
 
@@ -729,7 +886,10 @@ export default function SellerEncyclopedia() {
 
       </Card>
 
-      {/* TIMELINE */}
+      {/* =====================================================
+         TIMELINE
+      ===================================================== */}
+
       <Card className="
         bg-zinc-950
         border-zinc-800
@@ -739,28 +899,10 @@ export default function SellerEncyclopedia() {
           p-6
         ">
 
-          <div className="
-            flex items-center
-            gap-3
-            mb-8
-          ">
-
-            <Activity
-              className="
-                text-violet-400
-              "
-            />
-
-            <h2 className="
-              text-2xl
-              font-bold
-            ">
-
-              Seller Lifecycle Timeline
-
-            </h2>
-
-          </div>
+          <SectionTitle
+            icon={Activity}
+            title="Seller Lifecycle Timeline"
+          />
 
           <div className="
             space-y-6
@@ -772,9 +914,19 @@ export default function SellerEncyclopedia() {
             />
 
             <TimelineItem
+              title="Email Verification"
+              status={
+                authStatus
+                  ?.emailVerified
+                  ? "completed"
+                  : "pending"
+              }
+            />
+
+            <TimelineItem
               title="Profile Completed"
               status={
-                seller.onboarding
+                onboarding
                   ?.profileCompleted
                   ? "completed"
                   : "pending"
@@ -784,7 +936,8 @@ export default function SellerEncyclopedia() {
             <TimelineItem
               title="Organization Created"
               status={
-                seller.organizationId
+                organization
+                  ?.organizationId
                   ? "completed"
                   : "pending"
               }
@@ -793,7 +946,7 @@ export default function SellerEncyclopedia() {
             <TimelineItem
               title="Compliance Uploaded"
               status={
-                seller.onboarding
+                onboarding
                   ?.complianceSubmitted
                   ? "completed"
                   : "pending"
@@ -803,7 +956,7 @@ export default function SellerEncyclopedia() {
             <TimelineItem
               title="Marketplace Approval"
               status={
-                seller.isApproved
+                isApproved
                   ? "completed"
                   : "pending"
               }
@@ -820,7 +973,43 @@ export default function SellerEncyclopedia() {
 }
 
 /* =========================================================
-   COMPONENTS
+   SECTION TITLE
+========================================================= */
+
+function SectionTitle({
+  icon: Icon,
+  title,
+}) {
+
+  return (
+
+    <div className="
+      flex items-center
+      gap-3
+      mb-6
+    ">
+
+      <Icon
+        className="
+          text-violet-400
+        "
+      />
+
+      <h2 className="
+        text-2xl
+        font-bold
+      ">
+
+        {title}
+
+      </h2>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   OVERVIEW CARD
 ========================================================= */
 
 function OverviewCard({
@@ -867,9 +1056,10 @@ function OverviewCard({
           text-xl
           font-bold
           text-white
+          break-words
         ">
 
-          {value}
+          {value || "N/A"}
 
         </div>
 
@@ -887,6 +1077,10 @@ function OverviewCard({
     </Card>
   );
 }
+
+/* =========================================================
+   INFO ROW
+========================================================= */
 
 function InfoRow({
   icon: Icon,
@@ -916,7 +1110,9 @@ function InfoRow({
 
       </div>
 
-      <div>
+      <div className="
+        flex-1
+      ">
 
         <p className="
           text-zinc-400
@@ -932,6 +1128,7 @@ function InfoRow({
           text-lg
           font-semibold
           mt-1
+          break-words
         ">
 
           {value || "N/A"}
@@ -943,6 +1140,10 @@ function InfoRow({
     </div>
   );
 }
+
+/* =========================================================
+   TIMELINE
+========================================================= */
 
 function TimelineItem({
   title,
@@ -991,6 +1192,10 @@ function TimelineItem({
   );
 }
 
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
 function StatusBadge({
   label,
   color = "violet",
@@ -1009,6 +1214,9 @@ function StatusBadge({
 
     violet:
       "bg-violet-500/20 text-violet-300",
+
+    blue:
+      "bg-blue-500/20 text-blue-300",
   };
 
   return (
@@ -1018,6 +1226,7 @@ function StatusBadge({
       rounded-full
       text-sm
       font-semibold
+      capitalize
       ${colors[color]}
     `}>
 

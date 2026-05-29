@@ -66,7 +66,7 @@ export const createOrganizationInvitation =
     invitedEmail,
 
     organizationRole =
-      ORGANIZATION_ROLES.STAFF,
+    ORGANIZATION_ROLES.STAFF,
 
     permissions = [],
 
@@ -78,6 +78,20 @@ export const createOrganizationInvitation =
       /* =============================================
          DUPLICATE INVITATION CHECK
       ============================================= */
+
+      if (!organizationId) {
+
+        throw new Error(
+          "organizationId is undefined"
+        );
+      }
+
+      if (!invitedEmail) {
+
+        throw new Error(
+          "invitedEmail is undefined"
+        );
+      }
 
       const existingQuery =
         query(

@@ -14,6 +14,8 @@ import logActivity
 // ====================================
 
 const executeOrdersImport = async ({
+    importBatchId,
+
     matchedOrders = [],
 
     user,
@@ -184,6 +186,8 @@ const executeOrdersImport = async ({
                         sellerId:
                             user.uid,
 
+                        importBatchId,
+
                         // ====================================
                         // PLATFORM
                         // ====================================
@@ -338,18 +342,18 @@ const executeOrdersImport = async ({
                         "Order Imported",
 
                     description:
-                        `Shop Name:- ${userData.businessName} imported ${total} orders into SellerOS successfully. DB Ref:- ${orderRef.id}`,
+                        `Shop Name:- ${userData?.businessName} imported ${total} orders into SellerOS successfully. DB Ref:- ${orderRef.id}`,
 
                     meta: {
                         role:
-                            userData.role,
+                            userData?.role,
                         fullName:
-                            userData.fullName,
+                            userData?.fullName,
                         businessName:
-                            userData.businessName ||
+                            userData?.businessName ||
                             null,
                         subscriptionPlan:
-                            userData.subscription.planName ||
+                            userData?.subscription?.planName ||
                             null,
                     },
                 });

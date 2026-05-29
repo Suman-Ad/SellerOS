@@ -168,7 +168,7 @@ export const resolveRedirectPath = (
   ========================================= */
 
   if (requiresReKyc(userData)) {
-    return "/rekyc-required";
+    return "/compliance-upload";
   }
 
   /* =========================================
