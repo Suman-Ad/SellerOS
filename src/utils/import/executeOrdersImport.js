@@ -33,6 +33,8 @@ const executeOrdersImport = async ({
 
     try {
 
+        const createdOrderIds = [];
+
         // ====================================
         // EMPTY
         // ====================================
@@ -330,6 +332,8 @@ const executeOrdersImport = async ({
                     }
                 );
 
+                createdOrderIds.push(orderRef.id);
+
                 operationRef.current++;
 
                 // ========================================
@@ -520,9 +524,12 @@ const executeOrdersImport = async ({
             );
         }
 
+        
+
         return {
             imported,
             failed,
+            orderIds: createdOrderIds
         };
 
     } catch (err) {

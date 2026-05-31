@@ -247,7 +247,7 @@ export default function AcceptInvitation() {
         });
 
         await incrementStaff(
-          user.uid,
+          invitation.invitedBy,
           1
         )
 

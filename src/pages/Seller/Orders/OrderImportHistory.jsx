@@ -153,46 +153,17 @@ const OrderImportHistory = () => {
                 // FIND IMPORTED ORDERS
                 // ====================================
 
-                const ordersQuery = query(
 
-                    collection(
-                        db,
-                        "orders"
-                    ),
 
-                    where(
-                        "importBatchId",
-                        "==",
-                        item.importBatchId
-                    )
-                );
+                const batch = writeBatch(db);
 
-                const snapshot =
-                    await getDocs(
-                        ordersQuery
-                    );
-
-                const batch =
-                    writeBatch(db);
-
-                // ====================================
-                // DELETE ORDERS
-                // ====================================
-
-                snapshot.docs.forEach((docSnap) => {
+                for (const orderId of item.importedOrderIds || []) {
 
                     batch.delete(
-                        doc(
-                            db,
-                            "orders",
-                            docSnap.id
-                        )
+                        doc(db, "orders", orderId)
                     );
-                });
 
-                // ====================================
-                // DELETE HISTORY
-                // ====================================
+                }
 
                 batch.delete(
                     doc(
@@ -201,6 +172,14 @@ const OrderImportHistory = () => {
                         item.id
                     )
                 );
+
+                // batch.update(
+                //     doc(db, "order_import_history", item.id),
+                //     {
+                //         status: "ready_for_remap",
+                //         resetAt: new Date()
+                //     }
+                // );
 
                 await batch.commit();
 
@@ -241,65 +220,41 @@ const OrderImportHistory = () => {
                 // FIND IMPORTED ORDERS
                 // ====================================
 
-                const ordersQuery = query(
-
-                    collection(
-                        db,
-                        "orders"
-                    ),
-
-                    where(
-                        "importBatchId",
-                        "==",
-                        item.importBatchId
-                    )
-                );
-
-                const snapshot =
-                    await getDocs(
-                        ordersQuery
+                for (const orderId of item.importedOrderIds || []) {
+                    batch.delete(
+                        doc(db, "orders", orderId)
                     );
+                }
 
                 const batch =
                     writeBatch(db);
 
-                snapshot.docs.forEach((docSnap) => {
-
-                    batch.update(
-                        doc(
-                            db,
-                            "orders",
-                            docSnap.id
-                        ),
-                        {
-                            importBatchId: null,
-
-                            importReset: true,
-
-                            updatedAt:
-                                new Date(),
-                        }
-                    );
-                });
+                batch.update(
+                    doc(db, "order_import_history", item.id),
+                    {
+                        status: "ready_for_remap",
+                        resetAt: new Date()
+                    }
+                );
 
                 // ====================================
                 // UPDATE HISTORY
                 // ====================================
 
-                batch.update(
-                    doc(
-                        db,
-                        "order_import_history",
-                        item.id
-                    ),
-                    {
-                        status:
-                            "reset",
+                // batch.update(
+                //     doc(
+                //         db,
+                //         "order_import_history",
+                //         item.id
+                //     ),
+                //     {
+                //         status:
+                //             "reset",
 
-                        resetAt:
-                            new Date(),
-                    }
-                );
+                //         resetAt:
+                //             new Date(),
+                //     }
+                // );
 
                 await batch.commit();
 
@@ -676,13 +631,12 @@ const OrderImportHistory = () => {
 
                                                     <button
                                                         onClick={() =>
-                                                            handleReset(item)
+                                                            navigate(
+                                                                `/seller/orders/import?history=${item.id}`
+                                                            )
                                                         }
-                                                        className="w-9 h-9 rounded-xl bg-yellow-100 text-yellow-700 flex items-center justify-center hover:scale-105 transition"
                                                     >
-
-                                                        <RotateCcw size={16} />
-
+                                                        Re-import
                                                     </button>
 
                                                     <button

@@ -89,7 +89,7 @@ export default function AddProduct() {
 
             brand: "",
 
-            color: "Black",
+            color: "",
 
             parentSKU: "",
 
@@ -700,147 +700,162 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                     >
 
                         {/* Product */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <label className="text-sm text-zinc-100">
+                                Category
+                                <select
+                                    name="category"
+                                    value={
+                                        formData.category
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    className="h-10 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-white"
+                                >
 
-                            <select
-                                name="category"
-                                value={
-                                    formData.category
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                                className="h-10 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-white"
-                            >
-
-                                {Object.keys(
-                                    categoryMap
-                                ).map((cat) => (
-
-                                    <option
-                                        key={cat}
-                                        value={cat}
-                                    >
-                                        {cat}
-                                    </option>
-
-                                ))}
-
-                            </select>
-
-                            <select
-                                name="subCategory"
-                                value={
-                                    formData.subCategory
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                                className="h-10 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-white"
-                            >
-
-                                <option value="">
-                                    Select Product
-                                </option>
-
-                                {availableProducts.map(
-                                    (
-                                        product
-                                    ) => (
+                                    {Object.keys(
+                                        categoryMap
+                                    ).map((cat) => (
 
                                         <option
-                                            key={product}
-                                            value={
-                                                product
-                                            }
+                                            key={cat}
+                                            value={cat}
                                         >
-                                            {product}
+                                            {cat}
                                         </option>
 
-                                    )
-                                )}
+                                    ))}
 
-                            </select>
+                                </select>
+                            </label>
+                            <label className="text-sm text-zinc-100">
+                                Sub Catagory
+                                <select
+                                    name="subCategory"
+                                    value={
+                                        formData.subCategory
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    className="h-10 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-white"
+                                    disabled={!formData.category}
+                                >
 
-                            <Input
-                                name="productName"
-                                placeholder="Product Name"
-                                value={
-                                    formData.productName
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                                required
-                            />
+                                    <option value="">
+                                        Select Product
+                                    </option>
 
+                                    {availableProducts.map(
+                                        (
+                                            product
+                                        ) => (
+
+                                            <option
+                                                key={product}
+                                                value={
+                                                    product
+                                                }
+                                            >
+                                                {product}
+                                            </option>
+
+                                        )
+                                    )}
+
+                                </select>
+                            </label>
+                            <label className="text-sm text-zinc-100">
+                                Brand
+                                <Input
+                                    name="brand"
+                                    placeholder="Brand"
+                                    value={
+                                        formData.brand
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    disabled={!formData.subCategory}
+                                />
+                            </label>
+                            <label className="text-sm text-zinc-100">
+                                Color
+                                <select
+                                    name="color"
+                                    value={
+                                        formData.color
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    className="h-10 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-white"
+                                    disabled={!formData.brand}
+
+                                >
+
+                                    {colorOptions.map(
+                                        (
+                                            color
+                                        ) => (
+
+                                            <option
+                                                key={color}
+                                                value={color}
+                                            >
+                                                {color}
+                                            </option>
+
+                                        )
+                                    )}
+
+                                </select>
+                            </label>
                         </div>
 
                         {/* Brand + Color */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                            <Input
-                                name="brand"
-                                placeholder="Brand"
-                                value={
-                                    formData.brand
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                            />
-
-                            <select
-                                name="color"
-                                value={
-                                    formData.color
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                                className="h-10 rounded-md border border-zinc-700 bg-zinc-900 px-3 text-white"
-                            >
-
-                                {colorOptions.map(
-                                    (
-                                        color
-                                    ) => (
-
-                                        <option
-                                            key={color}
-                                            value={color}
-                                        >
-                                            {color}
-                                        </option>
-
-                                    )
-                                )}
-
-                            </select>
-
+                            <label className="text-sm text-zinc-100">
+                                Product Name
+                                <Input
+                                    name="productName"
+                                    placeholder="Product Name"
+                                    value={
+                                        formData.productName
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    required
+                                    readOnly
+                                />
+                            </label>
                         </div>
 
                         {/* SKU */}
                         <div className="flex gap-2">
-
-                            <Input
-                                name="parentSKU"
-                                placeholder="Parent SKU"
-                                value={
-                                    formData.parentSKU
-                                }
-                                onChange={
-                                    handleChange
-                                }
-                                required
-                            />
-
+                            <label className="text-sm text-zinc-100">
+                                SKU No
+                                <Input
+                                    name="parentSKU"
+                                    placeholder="Parent SKU"
+                                    value={
+                                        formData.parentSKU
+                                    }
+                                    onChange={
+                                        handleChange
+                                    }
+                                    required
+                                />
+                            </label>
                             <Button
                                 variant="outline"
                                 type="button"
                                 onClick={
                                     generateParentSKU
                                 }
+                                disabled={!formData.color}
                             >
                                 Generate
                             </Button>
@@ -931,6 +946,7 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
 
                                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                                 <label className="text-sm text-zinc-100">
+                                                    Variant SKU No
                                                     <Input
                                                         value={
                                                             variant.sku

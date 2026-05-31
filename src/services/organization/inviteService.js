@@ -207,6 +207,8 @@ export const createOrganizationInvitation =
 
         success: true,
 
+        invitedBy: invitedBy,
+
         invitationId:
           invitationRef.id,
 

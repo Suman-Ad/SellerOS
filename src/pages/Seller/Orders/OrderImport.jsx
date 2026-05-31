@@ -35,6 +35,8 @@ import { db } from "@/firebase/config";
 
 import OrderImportHistory from "./OrderImportHistory";
 
+import { useLocation } from "react-router-dom";
+
 
 // ====================================
 // PAGE
@@ -176,6 +178,40 @@ const OrderImport = () => {
         setImportType] =
         useState("orders");
 
+
+    const location = useLocation();
+
+    const historyId =
+        new URLSearchParams(
+            location.search
+        ).get("history");
+
+
+    //         const historyDoc =
+    //  await getDoc(
+    //    doc(
+    //      db,
+    //      "order_import_history",
+    //      historyId
+    //    )
+    //  );
+
+    // const data = historyDoc.data();
+
+    // setFieldMapping(
+    //  data.fieldMapping || {}
+    // );
+
+    // setParsedRows(
+    //  data.parsedRows || []
+    // );
+
+    // setShowMapping(true);
+    useEffect(() => {
+        if (!historyId) return;
+
+        loadHistory();
+    }, [historyId]);
     // ====================================
     // HANDLE UPLOAD
     // ====================================
@@ -230,6 +266,7 @@ const OrderImport = () => {
                 // ====================================
                 // START IMPORT
                 // ====================================
+
 
                 await MarketplaceImportEngine({
 
@@ -439,6 +476,7 @@ const OrderImport = () => {
                         );
                     },
                 });
+
 
             } catch (err) {
 
@@ -669,14 +707,11 @@ const OrderImport = () => {
                 // ====================================
 
                 await addDoc(
-                    collection(
-                        db,
-                        "order_import_history"
-                    ),
+                    collection(db, "order_import_history"),
                     {
                         importBatchId,
-                        sellerId:
-                            user.uid,
+
+                        sellerId: user.uid,
 
                         fileName,
 
@@ -684,51 +719,15 @@ const OrderImport = () => {
 
                         importType,
 
-                        uploadedAt:
-                            serverTimestamp(),
+                        fieldMapping,
 
-                        totalRows:
-                            parsedRows.length,
+                        parsedRows,
 
-                        validRows:
-                            validRows.length,
+                        importedOrderIds: result.orderIds,
 
-                        invalidRows:
-                            invalidRows.length,
+                        status: "completed",
 
-                        duplicateCount:
-                            duplicateRows.length,
-
-                        unmatchedCount:
-                            unmatchedRows.length,
-
-                        importedCount:
-                            result.imported || 0,
-
-                        status:
-                            "completed",
-
-                        createdBy: {
-                            uid:
-                                user.uid,
-
-                            email:
-                                user.email || "",
-
-                            name:
-                                userData?.fullName || "",
-
-                            OrgID:
-                                userData?.organization?.organizationId || "",
-                        },
-                        importedAt:
-                            serverTimestamp(),
-
-                        source:
-                            "OrderImport",
-
-                        version:
-                            "v1",
+                        uploadedAt: serverTimestamp()
                     }
                 );
 
@@ -771,6 +770,8 @@ const OrderImport = () => {
     // ====================================
     // RENDER
     // ====================================
+
+
 
     return (
 
