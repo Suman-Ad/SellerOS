@@ -214,7 +214,7 @@ export default function DashboardLayout() {
               </h1>
 
               <p className="text-xs text-zinc-400 mt-1">
-                SellerOS Dashboard Panel
+                SellerOS Home Panel
               </p>
 
             </div>
@@ -250,7 +250,8 @@ export default function DashboardLayout() {
                 </p>
 
               )}
-              <div className="space-y-1">
+              <div className="space-y-1"
+                onClick={() => setCollapsed(true)}>
                 {section.items
                   .filter((item) => {
                     // Only super_admin can see Admin Panel
@@ -362,6 +363,20 @@ export default function DashboardLayout() {
 
         </div>
 
+        {!collapsed &&
+          <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between sticky bottom-0 z-10">
+
+            <p>
+              © 2026 SellerOS ERP
+            </p>
+
+            <p>
+              Seller Platform v1.0
+            </p>
+
+          </footer>
+        }
+
       </aside>
 
       {/* Main */}
@@ -372,7 +387,19 @@ export default function DashboardLayout() {
 
           {/* Left */}
           <div className="flex items-center gap-4">
-
+            {collapsed &&
+              <div>
+                <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent"
+                  onClick={() => navigate("/")}
+                  style={{ cursor: "pointer" }}
+                >
+                  SellerOS
+                </h1>
+                <p className="text-xs text-zinc-400 mt-1">
+                  SellerOS Home
+                </p>
+              </div>
+            }
             <div className="hidden lg:flex flex-col">
 
               <p className="text-xs uppercase tracking-wider text-zinc-500"
@@ -539,19 +566,57 @@ export default function DashboardLayout() {
                 {/* Menu */}
                 <div className="p-2">
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() => {
+                      {
+                        (userData?.access?.role === "super_admin" || userData?.access?.role === "admin") ?
+                          navigate("/admin/profile-settings")
+                          : navigate("/seller/profile-settings")
+                      };
+                      setShowProfileMenu(
+                        !showProfileMenu
+                      );
+                    }}
+                  >
                     Profile Settings
                   </button>
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() => {
+                      navigate("/subscription-Dashboard");
+                      setShowProfileMenu(
+                        !showProfileMenu
+                      );
+                    }
+                    }
+                  >
                     Billing & Subscription
                   </button>
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() => {
+                      navigate("/security-center");
+                      setShowProfileMenu(
+                        !showProfileMenu
+                      );
+                    }}
+                  >
+                    Security Center
+                  </button>
+
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() => setShowProfileMenu(
+                      !showProfileMenu
+                    )}
+                  >
                     Activity Logs
                   </button>
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() => setShowProfileMenu(
+                      !showProfileMenu
+                    )}
+                  >
                     Help Center
                   </button>
 
@@ -579,20 +644,14 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page Content */}
-        <div className="p-4 md:p-6">
+        <div className="p-4 md:p-6"
+          onClick={() => {
+            setCollapsed(true);
+          }}
+        >
           <Outlet />
         </div>
-        <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between sticky bottom-0 z-10">
 
-          <p>
-            © 2026 SellerOS ERP
-          </p>
-
-          <p>
-            Seller Platform v1.0
-          </p>
-
-        </footer>
       </main>
       {/* FAQ Modal */}
       {showFAQ && (

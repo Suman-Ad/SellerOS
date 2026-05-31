@@ -34,6 +34,9 @@ import {
   activateSubscription,
 } from "@/services/subscription/activateSubscription";
 
+import UserSubscriptionHistoryDrawer
+  from "@/components/admin/UserSubscriptionHistoryDrawer";
+
 export default function UserSubscriptionManager() {
 
   const [users, setUsers] = useState([]);
@@ -54,6 +57,9 @@ export default function UserSubscriptionManager() {
     () => collection(db, "users"),
     []
   );
+
+  const [historyOpen, setHistoryOpen] =
+    useState(false);
 
   // =========================
   // Fetch Users
@@ -366,6 +372,28 @@ export default function UserSubscriptionManager() {
           const subscription =
             user.subscription || {};
 
+          const expiryDate =
+            subscription.expiresAt?.toDate
+              ? subscription.expiresAt.toDate()
+              : null;
+
+          const daysLeft =
+            expiryDate
+              ? Math.ceil(
+                (expiryDate - new Date()) /
+                (1000 * 60 * 60 * 24)
+              )
+              : 0;
+
+          const subscriptionHealth =
+            !subscription.isActive
+              ? "Suspended"
+              : daysLeft <= 0
+                ? "Expired"
+                : daysLeft <= 7
+                  ? "Expiring Soon"
+                  : "Healthy";
+
           return (
 
             <Card
@@ -395,6 +423,28 @@ export default function UserSubscriptionManager() {
                       <p className="text-zinc-400 mt-1">
                         {user.email}
                       </p>
+
+                      <div className="mt-3 flex flex-wrap gap-4 text-sm">
+
+                        <div className="text-zinc-400">
+
+                          Revenue:
+                          <span className="text-white ml-2">
+                            Coming Soon
+                          </span>
+
+                        </div>
+
+                        <div className="text-zinc-400">
+
+                          Payments:
+                          <span className="text-white ml-2">
+                            Coming Soon
+                          </span>
+
+                        </div>
+
+                      </div>
 
                       <div className="flex flex-wrap items-center gap-3 mt-4">
 
@@ -429,6 +479,49 @@ export default function UserSubscriptionManager() {
                           />
 
                           {user.role}
+
+                        </div>
+
+                        {/* Billing Cycle */}
+                        <div className="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full text-sm">
+
+                          {subscription.billingCycle ||
+                            "monthly"}
+
+                        </div>
+
+                        {/* Expiry */}
+                        <div className="bg-amber-500/10 text-amber-400 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+
+                          <CalendarClock size={14} />
+
+                          {expiryDate
+                            ? expiryDate.toLocaleDateString(
+                              "en-IN"
+                            )
+                            : "No Expiry"}
+
+                        </div>
+
+                        {/* Days Left */}
+                        <div
+                          className={`
+    px-3 py-1 rounded-full text-sm
+    ${subscriptionHealth ===
+                              "Healthy"
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : subscriptionHealth ===
+                                "Expiring Soon"
+                                ? "bg-orange-500/10 text-orange-400"
+                                : "bg-red-500/10 text-red-400"
+                            }
+  `}
+                        >
+
+                          {subscriptionHealth ===
+                            "Healthy"
+                            ? `${daysLeft} Days Left`
+                            : subscriptionHealth}
 
                         </div>
 
@@ -499,6 +592,21 @@ export default function UserSubscriptionManager() {
                     >
 
                       Update Plan
+
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+
+                        setSelectedUser(user);
+
+                        setHistoryOpen(true);
+
+                      }}
+                    >
+
+                      View History
 
                     </Button>
 
@@ -578,6 +686,14 @@ export default function UserSubscriptionManager() {
           </Card>
 
         )}
+
+      <UserSubscriptionHistoryDrawer
+        open={historyOpen}
+        user={selectedUser}
+        onClose={() =>
+          setHistoryOpen(false)
+        }
+      />
 
     </div>
   );

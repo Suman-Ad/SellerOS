@@ -166,6 +166,8 @@ export default function AdminSubscriptions() {
 
       const payload = {
 
+        planId: editingId || plansCollection.id,
+
         name: formData.name,
         slug: formData.slug,
         badge: formData.badge,

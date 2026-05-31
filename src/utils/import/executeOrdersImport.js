@@ -343,18 +343,18 @@ const executeOrdersImport = async ({
                     type: "order_import",
 
                     title:
-                        "Order Imported",
+                        "Marketplace Order Imported",
 
                     description:
-                        `Shop Name:- ${userData?.businessName} imported ${total} orders into SellerOS successfully. DB Ref:- ${orderRef.id}`,
+                        `Shop Name:- ${userData?.organizationName} imported ${total} orders into SellerOS successfully. DB Ref:- ${orderRef.id}`,
 
                     meta: {
                         role:
-                            userData?.role,
+                            userData?.access?.role,
                         fullName:
                             userData?.fullName,
-                        businessName:
-                            userData?.businessName ||
+                        organizationId:
+                            userData?.organizationId ||
                             null,
                         subscriptionPlan:
                             userData?.subscription?.planName ||

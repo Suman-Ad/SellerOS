@@ -103,7 +103,7 @@ export default function AdminLayout() {
           icon: Mail,
           path: "/admin/contact-messages",
         },
-        
+
       ],
     },
 
@@ -213,7 +213,7 @@ export default function AdminLayout() {
               </h1>
 
               <p className="text-xs text-zinc-400 mt-1">
-                Admin ERP Panel
+                Admin Control Panel
               </p>
 
             </div>
@@ -233,7 +233,9 @@ export default function AdminLayout() {
         </div>
 
         {/* Sidebar Content */}
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="flex-1 overflow-y-auto px-3 py-4"
+          style={{ scrollbarWidth: "thin" }}
+        >
 
           {menuSections.map((section) => (
 
@@ -250,7 +252,11 @@ export default function AdminLayout() {
 
               )}
 
-              <div className="space-y-1">
+              <div className="space-y-1"
+                onClick={() =>
+                  setCollapsed(true)
+                }
+              >
 
                 {section.items.map((item) => {
 
@@ -333,7 +339,19 @@ export default function AdminLayout() {
 
           {/* Left */}
           <div className="flex items-center gap-4">
-
+            {collapsed &&
+              <div>
+                <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent"
+                  onClick={() => navigate("/")}
+                  style={{ cursor: "pointer" }}
+                >
+                  SellerOS
+                </h1>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Admin Control Panel
+                </p>
+              </div>
+            }
             {/* Breadcrumb */}
             <div className="hidden lg:flex flex-col">
 
@@ -508,26 +526,52 @@ export default function AdminLayout() {
                   <div className="p-2">
 
                     <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
-                      onClick={() => navigate("/admin/profile-settings")}
+                      onClick={() => {
+                        navigate("/admin/profile-settings");
+                        setShowProfileMenu(
+                          !showProfileMenu
+                        );
+                      }}
                     >
                       Profile Settings
                     </button>
 
-                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                      onClick={() => {
+                        navigate("/subscription-Dashboard");
+                        setShowProfileMenu(
+                          !showProfileMenu
+                        );
+                      }
+                      }
+                    >
                       Billing & Subscription
                     </button>
 
                     <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
-                      onClick={() => navigate("/security-center")}
+                      onClick={() => {
+                        navigate("/security-center");
+                        setShowProfileMenu(
+                          !showProfileMenu
+                        );
+                      }}
                     >
                       Security Center
                     </button>
 
-                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                      onClick={() => setShowProfileMenu(
+                        !showProfileMenu
+                      )}
+                    >
                       Activity Logs
                     </button>
 
-                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                    <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                      onClick={() => setShowProfileMenu(
+                        !showProfileMenu
+                      )}
+                    >
                       Help Center
                     </button>
 
@@ -560,7 +604,11 @@ export default function AdminLayout() {
         {/* Content */}
         <main className="flex-1 overflow-y-auto">
 
-          <div className="p-6">
+          <div className="p-6"
+            onClick={() => {
+              setCollapsed(true);
+            }}
+          >
 
             <Outlet />
 

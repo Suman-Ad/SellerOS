@@ -56,6 +56,9 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
+
+import { incrementStaff } from "@/utils/subscription/SubscriptionUsageTracker";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -242,6 +245,11 @@ export default function AcceptInvitation() {
           email:
             user.email,
         });
+
+        await incrementStaff(
+          user.uid,
+          1
+        )
 
         await refreshUserData?.();
 

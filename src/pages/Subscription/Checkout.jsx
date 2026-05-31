@@ -46,6 +46,7 @@ import {
   activateSubscription,
 } from "@/services/subscription/activateSubscription";
 
+
 export default function Checkout() {
 
   const location = useLocation();

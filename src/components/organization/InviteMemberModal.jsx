@@ -51,7 +51,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 
-import { useOrganizationDetails }from "@/utils/firebaseDB/OrganizationDetails";
+import { useOrganizationDetails } from "@/utils/firebaseDB/OrganizationDetails";
 
 /* =========================================================
    COMPONENT
@@ -64,6 +64,8 @@ export default function InviteMemberModal({
   onClose,
 
   onSuccess,
+
+  logActivity,
 }) {
 
   const {
@@ -161,6 +163,32 @@ export default function InviteMemberModal({
 
           organizationRole,
         });
+
+        await logActivity({
+
+          uid: user.uid,
+
+          type: "send_invititions",
+
+          title:
+            "Invite Member",
+
+          description:
+            `Shop Name:- ${userData?.organizationName} invited to email:${email.trim().toLowerCase()} for role of "${organizationRole.toLocaleUpperCase()}".`,
+          meta: {
+            role:
+              userData?.access?.role,
+            fullName:
+              userData?.fullName,
+            organizationId:
+              userData?.organizationId ||
+              null,
+            subscriptionPlan:
+              userData?.subscription?.planName ||
+              null,
+          },
+        });
+
 
         toast.success(
           "Invitation sent successfully"

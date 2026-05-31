@@ -11,19 +11,38 @@ import {
   Area,
   XAxis,
   Tooltip,
+  CartesianGrid,
 } from "recharts";
 
-export default function RevenueChart() {
+export default function RevenueChart({
+  analytics,
+}) {
 
-  const data = [
-    { name: "Mon", revenue: 4000 },
-    { name: "Tue", revenue: 6200 },
-    { name: "Wed", revenue: 5200 },
-    { name: "Thu", revenue: 9000 },
-    { name: "Fri", revenue: 7600 },
-    { name: "Sat", revenue: 11000 },
-    { name: "Sun", revenue: 15000 },
-  ];
+  const data =
+    analytics?.revenueTrend ||
+    [];
+
+  if (!data.length) {
+
+    return (
+
+      <Card className="bg-zinc-900 border-zinc-800">
+
+        <CardContent className="p-10 text-center">
+
+          <h2 className="text-xl font-bold text-white">
+            Revenue Intelligence
+          </h2>
+
+          <p className="text-zinc-500 mt-4">
+            No payment history available yet.
+          </p>
+
+        </CardContent>
+
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-zinc-900 border-zinc-800">
@@ -33,16 +52,18 @@ export default function RevenueChart() {
         <div className="mb-6">
 
           <h2 className="text-2xl font-bold text-white">
-            Revenue Intelligence
+            SellerOS Revenue Intelligence
           </h2>
 
           <p className="text-zinc-400 mt-1">
-            Weekly marketplace revenue trend
+            Subscription revenue collected from Razorpay payments
           </p>
 
         </div>
 
         <div className="h-[320px]">
+
+
 
           <ResponsiveContainer
             width="100%"
@@ -50,10 +71,24 @@ export default function RevenueChart() {
           >
 
             <AreaChart data={data}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                opacity={0.15}
+              />
 
-              <XAxis dataKey="name" />
+              <XAxis
+                dataKey="name"
+                tick={{
+                  fill: "#a1a1aa",
+                }}
+              />
 
-              <Tooltip />
+              <Tooltip
+                formatter={(value) => [
+                  `₹${Number(value).toLocaleString()}`,
+                  "Revenue",
+                ]}
+              />
 
               <Area
                 type="monotone"

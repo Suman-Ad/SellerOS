@@ -46,6 +46,8 @@ import logActivity
 import calculateSellingPrice
     from "@/utils/pricing/calculateSellingPrice";
 
+import { incrementProducts } from "@/utils/subscription/SubscriptionUsageTracker";
+
 
 export default function AddProduct() {
 
@@ -130,12 +132,21 @@ export default function AddProduct() {
     ]);
 
     const handleChange = (e) => {
-
-        setFormData({
+        const updated = {
             ...formData,
-            [e.target.name]:
-                e.target.value,
-        });
+            [e.target.name]: e.target.value,
+        };
+
+        updated.productName = [
+            updated.brand,
+            updated.category,
+            updated.subCategory,
+            updated.color,
+        ]
+            .filter(Boolean)
+            .join(" ");
+
+        setFormData(updated);
     };
 
     const generateParentSKU =
@@ -494,70 +505,49 @@ Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
                 // Activity Log
                 // ========================================
 
+                const productRef = collection(
+                    db,
+                    "products"
+                );
+
+                const variantTypes = Object.keys(formData.variants).length;
+
+                const totalQty = Object.values(formData.variants).reduce(
+                    (total, variant) => total + Number(variant.qty || 0),
+                    0
+                );
+
+                const docRef = await addDoc(productRef, {
+                    sellerId: user.uid,
+                    category: formData.category,
+                    subCategory: formData.subCategory,
+                    productName: formData.productName,
+                    brand: formData.brand,
+                    color: formData.color,
+                    parentSKU: formData.parentSKU,
+                    variants: formData.variants,
+                    status: "active",
+                    createdAt: serverTimestamp(),
+                });
+
                 await logActivity({
-
                     uid: user.uid,
-
                     type: "product_upload",
-
-                    title:
-                        "Product Upload",
-
-                    description:
-                        "User uploaded a new product",
-
+                    title: "Product Upload",
+                    description: `Shop Name:- ${userData?.organizationName || "N/A"
+                        } imported ${totalQty} units across ${variantTypes} variants into SellerOS successfully. DB Ref:- ${docRef.id}`,
                     meta: {
-                        role:
-                            userData.role,
-                        fullName:
-                            userData.fullName,
-                        businessName:
-                            userData.businessName ||
-                            null,
+                        role: userData?.access?.role,
+                        fullName: userData?.fullName,
+                        organizationName: userData?.organizationName || null,
                         subscriptionPlan:
-                            userData.subscription.planName ||
-                            null,
+                            userData?.subscription?.planName || null,
                     },
                 });
 
-                await addDoc(
-                    collection(
-                        db,
-                        "products"
-                    ),
-                    {
-                        sellerId:
-                            user.uid,
-
-                        category:
-                            formData.category,
-
-                        subCategory:
-                            formData.subCategory,
-
-                        productName:
-                            formData.productName,
-
-                        brand:
-                            formData.brand,
-
-                        color:
-                            formData.color,
-
-                        parentSKU:
-                            formData.parentSKU,
-
-                        // batchSeries:
-                        //     formData.batchSeries,
-
-                        variants:
-                            formData.variants,
-
-                        status: "active",
-
-                        createdAt:
-                            serverTimestamp(),
-                    }
+                await incrementProducts(
+                    user.uid,
+                    totalQty,
                 );
 
                 toast.success(

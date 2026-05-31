@@ -745,6 +745,61 @@ transition
 
                         </button>
 
+                        {/* ====================================
+            IMPORT BUTTON
+            ==================================== */}
+
+                        {readyProducts.length > 0 && (
+
+                            <div className="mt-6 flex justify-end">
+
+                                <button
+                                    onClick={
+                                        handleImport
+                                    }
+
+                                    disabled={
+                                        loading
+                                    }
+
+                                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-gray-700 font-semibold disabled:opacity-50"
+                                >
+
+                                    Import Products
+
+                                </button>
+
+                            </div>
+                        )}
+
+                        {/* ====================================
+            RESULT
+            ==================================== */}
+
+                        {importResult && (
+
+                            <div className="mt-6 bg-green-50 border border-green-200 rounded-2xl p-5">
+
+                                <h2 className="font-semibold text-green-700 mb-2">
+
+                                    Import Completed
+
+                                </h2>
+
+                                <div className="text-sm text-green-700">
+
+                                    Imported:
+                                    {" "}
+                                    {importResult.imported || 0}
+                                    {" "}
+                                    products
+
+                                </div>
+
+                            </div>
+                        )}
+
+
                     </div>
 
                 </div>
@@ -1163,59 +1218,6 @@ PRODUCT PREVIEW
                 </div>
             )}
 
-            {/* ====================================
-            IMPORT BUTTON
-            ==================================== */}
-
-            {readyProducts.length > 0 && (
-
-                <div className="mt-6 flex justify-end">
-
-                    <button
-                        onClick={
-                            handleImport
-                        }
-
-                        disabled={
-                            loading
-                        }
-
-                        className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-gray-700 font-semibold disabled:opacity-50"
-                    >
-
-                        Import Products
-
-                    </button>
-
-                </div>
-            )}
-
-            {/* ====================================
-            RESULT
-            ==================================== */}
-
-            {importResult && (
-
-                <div className="mt-6 bg-green-50 border border-green-200 rounded-2xl p-5">
-
-                    <h2 className="font-semibold text-green-700 mb-2">
-
-                        Import Completed
-
-                    </h2>
-
-                    <div className="text-sm text-green-700">
-
-                        Imported:
-                        {" "}
-                        {importResult.imported || 0}
-                        {" "}
-                        products
-
-                    </div>
-
-                </div>
-            )}
 
         </div>
     );

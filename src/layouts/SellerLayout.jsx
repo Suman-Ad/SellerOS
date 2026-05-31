@@ -239,7 +239,9 @@ export default function SellerLayout() {
         </div>
 
         {/* Sidebar Content */}
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+        <div className="flex-1 overflow-y-auto px-3 py-4"
+          style={{ scrollbarWidth: "thin" }}
+        >
 
           {menuSections.map((section) => (
 
@@ -256,7 +258,11 @@ export default function SellerLayout() {
 
               )}
 
-              <div className="space-y-1">
+              <div className="space-y-1"
+                onClick={() =>
+                  setCollapsed(true)
+                }
+              >
 
                 {section.items.map((item) => {
 
@@ -358,6 +364,19 @@ export default function SellerLayout() {
           </button>
 
         </div>
+        {!collapsed &&
+          <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between">
+
+            <p>
+              © 2026 SellerOS ERP
+            </p>
+
+            <p>
+              Seller Platform v1.0
+            </p>
+
+          </footer>
+        }
 
       </aside>
 
@@ -368,7 +387,19 @@ export default function SellerLayout() {
 
           {/* Left */}
           <div className="flex items-center gap-4">
-
+            {collapsed &&
+              <div>
+                <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-violet-400 to-fuchsia-500 bg-clip-text text-transparent"
+                  onClick={() => navigate("/")}
+                  style={{ cursor: "pointer" }}
+                >
+                  SellerOS
+                </h1>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Seller ERP Panel
+                </p>
+              </div>
+            }
             <div className="hidden lg:flex flex-col">
 
               <p className="text-xs uppercase tracking-wider text-zinc-500"
@@ -533,30 +564,52 @@ export default function SellerLayout() {
                 <div className="p-2">
 
                   <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
-                    onClick={() => navigate("/seller/profile-settings")}
+                    onClick={() => {
+                      navigate("/seller/profile-settings");
+                      setShowProfileMenu(
+                        !showProfileMenu
+                      );
+                    }}
                   >
                     Profile Settings
                   </button>
 
                   <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
-                    onClick={() =>
-                      navigate("/subscription-Dashboard")
+                    onClick={() => {
+                      navigate("/subscription-Dashboard");
+                      setShowProfileMenu(
+                        !showProfileMenu
+                      );
+                    }
                     }
                   >
                     Billing & Subscription
                   </button>
 
                   <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
-                    onClick={() => navigate("/security-center")}
+                    onClick={() => {
+                      navigate("/security-center");
+                      setShowProfileMenu(
+                        !showProfileMenu
+                      );
+                    }}
                   >
                     Security Center
                   </button>
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() => setShowProfileMenu(
+                      !showProfileMenu
+                    )}
+                  >
                     Activity Logs
                   </button>
 
-                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm">
+                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-zinc-800 transition text-sm"
+                    onClick={() => setShowProfileMenu(
+                      !showProfileMenu
+                    )}
+                  >
                     Help Center
                   </button>
 
@@ -587,22 +640,16 @@ export default function SellerLayout() {
         <main className="flex-1 overflow-auto bg-zinc-950">
 
           {/* Page Content */}
-          <div className="p-4 md:p-6">
+          <div className="p-4 md:p-6"
+            onClick={() => {
+              setCollapsed(true);
+            }}
+          >
             <Outlet />
           </div>
 
         </main>
-        <footer className="border-t border-zinc-800 bg-zinc-900 px-6 py-3 text-xs text-zinc-500 flex items-center justify-between">
 
-          <p>
-            © 2026 SellerOS ERP
-          </p>
-
-          <p>
-            Seller Platform v1.0
-          </p>
-
-        </footer>
         {/* FAQ Modal */}
         {showFAQ && (
 

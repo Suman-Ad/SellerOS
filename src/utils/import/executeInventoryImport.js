@@ -12,6 +12,8 @@ import logActivity
 
 import { incrementProducts } from "@/utils/subscription/SubscriptionUsageTracker";
 
+import { useState } from "react";
+
 // ====================================
 // EXECUTE INVENTORY IMPORT
 // ====================================
@@ -26,7 +28,13 @@ const executeInventoryImport =
         onProgress,
     }) => {
 
+
+
         try {
+
+            let lastProductRefId = null;
+            let totalQty = 0;
+            let totalVariants = 0;
 
             // ====================================
             // EMPTY
@@ -128,7 +136,17 @@ const executeInventoryImport =
                             "products"
                         )
                     );
+                lastProductRefId = productRef.id;
 
+                const variants = product.variants || {};
+
+                totalVariants += Object.keys(variants).length;
+
+                totalQty += Object.values(variants).reduce(
+                    (sum, variant) =>
+                        sum + Number(variant?.qty || 0),
+                    0
+                );
                 // ====================================
                 // CREATE PRODUCT
                 // ====================================
@@ -213,25 +231,24 @@ const executeInventoryImport =
                     "Marketplace Bulk Product Imported",
 
                 description:
-                    `Shop Name:- ${userData.businessName} imported ${products.length} products into SellerOS successfully. DB Ref:- ${productRef.id}`,
-
+                    `Shop Name:- ${userData?.organizationName} imported ${totalQty} units across ${totalVariants} variants (${products.length} products) into SellerOS successfully. DB Ref:- ${lastProductRefId}`,
                 meta: {
                     role:
-                        userData.role,
+                        userData?.access?.role,
                     fullName:
-                        userData.fullName,
-                    businessName:
-                        userData.businessName ||
+                        userData?.fullName,
+                    organizationId:
+                        userData?.organizationId ||
                         null,
                     subscriptionPlan:
-                        userData.subscription.planName ||
+                        userData?.subscription?.planName ||
                         null,
                 },
             });
 
             await incrementProducts(
                 user.uid,
-                1
+                totalQty,
             );
 
 

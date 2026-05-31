@@ -32,6 +32,9 @@ import CategoryAnalytics from "@/components/admin/CategoryAnalytics";
 
 import BusinessInsights from "@/components/admin/BusinessInsights";
 
+import RecentPayments
+  from "@/components/admin/RecentPayments";
+
 export default function AdminAnalytics() {
 
   const { userData } = useAuth();
@@ -91,7 +94,19 @@ export default function AdminAnalytics() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
 
               <div className="xl:col-span-2">
-                <RevenueChart />
+                <RevenueChart
+                  analytics={analytics}
+                />
+              </div>
+
+              <div className="mt-8">
+
+                <RecentPayments
+                  payments={
+                    analytics.recentPayments
+                  }
+                />
+
               </div>
 
               <div>

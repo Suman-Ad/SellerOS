@@ -58,10 +58,10 @@ export default function BillingHistory() {
         const q = query(
           collection(db, "paymentHistory"),
           where("uid", "==", user.uid),
-          orderBy(
-            "createdAt",
-            "desc"
-          )
+          // orderBy(
+          //   "createdAt",
+          //   "desc"
+          // )
         );
 
         const snapshot =
@@ -72,7 +72,16 @@ export default function BillingHistory() {
             id: doc.id,
             ...doc.data(),
           }));
+        data.sort((a, b) => {
 
+          const aTime =
+            a.createdAt?.seconds || 0;
+
+          const bTime =
+            b.createdAt?.seconds || 0;
+
+          return bTime - aTime;
+        });
         setPayments(data);
 
       } catch (error) {
@@ -89,10 +98,14 @@ export default function BillingHistory() {
       }
     };
 
-    if (user?.uid) {
+    if (!user?.uid) {
 
-      fetchPayments();
+      setLoading(false);
+
+      return;
     }
+
+    fetchPayments();
 
   }, [user]);
 

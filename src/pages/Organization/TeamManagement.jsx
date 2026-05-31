@@ -76,6 +76,8 @@ import {
 
 import { useOrganizationDetails } from "@/utils/firebaseDB/OrganizationDetails";
 
+import logActivity from "@/utils/activity/logActivity";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -810,6 +812,7 @@ export default function TeamManagement() {
           )
         }
         onSuccess={fetchData}
+        logActivity={logActivity}
       />
 
     </div>

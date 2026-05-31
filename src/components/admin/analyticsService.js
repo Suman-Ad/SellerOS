@@ -23,6 +23,14 @@ export async function getAdminAnalytics() {
       collection(db, "orders")
     );
 
+    const paymentSnap =
+      await getDocs(
+        collection(
+          db,
+          "paymentHistory"
+        )
+      );
+
     // Sellers
     const sellersQuery = query(
       collection(db, "users"),
@@ -56,14 +64,39 @@ export async function getAdminAnalytics() {
 
     const now = new Date();
 
+
     let revenue = 0;
 
     let monthlyRevenue = 0;
     let weeklyRevenue = 0;
 
+    let saasRevenue = 0;
+
+    let monthlySaasRevenue = 0;
+
+    let paidTransactions = 0;
+
+    let activeSubscriptions = 0;
+
+    let recentPayments = [];
+
     let deliveredOrders = 0;
     let cancelledOrders = 0;
     let pendingOrders = 0;
+
+    usersSnap.forEach((doc) => {
+
+      const user =
+        doc.data();
+
+      if (
+        user.subscription
+          ?.isActive === true
+      ) {
+
+        activeSubscriptions++;
+      }
+    });
 
     ordersSnap.forEach((doc) => {
 
@@ -104,6 +137,73 @@ export async function getAdminAnalytics() {
       }
     });
 
+    paymentSnap.forEach((doc) => {
+
+      const payment =
+        doc.data();
+
+      if (
+        payment.status ===
+        "paid" &&
+        payment.verified ===
+        true
+      ) {
+
+        const amount =
+          Number(
+            payment.total || 0
+          );
+
+        saasRevenue += amount;
+
+        paidTransactions++;
+
+        const paymentDate =
+          payment.createdAt
+            ?.toDate?.();
+
+        if (
+          paymentDate &&
+          paymentDate.getMonth() ===
+          now.getMonth() &&
+          paymentDate.getFullYear() ===
+          now.getFullYear()
+        ) {
+
+          monthlySaasRevenue +=
+            amount;
+        }
+      }
+
+      recentPayments.push({
+
+        id: doc.id,
+
+        ...payment,
+      });
+    });
+
+    recentPayments.sort(
+      (a, b) => {
+
+        const aTime =
+          a.createdAt
+            ?.seconds || 0;
+
+        const bTime =
+          b.createdAt
+            ?.seconds || 0;
+
+        return bTime - aTime;
+      }
+    );
+
+    recentPayments =
+      recentPayments.slice(
+        0,
+        10
+      );
+
     const totalOrders = ordersSnap.size;
 
     const avgOrderValue =
@@ -132,15 +232,63 @@ export async function getAdminAnalytics() {
     // avgOrderValue =
     //   avgOrderValue || 0;
 
-    const revenueTrend = [
-      { name: "Mon", revenue: 4200 },
-      { name: "Tue", revenue: 6100 },
-      { name: "Wed", revenue: 5200 },
-      { name: "Thu", revenue: 8700 },
-      { name: "Fri", revenue: 9600 },
-      { name: "Sat", revenue: 12200 },
-      { name: "Sun", revenue: 15400 },
-    ];
+    const revenueTrend = [];
+
+    for (
+      let i = 6;
+      i >= 0;
+      i--
+    ) {
+
+      const date =
+        new Date();
+
+      date.setDate(
+        date.getDate() - i
+      );
+
+      const label =
+        date.toLocaleDateString(
+          "en-IN",
+          {
+            weekday: "short",
+          }
+        );
+
+      let dayRevenue = 0;
+
+      paymentSnap.forEach(
+        (doc) => {
+
+          const payment =
+            doc.data();
+
+          const created =
+            payment.createdAt
+              ?.toDate?.();
+
+          if (
+            payment.status ===
+            "paid" &&
+            payment.verified &&
+            created &&
+            created.toDateString() ===
+            date.toDateString()
+          ) {
+
+            dayRevenue +=
+              Number(
+                payment.total || 0
+              );
+          }
+        }
+      );
+
+      revenueTrend.push({
+        name: label,
+        revenue: dayRevenue,
+      });
+    }
 
     const orderStatusData = [
       {
@@ -201,6 +349,14 @@ export async function getAdminAnalytics() {
       revenueTrend,
       orderStatusData,
       categoryAnalytics,
+      saasRevenue,
+      monthlySaasRevenue,
+
+      activeSubscriptions,
+
+      paidTransactions,
+
+      recentPayments,
     };
   } catch (error) {
     console.error(error);

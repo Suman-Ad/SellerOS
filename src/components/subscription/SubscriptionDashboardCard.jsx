@@ -16,11 +16,14 @@ import { Button } from "@/components/ui/button";
 
 import useSubscription from "@/hooks/useSubscription";
 
+import { useNavigate } from "react-router-dom";
+
 export default function SubscriptionDashboardCard({
   onUpgrade,
 }) {
 
   const subscription = useSubscription();
+  const navigate = useNavigate();
 
   const {
     planName = "Free",
@@ -197,6 +200,7 @@ export default function SubscriptionDashboardCard({
             color="orange"
           />
 
+          <ArrowUpRight onClick={() => navigate("/billing-history")} />
         </div>
 
         {/* Features */}

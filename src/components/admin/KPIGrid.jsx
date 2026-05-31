@@ -2,13 +2,13 @@
 
 import {
   Users,
-  Store,
-  Package,
-  ShoppingCart,
+  CreditCard,
   IndianRupee,
   BadgeCheck,
-  Truck,
-  AlertTriangle,
+  Package,
+  ShoppingCart,
+  Crown,
+  TrendingUp,
 } from "lucide-react";
 
 import KPICard from "./KPICard";
@@ -17,72 +17,142 @@ export default function KPIGrid({
   analytics,
 }) {
   const cards = [
+
     {
       title: "Total Users",
-      value: analytics.totalUsers,
-      subtitle: "Platform users",
+      value:
+        analytics.totalUsers || 0,
+
+      subtitle:
+        "Platform users",
+
       icon: Users,
-      color: "bg-blue-500",
+
+      color:
+        "bg-blue-500",
     },
 
     {
-      title: "Approved Sellers",
+      title:
+        "Approved Sellers",
+
       value:
-        analytics.approvedSellers,
-      subtitle: "Verified sellers",
-      icon: BadgeCheck,
-      color: "bg-emerald-500",
+        analytics.approvedSellers || 0,
+
+      subtitle:
+        `${analytics.pendingSellers || 0} pending`,
+
+      icon:
+        BadgeCheck,
+
+      color:
+        "bg-emerald-500",
     },
 
     {
-      title: "Products",
+      title:
+        "Active Subscriptions",
+
       value:
-        analytics.totalProducts,
-      subtitle: "Marketplace listings",
-      icon: Package,
-      color: "bg-violet-500",
+        analytics.activeSubscriptions || 0,
+
+      subtitle:
+        "Paying customers",
+
+      icon:
+        Crown,
+
+      color:
+        "bg-violet-500",
     },
 
     {
-      title: "Orders",
+      title:
+        "Paid Transactions",
+
       value:
-        analytics.totalOrders,
-      subtitle: `${analytics.pendingOrders} pending`,
-      icon: ShoppingCart,
-      color: "bg-orange-500",
+        analytics.paidTransactions || 0,
+
+      subtitle:
+        "Verified payments",
+
+      icon:
+        CreditCard,
+
+      color:
+        "bg-cyan-500",
     },
 
     {
-      title: "Revenue",
-      value: `₹${analytics.revenue.toLocaleString()}`,
-      subtitle: "Gross marketplace revenue",
-      icon: IndianRupee,
-      color: "bg-green-500",
-    },
+      title:
+        "SellerOS Revenue",
 
-    {
-      title: "Delivery Success",
-      value: `${analytics.deliverySuccessRate}%`,
-      subtitle: `${analytics.deliveredOrders} delivered`,
-      icon: Truck,
-      color: "bg-cyan-500",
-    },
-
-    {
-      title: "Cancelled Orders",
       value:
-        analytics.cancelledOrders,
-      subtitle: "Operational risk",
-      icon: AlertTriangle,
-      color: "bg-red-500",
+        `₹${(
+          analytics.saasRevenue || 0
+        ).toLocaleString()}`,
+
+      subtitle:
+        "Lifetime SaaS revenue",
+
+      icon:
+        IndianRupee,
+
+      color:
+        "bg-green-500",
     },
 
     {
-      title: "Commission",
-      value: `₹${analytics.platformCommission.toLocaleString()}`,
-      subtitle: "Platform earnings",
-      icon: Store,
-      color: "bg-pink-500",
+      title:
+        "Monthly Revenue",
+
+      value:
+        `₹${(
+          analytics.monthlySaasRevenue || 0
+        ).toLocaleString()}`,
+
+      subtitle:
+        "Current month",
+
+      icon:
+        TrendingUp,
+
+      color:
+        "bg-orange-500",
+    },
+
+    {
+      title:
+        "Products",
+
+      value:
+        analytics.totalProducts || 0,
+
+      subtitle:
+        "Marketplace listings",
+
+      icon:
+        Package,
+
+      color:
+        "bg-pink-500",
+    },
+
+    {
+      title:
+        "Orders",
+
+      value:
+        analytics.totalOrders || 0,
+
+      subtitle:
+        `${analytics.pendingOrders || 0} pending`,
+
+      icon:
+        ShoppingCart,
+
+      color:
+        "bg-yellow-500",
     },
   ];
 
