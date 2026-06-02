@@ -33,6 +33,7 @@ import {
     getDoc,
     doc,
     query,
+    updateDoc,
 } from "firebase/firestore";
 
 
@@ -233,10 +234,10 @@ const OrderImport = () => {
                 data.fileName || ""
             );
 
-            setParsedRows(data.parsedRows || []);
-            setReadyToImport(data.readyToImport || []);
+            // setParsedRows(data.parsedRows || []);
+            // setReadyToImport(data.readyToImport || []);
             setCsvHeaders(data.csvHeaders || []);
-            setPreviewReady(true);
+            setPreviewReady(false);
 
             setShowMapping(true);
 
@@ -252,6 +253,7 @@ const OrderImport = () => {
 
         loadHistory();
     }, [historyId]);
+
     // ====================================
     // HANDLE UPLOAD
     // ====================================
@@ -773,55 +775,115 @@ const OrderImport = () => {
                 // SAVE IMPORT HISTORY
                 // ====================================
 
-                await addDoc(
-                    collection(
-                        db,
-                        "order_import_history"
-                    ),
-                    {
+                // await addDoc(
+                //     collection(
+                //         db,
+                //         "order_import_history"
+                //     ),
+                //     {
 
-                        importBatchId,
+                //         importBatchId,
 
-                        sellerId:
-                            user.uid,
+                //         sellerId:
+                //             user.uid,
 
-                        fileName,
+                //         fileName,
 
-                        platform,
+                //         platform,
 
-                        importType,
+                //         importType,
 
-                        // parsedRows,
-                        // readyToImport,
-                        csvHeaders,
-                        fieldMapping,
+                //         // parsedRows,
+                //         // readyToImport,
+                //         csvHeaders,
+                //         fieldMapping,
 
-                        importedOrderIds:
-                            result.orderIds || [],
+                //         importedOrderIds:
+                //             result.orderIds || [],
 
-                        totalRows:
-                            parsedRows.length,
+                //         totalRows:
+                //             parsedRows.length,
 
-                        importedCount:
-                            result.imported || 0,
+                //         importedCount:
+                //             result.imported || 0,
 
-                        failedCount:
-                            result.failed || 0,
+                //         failedCount:
+                //             result.failed || 0,
 
-                        duplicateCount:
-                            duplicateRows.length,
+                //         duplicateCount:
+                //             duplicateRows.length,
 
-                        unmatchedCount:
-                            unmatchedRows.length,
+                //         unmatchedCount:
+                //             unmatchedRows.length,
 
-                        status:
-                            "completed",
+                //         status:
+                //             "completed",
 
-                        uploadedAt:
-                            serverTimestamp(),
-                    }
-                );
+                //         uploadedAt:
+                //             serverTimestamp(),
+                //     }
+                // );
 
+                const historyPayload = {
+                    importBatchId,
+
+                    sellerId: user.uid,
+
+                    fileName,
+
+                    platform,
+
+                    importType,
+
+                    csvHeaders,
+
+                    fieldMapping,
+
+                    importedOrderIds:
+                        result.orderIds || [],
+
+                    totalRows:
+                        parsedRows.length,
+
+                    importedCount:
+                        result.imported || 0,
+
+                    failedCount:
+                        result.failed || 0,
+
+                    duplicateCount:
+                        duplicateRows.length,
+
+                    unmatchedCount:
+                        unmatchedRows.length,
+
+                    status: "completed",
+
+                    uploadedAt:
+                        serverTimestamp(),
+                };
+
+                if (historyId) {
+
+                    await updateDoc(
+                        doc(
+                            db,
+                            "order_import_history",
+                            historyId
+                        ),
+                        historyPayload
+                    );
+
+                } else {
+
+                    await addDoc(
+                        collection(
+                            db,
+                            "order_import_history"
+                        ),
+                        historyPayload
+                    );
+                }
 
                 alert(
                     "Orders imported successfully"
@@ -898,7 +960,7 @@ const OrderImport = () => {
             <div className="mb-6">
 
 
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-white">
 
                     Order Import
 
@@ -909,9 +971,9 @@ const OrderImport = () => {
             mt-4
             p-4
             rounded-xl
-            bg-yellow-50
             border
-            border-yellow-200
+            bg-yellow-500/10
+border-yellow-500/30
         "
                         >
 
@@ -921,7 +983,7 @@ const OrderImport = () => {
 
                             </div>
 
-                            <div className="text-sm text-gray-600 mt-1">
+                            <div className="text-sm text-zinc-400 mt-1">
 
                                 Previous field mapping loaded.
                                 Upload the same file again to continue.
@@ -933,7 +995,7 @@ const OrderImport = () => {
 
                 </h1>
 
-                <p className="text-gray-500 mt-1">
+                <p className="text-zinc-400 mt-1">
 
                     Import marketplace orders using CSV or Excel
 
@@ -947,7 +1009,7 @@ const OrderImport = () => {
         px-3
         py-1
         rounded-lg
-        bg-zinc-100
+        bg-zinc-800 text-zinc-300
         text-sm
         "
                     >
@@ -1035,12 +1097,12 @@ const OrderImport = () => {
                     e.preventDefault()
                 }
 
-                className="border-2 border-dashed border-gray-300 rounded-3xl bg-white p-10 text-center"
+                className="border-2 border-dashed border-zinc-700 rounded-3xl bg-zinc-900 p-10 text-center"
             >
 
                 <div className="flex justify-center mb-4">
 
-                    <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center">
 
                         <Upload size={28} />
 
@@ -1048,13 +1110,13 @@ const OrderImport = () => {
 
                 </div>
 
-                <h2 className="text-lg font-semibold mb-2">
+                <h2 className="text-lg font-semibold text-white mb-2">
 
                     Drag & Drop CSV / Excel
 
                 </h2>
 
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-zinc-400 mb-4">
 
                     Upload Meesho, Amazon or Flipkart orders
 
@@ -1073,7 +1135,7 @@ const OrderImport = () => {
                                 e.target.value
                             )
                         }
-                        className="px-4 py-2 bg-white text-gray-900 rounded-xl border border-gray-300"
+                        className="px-4 py-2 bg-zinc-800 text-white rounded-xl border border-zinc-700"
                     >
 
                         <option value="meesho">
@@ -1094,7 +1156,7 @@ const OrderImport = () => {
                     onClick={() =>
                         fileInputRef.current.click()
                     }
-                    className="px-5 py-2.5 rounded-xl bg-black text-white font-medium"
+                    className="px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-medium"
                 >
 
                     Choose File
@@ -1111,7 +1173,7 @@ const OrderImport = () => {
                             e.target.files[0]
                         )
                     }
-                    className="border border-gray-300 bg-white text-gray-900"
+                    className="border border-gray-300 bg-white text-white"
                 />
 
                 {/* ====================================
@@ -1120,7 +1182,7 @@ const OrderImport = () => {
 
                 {fileName && (
 
-                    <div className="mt-4 text-sm font-medium text-gray-700">
+                    <div className="mt-4 text-sm font-medium text-zinc-300">
 
                         {fileName}
 
@@ -1130,43 +1192,56 @@ const OrderImport = () => {
             </div>
 
             {/* ====================================
-            PROGRESS
-            ==================================== */}
+PROGRESS OVERLAY
+==================================== */}
 
             {(loading || importing) && (
+                <div
+                    className="
+            fixed inset-0
+            z-[9999]
+            bg-black/70
+            backdrop-blur-sm
+            flex items-center justify-center
+        "
+                >
+                    <div
+                        className="
+                w-full max-w-md
+                mx-4
+                bg-zinc-900
+                border border-zinc-800
+                rounded-2xl
+                p-6
+                shadow-2xl
+            "
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <Loader2
+                                size={20}
+                                className="animate-spin text-white"
+                            />
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4">
+                            <div>
+                                <div className="text-sm font-medium text-white">
+                                    {progressText}
+                                </div>
 
-                    <div className="flex items-center gap-3 mb-3">
-
-                        <Loader2
-                            size={18}
-                            className="animate-spin"
-                        />
-
-                        <div>
-                            <div className="text-sm font-medium text-gray-900">
-                                {progressText}
-                            </div>
-
-                            <div className="text-xs text-gray-500 mt-1">
-                                {progress}% Complete
+                                <div className="text-xs text-zinc-400 mt-1">
+                                    {progress}% Complete
+                                </div>
                             </div>
                         </div>
 
+                        <div className="w-full h-3 rounded-full bg-zinc-700 overflow-hidden">
+                            <div
+                                className="h-full bg-white transition-all duration-300"
+                                style={{
+                                    width: `${progress}%`,
+                                }}
+                            />
+                        </div>
                     </div>
-
-                    <div className="w-full h-3 rounded-full bg-gray-200 overflow-hidden">
-
-                        <div
-                            className="h-full bg-black transition-all"
-                            style={{
-                                width: `${progress}%`,
-                            }}
-                        />
-
-                    </div>
-
                 </div>
             )}
 
@@ -1176,19 +1251,19 @@ const OrderImport = () => {
 
             {previewReady && (
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-5">
+                <div className="mt-6 bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
 
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
                         <div>
 
-                            <h2 className="text-lg font-semibold text-gray-900">
+                            <h2 className="text-lg font-semibold text-white">
 
                                 Import Preview Ready
 
                             </h2>
 
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-zinc-400 mt-1">
 
                                 Review validation, duplicates and unmatched rows before importing.
 
@@ -1206,7 +1281,7 @@ const OrderImport = () => {
                                 !canImport
                             }
 
-                            className="px-5 py-2.5 rounded-xl bg-black text-white font-medium disabled:opacity-50"
+                            className="px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-medium disabled:opacity-50"
                         >
 
                             {importing
@@ -1227,9 +1302,9 @@ const OrderImport = () => {
 
             {importResult && (
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4">
+                <div className="mt-6 bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
 
-                    <h2 className="font-semibold text-gray-900 mb-4">
+                    <h2 className="font-semibold text-white mb-4">
 
                         Import Result
 
@@ -1262,145 +1337,123 @@ const OrderImport = () => {
 
             {showMapping && (
 
-                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-5">
+    <div className="mt-6 bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
 
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="flex items-center justify-between mb-5">
 
-                        Field Mapping
+            <div>
 
-                    </h2>
+                <h2 className="text-lg font-semibold text-white">
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    Field Mapping
 
-                        {csvHeaders.map((header) => (
+                </h2>
 
-                            <div
-                                key={header}
-                                className="border border-gray-200 rounded-xl p-4"
-                            >
+                <p className="text-sm text-zinc-400 mt-1">
 
-                                <div className="text-sm font-medium text-gray-900 mb-2">
+                    Match spreadsheet columns with order fields
 
-                                    {header}
+                </p>
 
-                                </div>
+            </div>
 
-                                <select
-                                    value={
-                                        fieldMapping[header] || ""
-                                    }
+            <div className="text-xs px-3 py-1 rounded-lg bg-zinc-800 text-zinc-400">
 
-                                    onChange={(e) =>
-                                        setFieldMapping(
-                                            prev => ({
+                {csvHeaders.length} Columns
 
-                                                ...prev,
+            </div>
 
-                                                [header]:
-                                                    e.target.value,
-                                            })
-                                        )
-                                    }
+        </div>
 
-                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 outline-none"
-                                >
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 
-                                    <option value="">
+            {csvHeaders.map((header) => (
 
-                                        Ignore
+                <div
+                    key={header}
+                    className="
+                        rounded-xl
+                        border
+                        border-zinc-800
+                        bg-zinc-950
+                        p-4
+                    "
+                >
 
-                                    </option>
+                    <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2">
 
-                                    <option value="parentSKU">
+                        Spreadsheet Column
 
-                                        SKU ID
+                    </label>
 
-                                    </option>
+                    <div className="text-white font-medium mb-4 break-all">
 
-                                    <option value="productName">
-
-                                        Product Name
-
-                                    </option>
-
-                                    <option value="orderDate">
-
-                                        Order Date
-
-                                    </option>
-
-                                    <option value="platformOrderId">
-
-                                        Order ID
-
-                                    </option>
-
-
-                                    <option value="productId">
-
-                                        Product ID
-
-                                    </option>
-
-                                    <option value="variantSize">
-
-                                        Variant Size
-
-                                    </option>
-
-                                    <option value="qty">
-
-                                        Quantity
-
-                                    </option>
-
-                                    <option value="sellingPrice">
-
-                                        Selling Price
-
-                                    </option>
-
-                                    <option value="customerName">
-
-                                        Customer Name
-
-                                    </option>
-
-                                    <option value="awb">
-
-                                        Curier Tracking ID
-
-                                    </option>
-
-                                    <option value="orderStatus">
-
-                                        Order Status
-
-                                    </option>
-
-                                </select>
-
-                            </div>
-                        ))}
-                    </div>
-                    <div className="mt-5 flex justify-end">
-
-                        <button
-                            onClick={
-                                applyFieldMapping
-                            }
-
-                            className="px-5 py-2.5 rounded-xl bg-black text-white font-medium"
-                        >
-
-                            Apply Mapping
-
-                        </button>
+                        {header}
 
                     </div>
+
+                    <select
+                        value={fieldMapping[header] || ""}
+                        onChange={(e) =>
+                            setFieldMapping(prev => ({
+                                ...prev,
+                                [header]: e.target.value,
+                            }))
+                        }
+                        className="
+                            w-full
+                            px-4
+                            py-2.5
+                            rounded-xl
+                            border
+                            border-zinc-700
+                            bg-zinc-800
+                            text-white
+                            outline-none
+                            focus:border-blue-500
+                        "
+                    >
+                        <option value="">Ignore</option>
+                        <option value="parentSKU">SKU ID</option>
+                        <option value="productName">Product Name</option>
+                        <option value="orderDate">Order Date</option>
+                        <option value="platformOrderId">Order ID</option>
+                        <option value="productId">Product ID</option>
+                        <option value="variantSize">Variant Size</option>
+                        <option value="qty">Quantity</option>
+                        <option value="sellingPrice">Selling Price</option>
+                        <option value="customerName">Customer Name</option>
+                        <option value="awb">Courier Tracking ID</option>
+                        <option value="orderStatus">Order Status</option>
+                    </select>
 
                 </div>
-            )}
+            ))}
+
+        </div>
+
+        <div className="mt-6 flex justify-end">
+
+            <button
+                onClick={applyFieldMapping}
+                className="
+                    px-6
+                    py-2.5
+                    rounded-xl
+                    bg-blue-600
+                    hover:bg-blue-700
+                    text-white
+                    font-medium
+                    transition-colors
+                "
+            >
+                Apply Mapping
+            </button>
+
+        </div>
+
+    </div>
+)}
 
             {/* ====================================
             PREVIEW
@@ -1408,11 +1461,11 @@ const OrderImport = () => {
 
             {validRows.length > 0 && (
 
-                <div className="mt-8 bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                <div className="mt-8 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
 
-                    <div className="p-4 border-b border-gray-200">
+                    <div className="p-4 border-b border-zinc-800">
 
-                        <h2 className="font-semibold text-gray-900">
+                        <h2 className="font-semibold text-white">
 
                             File Preview
 
@@ -1424,7 +1477,7 @@ const OrderImport = () => {
 
                         <table className="w-full min-w-[1200px]">
 
-                            <thead className="bg-gray-100">
+                            <thead className="bg-zinc-800">
 
                                 <tr>
 
@@ -1434,7 +1487,7 @@ const OrderImport = () => {
 
                                         <th
                                             key={key}
-                                            className="px-4 py-3 text-left text-sm font-semibold text-gray-900"
+                                            className="px-4 py-3 text-left text-sm font-semibold text-white"
                                         >
 
                                             {key}
@@ -1458,7 +1511,7 @@ const OrderImport = () => {
 
                                             <tr
                                                 key={index}
-                                                className="border-t border-gray-200 hover:bg-gray-50"
+                                                className="border-t border-zinc-800 hover:bg-zinc-800/40"
                                             >
 
                                                 {Object.values(
@@ -1471,7 +1524,7 @@ const OrderImport = () => {
 
                                                         <td
                                                             key={i}
-                                                            className="px-4 py-3 text-sm text-gray-900"
+                                                            className="px-4 py-3 text-sm text-white"
                                                         >
 
                                                             {String(value)}
@@ -1506,29 +1559,21 @@ const SummaryCard = ({
     value,
     icon,
 }) => {
-
     return (
-
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
-
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-
-                <div className="text-sm text-gray-500">
-
+                <div className="text-sm text-zinc-400">
                     {title}
-
                 </div>
 
-                {icon}
-
+                <div className="text-zinc-500">
+                    {icon}
+                </div>
             </div>
 
-            <div className="text-2xl font-bold text-gray-900">
-
+            <div className="text-2xl font-bold text-white">
                 {value || 0}
-
             </div>
-
         </div>
     );
 };

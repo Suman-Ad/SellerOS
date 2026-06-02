@@ -23,6 +23,7 @@ import {
     CheckCircle2,
     Clock3,
     AlertTriangle,
+    Loader2,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -51,6 +52,15 @@ const OrderImportHistory = () => {
         setLoading] =
         useState(true);
 
+
+    const [rollbacking, setRollbacking] =
+        useState(false);
+
+    const [rollbackText, setRollbackText] =
+        useState("");
+
+    const [rollbackProgress, setRollbackProgress] =
+        useState(0);
     // ====================================
     // FETCH HISTORY
     // ====================================
@@ -204,6 +214,17 @@ const OrderImportHistory = () => {
                     return;
                 }
 
+                setRollbacking(true);
+                setRollbackProgress(10);
+                setRollbackText(
+                    "Preparing rollback..."
+                );
+
+                setRollbackProgress(30);
+                setRollbackText(
+                    "Removing imported orders..."
+                );
+
                 await rollbackImportedOrders({
 
                     importedOrderIds:
@@ -212,6 +233,11 @@ const OrderImportHistory = () => {
                     sellerId:
                         user.uid,
                 });
+
+                setRollbackProgress(80);
+                setRollbackText(
+                    "Updating import history..."
+                );
 
                 await updateDoc(
                     doc(db, "order_import_history", item.id),
@@ -223,10 +249,17 @@ const OrderImportHistory = () => {
                     }
                 );
 
+                setRollbackProgress(100);
+                setRollbackText(
+                    "Rollback completed"
+                );
+
                 alert(
                     "Import reset successfully"
                 );
-
+                setTimeout(() => {
+                    setRollbacking(false);
+                }, 800);
             } catch (err) {
 
                 console.error(err);
@@ -246,16 +279,16 @@ const OrderImportHistory = () => {
             switch (status) {
 
                 case "completed":
-                    return "bg-green-100 text-green-700";
+                    return "bg-green-500/20 text-green-400";
 
                 case "ready_for_remap":
-                    return "bg-yellow-100 text-yellow-700";
+                    return "bg-yellow-500/20 text-yellow-400";
 
                 case "deleted":
-                    return "bg-red-100 text-red-700";
+                    return "bg-red-500/20 text-red-400";
 
                 default:
-                    return "bg-gray-100 text-gray-700";
+                    return "bg-zinc-800 text-zinc-300";
             }
         };
 
@@ -284,13 +317,13 @@ const OrderImportHistory = () => {
 
             <div className="mb-6">
 
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-white">
 
                     Order Import History
 
                 </h1>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-zinc-400 mt-1">
 
                     Track imported files, reset imports and manage history
 
@@ -298,12 +331,12 @@ const OrderImportHistory = () => {
 
                 <div className="flex items-center gap-2 mt-3">
 
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-300">
                         {history.length} Records
                     </span>
                     {loading && (
 
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 animate-pulse">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-400 animate-pulse">
                             Loading...
                         </span>
                     )}
@@ -372,65 +405,65 @@ const OrderImportHistory = () => {
             TABLE
             ==================================== */}
 
-            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
 
                 <div className="overflow-x-auto">
 
                     <table className="w-full min-w-[1200px]">
 
-                        <thead className="bg-gray-100 border-b border-gray-200">
+                        <thead className="bg-zinc-800 border-b border-zinc-700">
 
                             <tr>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     File Name
 
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     Platform
 
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     Total Rows
 
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     Imported
 
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     Duplicate
 
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     Unmatched
 
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     Uploaded
 
                                 </th>
 
-                                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-200">
 
                                     Status
 
                                 </th>
 
-                                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">
+                                <th className="px-4 py-3 text-center text-sm font-semibold text-zinc-200">
 
                                     Actions
 
@@ -448,7 +481,7 @@ const OrderImportHistory = () => {
 
                                     <td
                                         colSpan="9"
-                                        className="text-center py-10 text-gray-500"
+                                        className="text-center py-10 text-zinc-400"
                                     >
 
                                         Loading history...
@@ -463,7 +496,7 @@ const OrderImportHistory = () => {
 
                                     <td
                                         colSpan="9"
-                                        className="text-center py-10 text-gray-500"
+                                        className="text-center py-10 text-zinc-400"
                                     >
 
                                         No import history found.
@@ -480,7 +513,7 @@ const OrderImportHistory = () => {
 
                                         <tr
                                             key={item.id}
-                                            className="border-b border-gray-100 hover:bg-gray-50"
+                                            className="border-b border-zinc-800 hover:bg-zinc-800/40"
                                         >
 
                                             {/* FILE */}
@@ -489,7 +522,7 @@ const OrderImportHistory = () => {
 
                                                 <div className="flex items-center gap-3">
 
-                                                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+                                                    <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
 
                                                         <FileSpreadsheet size={18} />
 
@@ -497,13 +530,13 @@ const OrderImportHistory = () => {
 
                                                     <div>
 
-                                                        <div className="font-medium text-gray-900">
+                                                        <div className="font-medium text-zinc-200">
 
                                                             {item.fileName || "-"}
 
                                                         </div>
 
-                                                        <div className="text-xs text-gray-500 mt-1">
+                                                        <div className="text-xs text-zinc-400 mt-1">
 
                                                             {item.importType || "-"}
 
@@ -517,7 +550,7 @@ const OrderImportHistory = () => {
 
                                             {/* PLATFORM */}
 
-                                            <td className="px-4 py-4 text-sm text-gray-700">
+                                            <td className="px-4 py-4 text-sm text-zinc-300">
 
                                                 {item.platform || "-"}
 
@@ -525,7 +558,7 @@ const OrderImportHistory = () => {
 
                                             {/* TOTAL */}
 
-                                            <td className="px-4 py-4 text-sm text-gray-700">
+                                            <td className="px-4 py-4 text-sm text-zinc-300">
 
                                                 {item.totalRows || 0}
 
@@ -557,7 +590,7 @@ const OrderImportHistory = () => {
 
                                             {/* DATE */}
 
-                                            <td className="px-4 py-4 text-sm text-gray-700">
+                                            <td className="px-4 py-4 text-sm text-zinc-300">
 
                                                 {item.uploadedAt?.toDate
                                                     ? item.uploadedAt
@@ -602,8 +635,8 @@ const OrderImportHistory = () => {
                                                                 transition
                                                                 ${item.status ===
                                                                 "ready_for_remap"
-                                                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                                : "bg-yellow-100 text-yellow-700 hover:scale-105"
+                                                                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                                                                : "bg-yellow-500/20 text-yellow-400 hover:scale-105"
                                                             }
                                                         `}
                                                     >
@@ -629,8 +662,8 @@ const OrderImportHistory = () => {
         transition
         ${item.status ===
                                                                 "ready_for_remap"
-                                                                ? "bg-blue-100 text-blue-700"
-                                                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                                ? "bg-blue-500/20 text-blue-400"
+                                                                : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
                                                             }
     `}
                                                     >
@@ -642,7 +675,7 @@ const OrderImportHistory = () => {
                                                         onClick={() =>
                                                             handleDelete(item)
                                                         }
-                                                        className="w-9 h-9 rounded-xl bg-red-100 text-red-700 flex items-center justify-center hover:scale-105 transition"
+                                                        className="w-9 h-9 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center hover:scale-105 transition"
                                                     >
 
                                                         <Trash2 size={16} />
@@ -666,6 +699,86 @@ const OrderImportHistory = () => {
 
             </div>
 
+            {rollbacking && (
+
+                <div
+                    className="
+            fixed
+            inset-0
+            z-[9999]
+            bg-black/80
+            backdrop-blur-sm
+            flex
+            items-center
+            justify-center
+        "
+                >
+
+                    <div
+                        className="
+                w-full
+                max-w-lg
+                bg-zinc-900
+                border
+                border-zinc-800
+                rounded-3xl
+                p-8
+            "
+                    >
+
+                        <div className="flex items-center gap-3 mb-6">
+
+                            <Loader2
+                                size={22}
+                                className="animate-spin"
+                            />
+
+                            <div>
+
+                                <div className="text-white font-semibold">
+
+                                    Rolling Back Import
+
+                                </div>
+
+                                <div className="text-zinc-400 text-sm">
+
+                                    Please don't close this page
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div className="text-zinc-300 mb-3">
+
+                            {rollbackText}
+
+                        </div>
+
+                        <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
+
+                            <div
+                                className="h-full bg-yellow-500 transition-all duration-300"
+                                style={{
+                                    width: `${rollbackProgress}%`,
+                                }}
+                            />
+
+                        </div>
+
+                        <div className="text-right text-xs text-zinc-500 mt-2">
+
+                            {rollbackProgress}%
+
+                        </div>
+
+                    </div>
+
+                </div>
+            )}
+
         </div>
     );
 };
@@ -682,24 +795,22 @@ const SummaryCard = ({
 
     return (
 
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
 
             <div className="flex items-center justify-between mb-3">
 
-                <div className="text-sm text-gray-500">
-
+                <div className="text-sm text-zinc-400">
                     {title}
-
                 </div>
 
-                {icon}
+                <div className="text-zinc-500">
+                    {icon}
+                </div>
 
             </div>
 
-            <div className="text-2xl font-bold text-gray-900">
-
+            <div className="text-2xl font-bold text-white">
                 {value || 0}
-
             </div>
 
         </div>

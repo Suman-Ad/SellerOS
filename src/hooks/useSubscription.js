@@ -45,6 +45,7 @@ export default function useSubscription() {
 
     const maxProducts =
         subscription?.limits?.maxProducts || 0;
+    
 
     const usedProducts =
         usage?.products || 0;
