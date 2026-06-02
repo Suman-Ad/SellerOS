@@ -438,11 +438,73 @@ export default function AddProduct() {
 
     const downloadTemplate = () => {
 
-        const csv =
-            `category,subCategory,productName,brand,color,size,qty,buyingPrice,sellingPrice,barcode,lowStockAlert
-Men,Tshirt,Oversized Tee,Zara,Black,M,10,250,599,123456789,5
-Men,Tshirt,Oversized Tee,Zara,Black,L,8,250,599,123456780,5
-Women,Top,Crop Top,H&M,White,S,12,180,499,987654321,3`;
+        const csv = [
+            [
+                "category",
+                "subCategory",
+                "brand",
+                "color",
+                "parentSKU",
+                "size",
+                "qty",
+                "buyingPrice",
+                "marginPercent",
+                "gstPercent",
+                "packaging",
+                "labeling",
+                "rto",
+                "return",
+                "advertisement",
+                "delivery",
+                "others",
+                "barcode",
+                "lowStockAlert",
+            ].join(","),
+
+            [
+                "Men",
+                "Tshirt",
+                "Zara",
+                "Black",
+                "ZARA-TSH-BK-001",
+                "M",
+                "10",
+                "250",
+                "30",
+                "18",
+                "5",
+                "2",
+                "10",
+                "5",
+                "15",
+                "40",
+                "0",
+                "123456789",
+                "5",
+            ].join(","),
+
+            [
+                "Men",
+                "Tshirt",
+                "Zara",
+                "Black",
+                "ZARA-TSH-BK-001",
+                "L",
+                "8",
+                "250",
+                "30",
+                "18",
+                "5",
+                "2",
+                "10",
+                "5",
+                "15",
+                "40",
+                "0",
+                "123456780",
+                "5",
+            ].join(","),
+        ].join("\n");
 
         const blob = new Blob(
             [csv],

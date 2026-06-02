@@ -123,6 +123,39 @@ export default function Checkout() {
 
   const handlePayment = async () => {
 
+    // =========================================
+    // FREE PLAN (₹0) -> Skip Payment Gateway
+    // =========================================
+    if (total <= 0) {
+      try {
+        await activateSubscription({
+          userId: user.uid,
+          plan,
+          billingCycle,
+          paymentInfo: {
+            method: "FREE_PLAN",
+            verified: true,
+            status: "free",
+          },
+        });
+
+        toast.success(
+          "Free plan activated successfully"
+        );
+
+        navigate("/billing-history");
+        return;
+      } catch (error) {
+        console.error(error);
+
+        toast.error(
+          "Failed to activate free plan"
+        );
+
+        return;
+      }
+    }
+
     try {
 
       if (!user?.uid) {
@@ -265,108 +298,6 @@ export default function Checkout() {
               const invoiceId =
                 `INV-${Date.now()}`;
 
-              // await updateDoc(
-              //   doc(
-              //     db,
-              //     "users",
-              //     user.uid
-              //   ),
-              //   {
-
-              //     subscription: {
-
-              //       planId:
-              //         plan.id,
-
-              //       planName:
-              //         plan.name,
-
-              //       status:
-              //         "active",
-
-              //       isActive:
-              //         true,
-
-              //       billingCycle,
-
-              //       subscribedAt:
-              //         serverTimestamp(),
-
-              //       expiresAt:
-              //         Timestamp.fromDate(
-              //           expiryDate
-              //         ),
-
-              //       features:
-              //         plan.features ||
-              //         [],
-
-              //       limits: {
-
-              //         maxProducts:
-              //           plan.maxProducts ||
-              //           0,
-
-              //         maxOrdersPerMonth:
-              //           plan.maxOrdersPerMonth ||
-              //           0,
-
-              //         maxStaffAccounts:
-              //           plan.maxStaffAccounts ||
-              //           0,
-              //       },
-              //     },
-
-              //     updatedAt:
-              //       serverTimestamp(),
-              //   }
-              // );
-
-              // await addDoc(
-              //   collection(
-              //     db,
-              //     "paymentHistory"
-              //   ),
-              //   {
-
-              //     uid:
-              //       user.uid,
-
-              //     planId:
-              //       plan.id,
-
-              //     planName:
-              //       plan.name,
-
-              //     billingCycle,
-
-              //     paymentMethod:
-              //       "Razorpay",
-
-              //     razorpayOrderId:
-              //       razorpayResponse.razorpay_order_id,
-
-              //     razorpayPaymentId:
-              //       razorpayResponse.razorpay_payment_id,
-
-              //     invoiceId,
-
-              //     basePrice,
-
-              //     gst,
-
-              //     total,
-
-              //     verified:
-              //       true,
-
-              //     status:
-              //       "paid",
-
-              //     createdAt:
-              //       serverTimestamp(),
-              //   }
-              // );
 
               await activateSubscription({
 

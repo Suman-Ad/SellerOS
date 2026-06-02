@@ -1,13 +1,17 @@
+import calculateSellingPrice
+    from "@/utils/pricing/calculateSellingPrice";
+
 const generateParentSKU = (
-    row
+    row, productName
 ) => {
 
     const product =
-        `${row.productName
+        `${productName
             ?.substring(0, 3)
-            .toUpperCase()}-${row.subCategory
-                ?.substring(0, 3)
-                .toUpperCase()
+            .toUpperCase()
+        }-${row.subCategory
+            ?.substring(0, 3)
+            .toUpperCase()
         }-${row.color
             ?.substring(0, 2)
             .toUpperCase()
@@ -57,14 +61,24 @@ export const groupInternalProducts = (
 
     const grouped = {};
 
+
     rows.forEach(
         (
             row,
             index
         ) => {
 
+            const productName = [
+                row.brand,
+                row.category,
+                row.subCategory,
+                row.color,
+            ]
+                .filter(Boolean)
+                .join(" ");
+
             const key =
-                `${row.productName}-${row.color}-${row.subCategory}`;
+                `${productName}-${row.color}-${row.subCategory}`;
 
             if (
                 !grouped[key]
@@ -78,8 +92,7 @@ export const groupInternalProducts = (
                     subCategory:
                         row.subCategory,
 
-                    productName:
-                        row.productName,
+                    productName,
 
                     brand:
                         row.brand || "",
@@ -88,9 +101,8 @@ export const groupInternalProducts = (
                         row.color,
 
                     parentSKU:
-                        generateParentSKU(
-                            row
-                        ),
+                        row.parentSKU?.trim()
+                        || generateParentSKU(row, productName),
 
                     variants: {},
                 };
@@ -105,11 +117,7 @@ export const groupInternalProducts = (
                     ?.substring(0, 3)
                     .toUpperCase()}-${row.size}`;
 
-            grouped[
-                key
-            ].variants[
-                row.size
-            ] = {
+            const variant = {
 
                 size: row.size,
 
@@ -207,10 +215,10 @@ export const groupInternalProducts = (
 
                 totalExtraCost: 0,
 
-                sellingPrice:
-                    Number(
-                        row.sellingPrice || 0
-                    ),
+                // sellingPrice:
+                //     Number(
+                //         row.sellingPrice || 0
+                //     ),
 
                 inventoryHistory:
                     [
@@ -282,7 +290,57 @@ export const groupInternalProducts = (
                     },
                 },
             };
+
+            const pricing =
+                calculateSellingPrice(
+                    variant
+                );
+
+            variant.totalExtraCost =
+                pricing.totalExtraCost;
+
+            variant.marginAmount =
+                pricing.marginAmount;
+
+            variant.gstAmount =
+                pricing.gstAmount;
+
+            variant.basePrice =
+                pricing.basePrice;
+
+            variant.estimatedProfit =
+                pricing.estimatedProfit;
+
+            variant.marketplaces = {
+
+                meesho: {
+                    sellingPrice:
+                        pricing.sellingPrice,
+                    mrp:
+                        pricing.sellingPrice,
+                },
+
+                amazon: {
+                    sellingPrice:
+                        pricing.sellingPrice,
+                    mrp:
+                        pricing.sellingPrice,
+                },
+
+                flipkart: {
+                    sellingPrice:
+                        pricing.sellingPrice,
+                    mrp:
+                        pricing.sellingPrice,
+                },
+            };
+
+            grouped[key]
+                .variants[row.size] =
+                variant;
         }
+
+
     );
 
     return Object.values(

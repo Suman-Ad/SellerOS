@@ -123,6 +123,43 @@ const executeOrdersImport = async ({
                     );
 
                 // ====================================
+                // INVENTORY UPDATE
+                // ====================================
+
+                const updatedVariants = {
+                    ...(product?.variants || {}),
+                };
+
+                const currentVariant =
+                    updatedVariants[variantSize] || {};
+
+                const currentQty =
+                    Number(
+                        currentVariant.qty || 0
+                    );
+
+                const currentSoldQty =
+                    Number(
+                        currentVariant.soldQty || 0
+                    );
+
+                const inventoryTransactionRef =
+                    doc(
+                        collection(
+                            db,
+                            "inventoryTransactions"
+                        )
+                    );
+
+                const productRef =
+                    doc(
+                        db,
+                        "products",
+                        product.id
+                    );
+
+
+                // ====================================
                 // PROGRESS
                 // ====================================
 
@@ -315,10 +352,30 @@ const executeOrdersImport = async ({
                         inventoryReduced:
                             true,
 
-                        rawMarketplaceData:
-                            row.rawData ||
+                        inventoryTransactionId:
+                            inventoryTransactionRef.id,
 
-                            {},
+                        inventoryRollbackMeta: {
+
+                            productId:
+                                product.id,
+
+                            variantSize,
+
+                            qty,
+
+                            variantSku:
+                                variant.sku || "",
+
+                            beforeQty:
+                                currentQty,
+
+                            beforeSoldQty:
+                                currentSoldQty,
+                        },
+
+                        rawMarketplaceData:
+                            row.rawData || {},
 
                         // ====================================
                         // SYSTEM
@@ -365,29 +422,6 @@ const executeOrdersImport = async ({
                             null,
                     },
                 });
-                // ====================================
-                // INVENTORY UPDATE
-                // ====================================
-
-                const updatedVariants = {
-
-                    ...product.variants,
-                };
-
-                const currentVariant =
-                    updatedVariants[
-                    variantSize
-                    ];
-
-                const currentQty =
-                    Number(
-                        currentVariant.qty || 0
-                    );
-
-                const currentSoldQty =
-                    Number(
-                        currentVariant.soldQty || 0
-                    );
 
                 updatedVariants[
                     variantSize
@@ -402,12 +436,6 @@ const executeOrdersImport = async ({
                         currentSoldQty + qty,
                 };
 
-                const productRef =
-                    doc(
-                        db,
-                        "products",
-                        product.id
-                    );
 
                 batchRef.current.update(
                     productRef,
@@ -428,14 +456,6 @@ const executeOrdersImport = async ({
                 // INVENTORY TRANSACTION
                 // ====================================
 
-                const inventoryTransactionRef =
-                    doc(
-                        collection(
-                            db,
-                            "inventoryTransactions"
-                        )
-                    );
-
                 batchRef.current.set(
 
                     inventoryTransactionRef,
@@ -450,6 +470,11 @@ const executeOrdersImport = async ({
 
                         source:
                             "marketplace",
+
+                        orderRefId:
+                            orderRef.id,
+
+                        importBatchId,
 
                         platform,
 
@@ -524,7 +549,7 @@ const executeOrdersImport = async ({
             );
         }
 
-        
+
 
         return {
             imported,

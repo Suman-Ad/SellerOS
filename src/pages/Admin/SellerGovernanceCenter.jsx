@@ -102,6 +102,8 @@ import {
 
 } from "@/constants/userLifecycle";
 
+import { incrementStaff } from "@/utils/subscription/SubscriptionUsageTracker";
+
 /* =========================================================
    COMPONENT
 ========================================================= */
@@ -1683,6 +1685,11 @@ function SellerReviewModal({
                 activityDescription:
                   `${seller.fullName} approved`,
               });
+
+              await incrementStaff(
+                seller.id,
+                1
+              );
 
               await onRefresh();
 

@@ -129,14 +129,15 @@ export default function InternalProductImport() {
 
                 setLoading(true);
 
-                await importInternalProducts(
-                    groupedProducts,
-                    user.uid,
-                    userData
-                );
+                const result =
+                    await importInternalProducts(
+                        groupedProducts,
+                        user.uid,
+                        userData
+                    );
 
                 toast.success(
-                    `${groupedProducts.length} products imported`
+                    `${result.productsImported} products, ${result.variantsImported} variants, ${result.qtyImported} units imported`
                 );
 
                 setRows([]);
@@ -165,15 +166,15 @@ export default function InternalProductImport() {
 
         <div className="max-w-7xl mx-auto">
             <button
-                            onClick={() =>
-                                navigate(-1)
-                            }
-                            className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
-                        >
-            
-                            <ArrowLeft size={18} />
-            
-                        </button>
+                onClick={() =>
+                    navigate(-1)
+                }
+                className="w-10 h-10 rounded-xl border border-gray-300 bg-zinc-800 flex items-center justify-center"
+            >
+
+                <ArrowLeft size={18} />
+
+            </button>
 
             <div className="mb-6">
 
@@ -283,43 +284,43 @@ export default function InternalProductImport() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                <div className="bg-zinc-800 rounded-xl p-4">
+                        <div className="bg-zinc-800 rounded-xl p-4">
 
-                    <p className="text-zinc-400 text-sm">
-                        Grouped Products
-                    </p>
+                            <p className="text-zinc-400 text-sm">
+                                Grouped Products
+                            </p>
 
-                    <h2 className="text-2xl font-bold text-white">
-                        {groupedProducts.length}
-                    </h2>
+                            <h2 className="text-2xl font-bold text-white">
+                                {groupedProducts.length}
+                            </h2>
 
-                </div>
+                        </div>
 
-                <div className="bg-zinc-800 rounded-xl p-4">
+                        <div className="bg-zinc-800 rounded-xl p-4">
 
-                    <p className="text-zinc-400 text-sm">
-                        Total Variants
-                    </p>
+                            <p className="text-zinc-400 text-sm">
+                                Total Variants
+                            </p>
 
-                    <h2 className="text-2xl font-bold text-white">
+                            <h2 className="text-2xl font-bold text-white">
 
-                        {groupedProducts.reduce(
-                            (
-                                total,
-                                product
-                            ) =>
-                                total +
-                                Object.keys(
-                                    product.variants
-                                ).length,
-                            0
-                        )}
+                                {groupedProducts.reduce(
+                                    (
+                                        total,
+                                        product
+                                    ) =>
+                                        total +
+                                        Object.keys(
+                                            product.variants
+                                        ).length,
+                                    0
+                                )}
 
-                    </h2>
+                            </h2>
 
-                </div>
+                        </div>
 
-            </div>
+                    </div>
 
 
                     {/* Preview */}
@@ -432,7 +433,7 @@ export default function InternalProductImport() {
 
             </Card>
 
-            
+
         </div>
     );
 }

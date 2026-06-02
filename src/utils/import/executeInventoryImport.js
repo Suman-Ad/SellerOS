@@ -248,7 +248,7 @@ const executeInventoryImport =
 
             await incrementProducts(
                 user.uid,
-                totalQty,
+                products.length,
             );
 
 

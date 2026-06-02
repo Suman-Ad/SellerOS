@@ -12,8 +12,7 @@ import {
     deleteDoc,
     doc,
     updateDoc,
-    getDocs,
-    writeBatch,
+    serverTimestamp,
 } from "firebase/firestore";
 
 import {
@@ -31,6 +30,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 import { db } from "@/firebase/config";
+
+import rollbackImportedOrders
+    from "@/utils/import/rollbackImportedOrders";
 
 
 const OrderImportHistory = () => {
@@ -75,10 +77,10 @@ const OrderImportHistory = () => {
                 user.uid
             ),
 
-            orderBy(
-                "uploadedAt",
-                "desc"
-            )
+            // orderBy(
+            //     "uploadedAt",
+            //     "desc"
+            // )
         );
 
         const unsubscribe =
@@ -141,47 +143,34 @@ const OrderImportHistory = () => {
 
                 const confirmDelete =
                     window.confirm(
-                        "Delete this import and all imported orders?"
+                        "Delete this import and rollback inventory?"
                     );
 
                 if (!confirmDelete) {
-
                     return;
                 }
 
-                // ====================================
-                // FIND IMPORTED ORDERS
-                // ====================================
+                if (
+                    item.status !==
+                    "ready_for_remap"
+                ) {
 
-
-
-                const batch = writeBatch(db);
-
-                for (const orderId of item.importedOrderIds || []) {
-
-                    batch.delete(
-                        doc(db, "orders", orderId)
-                    );
-
+                    await rollbackImportedOrders({
+                        importedOrderIds:
+                            item.importedOrderIds || [],
+                        sellerId:
+                            user.uid,
+                    });
                 }
 
-                batch.delete(
+                await deleteDoc(
+
                     doc(
                         db,
                         "order_import_history",
                         item.id
                     )
                 );
-
-                // batch.update(
-                //     doc(db, "order_import_history", item.id),
-                //     {
-                //         status: "ready_for_remap",
-                //         resetAt: new Date()
-                //     }
-                // );
-
-                await batch.commit();
 
                 alert(
                     "Import deleted successfully"
@@ -208,55 +197,31 @@ const OrderImportHistory = () => {
 
                 const confirmReset =
                     window.confirm(
-                        "Reset this import and allow remapping again?"
+                        "Reset this import and allow re-import?"
                     );
 
                 if (!confirmReset) {
-
                     return;
                 }
 
-                // ====================================
-                // FIND IMPORTED ORDERS
-                // ====================================
+                await rollbackImportedOrders({
 
-                for (const orderId of item.importedOrderIds || []) {
-                    batch.delete(
-                        doc(db, "orders", orderId)
-                    );
-                }
+                    importedOrderIds:
+                        item.importedOrderIds || [],
 
-                const batch =
-                    writeBatch(db);
+                    sellerId:
+                        user.uid,
+                });
 
-                batch.update(
+                await updateDoc(
                     doc(db, "order_import_history", item.id),
                     {
                         status: "ready_for_remap",
-                        resetAt: new Date()
+                        importedOrderIds: [],
+                        importedCount: 0,
+                        resetAt: serverTimestamp(),
                     }
                 );
-
-                // ====================================
-                // UPDATE HISTORY
-                // ====================================
-
-                // batch.update(
-                //     doc(
-                //         db,
-                //         "order_import_history",
-                //         item.id
-                //     ),
-                //     {
-                //         status:
-                //             "reset",
-
-                //         resetAt:
-                //             new Date(),
-                //     }
-                // );
-
-                await batch.commit();
 
                 alert(
                     "Import reset successfully"
@@ -281,19 +246,15 @@ const OrderImportHistory = () => {
             switch (status) {
 
                 case "completed":
-
                     return "bg-green-100 text-green-700";
 
-                case "reset":
-
+                case "ready_for_remap":
                     return "bg-yellow-100 text-yellow-700";
 
                 case "deleted":
-
                     return "bg-red-100 text-red-700";
 
                 default:
-
                     return "bg-gray-100 text-gray-700";
             }
         };
@@ -306,7 +267,7 @@ const OrderImportHistory = () => {
             BACK
             ==================================== */}
 
-            {/* <button
+            <button
                 onClick={() =>
                     navigate(-1)
                 }
@@ -315,7 +276,7 @@ const OrderImportHistory = () => {
 
                 <ArrowLeft size={18} />
 
-            </button> */}
+            </button>
 
             {/* ====================================
             HEADER
@@ -383,8 +344,7 @@ const OrderImportHistory = () => {
                     value={
                         history.filter(
                             item =>
-                                item.status ===
-                                "reset"
+                                item.status === "ready_for_remap"
                         ).length
                     }
                     icon={
@@ -631,13 +591,52 @@ const OrderImportHistory = () => {
 
                                                     <button
                                                         onClick={() =>
+                                                            handleReset(item)
+                                                        }
+                                                        className={`
+                                                                w-9 h-9
+                                                                rounded-xl
+                                                                flex
+                                                                items-center
+                                                                justify-center
+                                                                transition
+                                                                ${item.status ===
+                                                                "ready_for_remap"
+                                                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                                : "bg-yellow-100 text-yellow-700 hover:scale-105"
+                                                            }
+                                                        `}
+                                                    >
+                                                        <RotateCcw size={16} />
+                                                    </button>
+
+
+                                                    <button
+                                                        onClick={() =>
                                                             navigate(
                                                                 `/seller/orders/import?history=${item.id}`
                                                             )
                                                         }
+                                                        disabled={
+                                                            item.status !==
+                                                            "ready_for_remap"
+                                                        }
+                                                        className={`
+        px-3 py-2
+        rounded-xl
+        text-xs
+        font-medium
+        transition
+        ${item.status ===
+                                                                "ready_for_remap"
+                                                                ? "bg-blue-100 text-blue-700"
+                                                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                            }
+    `}
                                                     >
                                                         Re-import
                                                     </button>
+
 
                                                     <button
                                                         onClick={() =>

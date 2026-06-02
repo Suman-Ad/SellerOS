@@ -1,6 +1,6 @@
 // src/pages/seller/Orders/Orders.jsx
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
     collection,
     onSnapshot,
@@ -9,6 +9,9 @@ import {
     where,
     updateDoc,
     doc,
+    serverTimestamp,
+    getDoc,
+    addDoc
 } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 
@@ -48,6 +51,12 @@ const Orders = () => {
     // ============================
 
     useEffect(() => {
+
+        if (!user?.uid) {
+            return;
+        }
+
+
         const q = query(
 
             collection(db, "orders"),
@@ -58,10 +67,10 @@ const Orders = () => {
                 user.uid
             ),
 
-            orderBy(
-                "createdAt",
-                "desc"
-            )
+            // orderBy(
+            //     "createdAt",
+            //     "desc"
+            // )
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -75,7 +84,7 @@ const Orders = () => {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [user?.uid]);
 
     // ============================
     // Status Update
@@ -129,7 +138,7 @@ const Orders = () => {
                 return "bg-red-100 text-red-700";
 
             default:
-                return "bg-gray-100 text-gray-700";
+                return "bg-gray-100 text-zinc-300";
         }
     };
 
@@ -209,11 +218,11 @@ const Orders = () => {
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-white">
                         Orders Management
                     </h1>
 
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-zinc-400 mt-1">
                         Manage marketplace orders and fulfillment
                     </p>
 
@@ -226,8 +235,7 @@ const Orders = () => {
         px-3
         py-1
         rounded-lg
-        bg-zinc-100
-        text-sm
+        bg-zinc-800 text-zinc-300 text-sm
         "
                         >
 
@@ -268,7 +276,7 @@ const Orders = () => {
                         Import Orders
                     </Button>
 
-                    {/* <Button
+                    <Button
                         variant="outline"
                         onClick={() =>
                             navigate(
@@ -277,7 +285,7 @@ const Orders = () => {
                         }
                     >
                         Import History
-                    </Button> */}
+                    </Button>
 
                     <Button
                         variant="outline"
@@ -351,14 +359,14 @@ const Orders = () => {
           Filters
       ==================================== */}
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-4 mb-6">
+            <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 mb-6">
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Search */}
 
                     <div className="relative flex-1">
                         <Search
                             size={18}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"
                         />
 
                         <input
@@ -366,7 +374,7 @@ const Orders = () => {
                             placeholder="Search order, SKU, product..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-white text-gray-900 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-black"
+                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-800 text-white rounded-xl border border-zinc-700"
                         />
                     </div>
 
@@ -375,7 +383,7 @@ const Orders = () => {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2.5 bg-white text-gray-900 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-black"
+                        className="px-4 py-2.5 bg-zinc-800 text-white rounded-xl border border-zinc-700"
                     >
                         <option value="All">All Status</option>
                         <option value="Pending">Pending</option>
@@ -391,11 +399,11 @@ const Orders = () => {
           Orders Table
       ==================================== */}
 
-            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[1200px]">
-                        <thead className="bg-gray-100 border-b border-gray-200">
-                            <tr className="text-left text-sm text-gray-700">
+                        <thead className="bg-zinc-800 border-b border-zinc-700">
+                            <tr className="text-left text-sm text-zinc-400">
                                 <th className="px-4 py-3 font-semibold">Order ID</th>
                                 <th className="px-4 py-3 font-semibold">Marketplace</th>
                                 <th className="px-4 py-3 font-semibold">Product</th>
@@ -416,7 +424,7 @@ const Orders = () => {
                                 <tr>
                                     <td
                                         colSpan="9"
-                                        className="text-center py-10 text-gray-500"
+                                        className="text-center py-10 text-zinc-400"
                                     >
                                         Loading orders...
                                     </td>
@@ -425,7 +433,7 @@ const Orders = () => {
                                 <tr>
                                     <td
                                         colSpan="9"
-                                        className="text-center py-10 text-gray-500"
+                                        className="text-center py-10 text-zinc-400"
                                     >
                                         No orders found
                                     </td>
@@ -443,17 +451,16 @@ const Orders = () => {
                                                     `/seller/orders/${order.id}`
                                                 )
                                             }
-
-                                            className="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer"
+                                            className="border-b border-zinc-800 hover:bg-zinc-800/40 transition cursor-pointer"
                                         >
                                             {/* Order ID */}
 
                                             <td className="px-4 py-4">
-                                                <div className="font-semibold text-gray-900">
+                                                <div className="font-semibold text-white">
                                                     {order.platformOrderId || "-"}
                                                 </div>
 
-                                                <div className="text-xs text-gray-500 mt-1">
+                                                <div className="text-xs text-zinc-400 mt-1">
                                                     {order.createdAt?.toDate
                                                         ? order.createdAt
                                                             .toDate()
@@ -484,11 +491,11 @@ const Orders = () => {
                                                     />
 
                                                     <div>
-                                                        <div className="font-medium text-sm text-gray-900 line-clamp-1">
+                                                        <div className="font-medium text-sm text-white line-clamp-1">
                                                             {order.productName || "-"}
                                                         </div>
 
-                                                        <div className="text-xs text-gray-500 mt-1">
+                                                        <div className="text-xs text-zinc-500 mt-1">
                                                             {order.variantSize || "-"}
                                                         </div>
                                                     </div>
@@ -497,25 +504,25 @@ const Orders = () => {
 
                                             {/* SKU */}
 
-                                            <td className="px-4 py-4 text-gray-700 text-sm">
+                                            <td className="px-4 py-4 text-zinc-300 text-sm">
                                                 {order.variantSku || "-"}
                                             </td>
 
                                             {/* Qty */}
 
-                                            <td className="px-4 py-4 text-gray-700 text-sm">
+                                            <td className="px-4 py-4 text-zinc-300 text-sm">
                                                 {order.qty || 0}
                                             </td>
 
                                             {/* Selling */}
 
-                                            <td className="px-4 py-4 text-gray-700 text-sm font-semibold">
+                                            <td className="px-4 py-4 text-zinc-300 text-sm font-semibold">
                                                 ₹{order.sellingPrice || 0}
                                             </td>
 
                                             {/* Settlement */}
 
-                                            <td className="px-4 py-4 text-gray-700 text-sm font-semibold">
+                                            <td className="px-4 py-4 text-zinc-300 text-sm font-semibold">
                                                 ₹{order.totalSelling || 0}
                                             </td>
 
@@ -546,7 +553,7 @@ const Orders = () => {
                                                                 e.target.value
                                                             )
                                                         }
-                                                        className="px-3 py-2 bg-white text-gray-900 rounded-xl border border-gray-300 text-sm outline-none"
+                                                        className="px-3 py-2 bg-zinc-800 text-white rounded-xl border border-zinc-700"
                                                     >
                                                         <option value="Pending">Pending</option>
                                                         <option value="Packed">Packed</option>
@@ -573,7 +580,7 @@ const Orders = () => {
                                                         onChange={(e) =>
                                                             togglePacked(order.id, e.target.checked)
                                                         }
-                                                        className="w-4 h-4  bg-white text-gray-900 cursor-pointer"
+                                                        className="w-4 h-4  bg-white text-white cursor-pointer"
                                                     />
                                                 </label>
                                             </td>
@@ -595,16 +602,18 @@ const Orders = () => {
 
 const SummaryCard = ({ title, value, icon }) => {
     return (
-        <div className="bg-white border border-gray-200 rounded-2xl p-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
-                <div className="text-gray-500 text-sm font-medium">
+                <div className="text-zinc-400 text-sm font-medium">
                     {title}
                 </div>
 
-                <div className="text-gray-700">{icon}</div>
+                <div className="text-zinc-500">
+                    {icon}
+                </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-white">
                 {value}
             </h2>
         </div>
@@ -617,16 +626,16 @@ const SummaryCard = ({ title, value, icon }) => {
 
 const MarketplaceBadge = ({ marketplace }) => {
     const colors = {
-        Meesho: "bg-pink-100 text-pink-700",
-        Amazon: "bg-yellow-100 text-yellow-700",
-        Flipkart: "bg-blue-100 text-blue-700",
-        Shopify: "bg-green-100 text-green-700",
+        Meesho: "bg-pink-500/20 text-pink-400",
+        Amazon: "bg-yellow-500/20 text-yellow-400",
+        Flipkart: "bg-blue-500/20 text-blue-400",
+        Shopify: "bg-green-500/20 text-green-400",
     };
 
     return (
         <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${colors[marketplace] ||
-                "bg-gray-100 text-gray-700"
+                "bg-gray-100 text-zinc-300"
                 }`}
         >
             {marketplace || "Unknown"}

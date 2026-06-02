@@ -1,3 +1,95 @@
+// import {
+//     collection,
+//     addDoc,
+//     serverTimestamp,
+// } from "firebase/firestore";
+
+// import { db }
+//     from "@/firebase/config";
+// import logActivity
+//     from "@/utils/activity/logActivity";
+
+// export const importInternalProducts =
+//     async (
+//         products,
+//         sellerId,
+//         userData,
+//     ) => {
+
+//         for (
+//             const product of products
+//         ) {
+
+//             await addDoc(
+//                 collection(
+//                     db,
+//                     "products"
+//                 ),
+//                 {
+
+//                     sellerId,
+
+//                     category:
+//                         product.category,
+
+//                     subCategory:
+//                         product.subCategory,
+
+//                     productName:
+//                         product.productName,
+
+//                     brand:
+//                         product.brand,
+
+//                     color:
+//                         product.color,
+
+//                     parentSKU:
+//                         product.parentSKU,
+
+//                     variants:
+//                         product.variants,
+
+//                     status:
+//                         "active",
+
+//                     createdAt:
+//                         serverTimestamp(),
+//                 }
+//             );
+
+//             // ========================================
+//             // Activity Log
+//             // ========================================
+
+//             await logActivity({
+
+//                 uid: sellerId,
+
+//                 type: "bulk_product_import",
+
+//                 title:
+//                     "Internal Bulk Product Imported",
+
+//                 description:
+//                     `Shop Name:- ${userData.businessName} imported ${products.length} products into SellerOS successfully. DB Ref:- ${product.id}`,
+
+//                 meta: {
+//                     role:
+//                         userData.role,
+//                     fullName:
+//                         userData.fullName,
+//                     businessName:
+//                         userData.businessName ||
+//                         null,
+//                     subscriptionPlan:
+//                         userData.subscription.planName ||
+//                         null,
+//                 },
+//             });
+//         }
+//     };
+
 import {
     collection,
     addDoc,
@@ -6,8 +98,13 @@ import {
 
 import { db }
     from "@/firebase/config";
+
 import logActivity
     from "@/utils/activity/logActivity";
+
+import {
+    incrementProducts,
+} from "@/utils/subscription/SubscriptionUsageTracker";
 
 export const importInternalProducts =
     async (
@@ -16,76 +113,151 @@ export const importInternalProducts =
         userData,
     ) => {
 
-        for (
-            const product of products
-        ) {
+        let productsImported = 0;
+        let variantsImported = 0;
+        let qtyImported = 0;
 
-            await addDoc(
-                collection(
-                    db,
-                    "products"
-                ),
-                {
+        const docIds = [];
 
-                    sellerId,
+        for (const product of products) {
 
-                    category:
-                        product.category,
+            const docRef =
+                await addDoc(
+                    collection(
+                        db,
+                        "products"
+                    ),
+                    {
+                        sellerId,
 
-                    subCategory:
-                        product.subCategory,
+                        category:
+                            product.category,
 
-                    productName:
-                        product.productName,
+                        subCategory:
+                            product.subCategory,
 
-                    brand:
-                        product.brand,
+                        productName:
+                            product.productName,
 
-                    color:
-                        product.color,
+                        brand:
+                            product.brand,
 
-                    parentSKU:
-                        product.parentSKU,
+                        color:
+                            product.color,
 
-                    variants:
-                        product.variants,
+                        parentSKU:
+                            product.parentSKU,
 
-                    status:
-                        "active",
+                        variants:
+                            product.variants,
 
-                    createdAt:
-                        serverTimestamp(),
-                }
+                        status:
+                            "active",
+
+                        createdAt:
+                            serverTimestamp(),
+                    }
+                );
+
+            docIds.push(
+                docRef.id
             );
 
-            // ========================================
-            // Activity Log
-            // ========================================
+            productsImported++;
 
-            await logActivity({
+            const variants =
+                Object.values(
+                    product.variants
+                );
 
-                uid: sellerId,
+            variantsImported +=
+                variants.length;
 
-                type: "bulk_product_import",
-
-                title:
-                    "Internal Bulk Product Imported",
-
-                description:
-                    `Shop Name:- ${userData.businessName} imported ${products.length} products into SellerOS successfully. DB Ref:- ${product.id}`,
-
-                meta: {
-                    role:
-                        userData.role,
-                    fullName:
-                        userData.fullName,
-                    businessName:
-                        userData.businessName ||
-                        null,
-                    subscriptionPlan:
-                        userData.subscription.planName ||
-                        null,
-                },
-            });
+            qtyImported +=
+                variants.reduce(
+                    (
+                        total,
+                        variant
+                    ) =>
+                        total +
+                        Number(
+                            variant.qty || 0
+                        ),
+                    0
+                );
         }
+
+        await incrementProducts(
+            sellerId,
+            qtyImported
+        );
+
+        await addDoc(
+            collection(
+                db,
+                "product_import_history"
+            ),
+            {
+                sellerId,
+
+                productsImported,
+
+                variantsImported,
+
+                qtyImported,
+
+                importedProductIds:
+                    docIds,
+
+                uploadedAt:
+                    serverTimestamp(),
+            }
+        );
+
+        await logActivity({
+
+            uid: sellerId,
+
+            type:
+                "bulk_product_import",
+
+            title:
+                "Internal Bulk Product Imported",
+
+            description:
+                `Shop Name:- ${
+                    userData?.organizationName ||
+                    "N/A"
+                } imported ${qtyImported} units across ${variantsImported} variants and ${productsImported} products into SellerOS successfully.`,
+
+            meta: {
+
+                role:
+                    userData?.access
+                        ?.role,
+
+                fullName:
+                    userData?.fullName,
+
+                organizationName:
+                    userData?.organizationName ||
+                    null,
+
+                subscriptionPlan:
+                    userData?.subscription
+                        ?.planName ||
+                    null,
+            },
+        });
+
+        return {
+
+            productsImported,
+
+            variantsImported,
+
+            qtyImported,
+
+            docIds,
+        };
     };

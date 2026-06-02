@@ -40,6 +40,10 @@ import {
 
 import { toast } from "sonner";
 
+import {
+  decrementProducts
+} from "@/utils/subscription/SubscriptionUsageTracker";
+
 export default function ProductList() {
 
   const navigate = useNavigate();
@@ -111,11 +115,14 @@ export default function ProductList() {
           )
         );
 
+        await decrementProducts(
+          user.uid,
+          1
+        );
+
         toast.success(
           "Product deleted"
         );
-
-        // fetchProducts();
 
       } catch (error) {
 

@@ -116,7 +116,10 @@ export default function UpgradePlan() {
     }
 
     toast.success(
-      `${selectedPlan.name} selected`
+      selectedPlan.priceMonthly === 0 &&
+        selectedPlan.priceYearly === 0
+        ? `${selectedPlan.name} selected (Free Plan)`
+        : `${selectedPlan.name} selected`
     );
 
     // Later:
@@ -181,11 +184,10 @@ export default function UpgradePlan() {
               }
               className={`
                 px-6 py-3 rounded-xl text-sm font-semibold transition
-                ${
-                  billingCycle ===
+                ${billingCycle ===
                   "monthly"
-                    ? "bg-violet-600 text-white"
-                    : "text-zinc-400"
+                  ? "bg-violet-600 text-white"
+                  : "text-zinc-400"
                 }
               `}
             >
@@ -202,11 +204,10 @@ export default function UpgradePlan() {
               }
               className={`
                 px-6 py-3 rounded-xl text-sm font-semibold transition
-                ${
-                  billingCycle ===
+                ${billingCycle ===
                   "yearly"
-                    ? "bg-violet-600 text-white"
-                    : "text-zinc-400"
+                  ? "bg-violet-600 text-white"
+                  : "text-zinc-400"
                 }
               `}
             >
@@ -240,7 +241,7 @@ export default function UpgradePlan() {
 
               const price =
                 billingCycle ===
-                "monthly"
+                  "monthly"
                   ? plan.priceMonthly
                   : plan.priceYearly;
 
@@ -255,10 +256,9 @@ export default function UpgradePlan() {
                     transition-all
                     duration-300
                     cursor-pointer
-                    ${
-                      selected
-                        ? "border-violet-500 bg-violet-500/10"
-                        : "border-zinc-800 bg-zinc-900"
+                    ${selected
+                      ? "border-violet-500 bg-violet-500/10"
+                      : "border-zinc-800 bg-zinc-900"
                     }
                   `}
                   onClick={() =>
@@ -319,7 +319,7 @@ export default function UpgradePlan() {
 
                           /
                           {billingCycle ===
-                          "monthly"
+                            "monthly"
                             ? "month"
                             : "year"}
 
@@ -452,10 +452,9 @@ export default function UpgradePlan() {
                         h-12
                         rounded-xl
                         font-semibold
-                        ${
-                          selected
-                            ? "bg-violet-600 hover:bg-violet-700"
-                            : ""
+                        ${selected
+                          ? "bg-violet-600 hover:bg-violet-700"
+                          : ""
                         }
                       `}
                     >

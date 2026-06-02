@@ -1,6 +1,7 @@
 import React, {
     useRef,
     useState,
+    useEffect,
 } from "react";
 
 import {
@@ -29,7 +30,11 @@ import {
     addDoc,
     collection,
     serverTimestamp,
+    getDoc,
+    doc,
+    query,
 } from "firebase/firestore";
+
 
 import { db } from "@/firebase/config";
 
@@ -187,24 +192,59 @@ const OrderImport = () => {
         ).get("history");
 
 
-    //         const historyDoc =
-    //  await getDoc(
-    //    doc(
-    //      db,
-    //      "order_import_history",
-    //      historyId
-    //    )
-    //  );
+    const loadHistory = async () => {
 
-    // const data = historyDoc.data();
+        try {
 
-    // setFieldMapping(
-    //  data.fieldMapping || {}
-    // );
+            const historyDoc =
+                await getDoc(
+                    doc(
+                        db,
+                        "order_import_history",
+                        historyId
+                    )
+                );
 
-    // setParsedRows(
-    //  data.parsedRows || []
-    // );
+            if (
+                !historyDoc.exists()
+            ) {
+
+                return;
+            }
+
+            const data =
+                historyDoc.data();
+
+            setFieldMapping(
+                data.fieldMapping || {}
+            );
+
+            setPlatform(
+                data.platform ||
+                "meesho"
+            );
+
+            setImportType(
+                data.importType ||
+                "orders"
+            );
+
+            setFileName(
+                data.fileName || ""
+            );
+
+            setParsedRows(data.parsedRows || []);
+            setReadyToImport(data.readyToImport || []);
+            setCsvHeaders(data.csvHeaders || []);
+            setPreviewReady(true);
+
+            setShowMapping(true);
+
+        } catch (err) {
+
+            console.error(err);
+        }
+    };
 
     // setShowMapping(true);
     useEffect(() => {
@@ -236,6 +276,12 @@ const OrderImport = () => {
                 if (!file) return;
 
                 setUploadedFile(file);
+
+                setPreviewReady(false);
+
+                setImportResult(null);
+
+                setReadyToImport([]);
 
                 setLoading(true);
 
@@ -597,6 +643,8 @@ const OrderImport = () => {
     const handleConfirmImport =
         async () => {
 
+            const startTime = Date.now();
+
             if (!canCreateOrder) {
 
                 alert(
@@ -620,10 +668,10 @@ const OrderImport = () => {
 
                 setImporting(true);
 
-                setProgress(0);
+                setProgress(5);
 
                 setProgressText(
-                    "Starting import..."
+                    "Preparing import..."
                 );
 
                 const executeOrdersImport =
@@ -636,6 +684,11 @@ const OrderImport = () => {
                 // ====================================
                 // REVALIDATE MATCHING
                 // ====================================
+
+                setProgress(15);
+                setProgressText(
+                    "Matching products..."
+                );
 
                 const reMatched =
                     await matchProductVariants({
@@ -652,6 +705,11 @@ const OrderImport = () => {
                 // RECHECK DUPLICATES
                 // ====================================
 
+                setProgress(35);
+                setProgressText(
+                    "Checking duplicate orders..."
+                );
+
                 const duplicateCheck =
                     await checkDuplicateOrders({
 
@@ -666,6 +724,11 @@ const OrderImport = () => {
 
                 const importBatchId =
                     `IMPORT_${Date.now()}`;
+
+                setProgress(50);
+                setProgressText(
+                    `Importing ${finalOrders.length} orders...`
+                );
 
                 const result =
                     await executeOrdersImport({
@@ -702,16 +765,25 @@ const OrderImport = () => {
                     result
                 );
 
+                setProgress(90);
+                setProgressText(
+                    "Saving import history..."
+                );
                 // ====================================
                 // SAVE IMPORT HISTORY
                 // ====================================
 
                 await addDoc(
-                    collection(db, "order_import_history"),
+                    collection(
+                        db,
+                        "order_import_history"
+                    ),
                     {
+
                         importBatchId,
 
-                        sellerId: user.uid,
+                        sellerId:
+                            user.uid,
 
                         fileName,
 
@@ -719,26 +791,57 @@ const OrderImport = () => {
 
                         importType,
 
+                        // parsedRows,
+                        // readyToImport,
+                        csvHeaders,
                         fieldMapping,
 
-                        parsedRows,
+                        importedOrderIds:
+                            result.orderIds || [],
 
-                        importedOrderIds: result.orderIds,
+                        totalRows:
+                            parsedRows.length,
 
-                        status: "completed",
+                        importedCount:
+                            result.imported || 0,
 
-                        uploadedAt: serverTimestamp()
+                        failedCount:
+                            result.failed || 0,
+
+                        duplicateCount:
+                            duplicateRows.length,
+
+                        unmatchedCount:
+                            unmatchedRows.length,
+
+                        status:
+                            "completed",
+
+                        uploadedAt:
+                            serverTimestamp(),
                     }
                 );
 
-                setPreviewReady(false);
-
-                setImporting(false);
 
                 alert(
                     "Orders imported successfully"
                 );
 
+                const duration =
+                    Math.round(
+                        (Date.now() - startTime) / 1000
+                    );
+
+                setProgressText(
+                    `Import completed in ${duration}s`
+                );
+                setProgress(100);
+                setProgressText(
+                    "Import completed successfully"
+                );
+                setPreviewReady(false);
+
+                setImporting(false);
             } catch (err) {
 
                 console.error(err);
@@ -770,7 +873,9 @@ const OrderImport = () => {
     // ====================================
     // RENDER
     // ====================================
-
+    const canImport =
+        readyToImport.length > 0 &&
+        Object.keys(fieldMapping).length > 0;
 
 
     return (
@@ -796,6 +901,35 @@ const OrderImport = () => {
                 <h1 className="text-2xl font-bold text-gray-900">
 
                     Order Import
+
+                    {historyId && (
+
+                        <div
+                            className="
+            mt-4
+            p-4
+            rounded-xl
+            bg-yellow-50
+            border
+            border-yellow-200
+        "
+                        >
+
+                            <div className="font-medium">
+
+                                Re-import Mode
+
+                            </div>
+
+                            <div className="text-sm text-gray-600 mt-1">
+
+                                Previous field mapping loaded.
+                                Upload the same file again to continue.
+
+                            </div>
+
+                        </div>
+                    )}
 
                 </h1>
 
@@ -827,7 +961,7 @@ const OrderImport = () => {
 
                 </div>
 
-                <OrderImportHistory />
+                {/* <OrderImportHistory /> */}
 
 
             </div>
@@ -1010,11 +1144,15 @@ const OrderImport = () => {
                             className="animate-spin"
                         />
 
-                        <span className="text-sm font-medium text-gray-900">
+                        <div>
+                            <div className="text-sm font-medium text-gray-900">
+                                {progressText}
+                            </div>
 
-                            {progressText}
-
-                        </span>
+                            <div className="text-xs text-gray-500 mt-1">
+                                {progress}% Complete
+                            </div>
+                        </div>
 
                     </div>
 
@@ -1065,7 +1203,7 @@ const OrderImport = () => {
 
                             disabled={
                                 importing ||
-                                !readyToImport.length
+                                !canImport
                             }
 
                             className="px-5 py-2.5 rounded-xl bg-black text-white font-medium disabled:opacity-50"
@@ -1198,7 +1336,7 @@ const OrderImport = () => {
                                     </option>
 
 
-                                    <option value="productID">
+                                    <option value="productId">
 
                                         Product ID
 
